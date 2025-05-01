@@ -32,10 +32,6 @@ args = "DB Migrate"
 task = "workflow.run"
 args = "DB Seed"
 
-[[workflows.workflow.tasks]]
-task = "workflow.run"
-args = "Admin Onboard"
-
 [[workflows.workflow]]
 name = "Server"
 author = "agent"
@@ -76,14 +72,6 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "ts-node -r dotenv/config scripts/seed-clean.ts"
-
-[[workflows.workflow]]
-name = "Admin Onboard"
-author = "agent"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "ts-node -r dotenv/config scripts/admin-onboard.ts"
 
 [deployment]
 run = ["sh", "-c", "cd server && npm install && NODE_ENV=development PORT=5000 node index.js"]
