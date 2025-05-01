@@ -16,8 +16,27 @@ import { colors, typography, commonStyles } from '../styles/theme';
 import QuizComponent from '../components/QuizComponent';
 import { ArrowLeft, CheckCircle, AlertCircle } from 'react-feather';
 
-const QuizPage = ({ params }: { params: { lessonId: string } }) => {
-  const { lessonId } = params;
+const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
+  const lessonId = params?.lessonId;
+  
+  if (!lessonId) {
+    const [, setLocation] = useLocation();
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            Missing lesson ID. Please return to your active lesson.
+          </Text>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => setLocation('/lesson')}
+          >
+            <Text style={styles.backButtonText}>Go Back to Lesson</Text>
+          </TouchableOpacity>
+        </View>
+      </SafeAreaView>
+    );
+  }
   const [, setLocation] = useLocation();
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
@@ -28,14 +47,14 @@ const QuizPage = ({ params }: { params: { lessonId: string } }) => {
     newAchievements: any[];
   } | null>(null);
 
-  // Fetch active lesson
+  // Fetch the specific lesson
   const {
     data: lesson,
     error,
     isLoading,
   } = useQuery({
-    queryKey: ['/api/lessons/active'],
-    queryFn: () => apiRequest('GET', '/api/lessons/active').then(res => res.data),
+    queryKey: [`/api/lessons/${lessonId}`],
+    queryFn: () => apiRequest('GET', `/api/lessons/${lessonId}`).then(res => res.data),
     retry: 1,
   });
 

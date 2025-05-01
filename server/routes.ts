@@ -162,6 +162,31 @@ export function registerRoutes(app: Express): Server {
     }
   }));
   
+  // Get a specific lesson by ID
+  app.get("/api/lessons/:lessonId", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    const lessonId = req.params.lessonId;
+    const lesson = await storage.getLessonById(lessonId);
+    
+    if (!lesson) {
+      return res.status(404).json({ error: "Lesson not found" });
+    }
+    
+    // Check user's permission to access this lesson
+    if (
+      req.user.role === "ADMIN" ||
+      req.user.id === lesson.learnerId ||
+      (req.user.role === "PARENT" && (await storage.getUsersByParentId(req.user.id)).some(u => u.id === lesson.learnerId))
+    ) {
+      return res.json(lesson);
+    }
+    
+    return res.status(403).json({ error: "Forbidden" });
+  }));
+  
   // Get lesson history
   app.get("/api/lessons", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
     if (!req.user) {
@@ -192,7 +217,7 @@ export function registerRoutes(app: Express): Server {
   }));
   
   // Submit answer to a quiz question
-  app.post("/api/lessons/:lessonId/answer", hasRole(["LEARNER"]), asyncHandler(async (req: AuthRequest, res) => {
+  app.post("/api/lessons/:lessonId/answer", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
     if (!req.user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
@@ -251,15 +276,20 @@ export function registerRoutes(app: Express): Server {
     }
     
     // Generate a new lesson
-    const learnerProfile = await storage.getLearnerProfile(req.user.id);
-    if (learnerProfile) {
-      const lessonSpec = await generateLesson(learnerProfile.gradeLevel);
-      await storage.createLesson({
-        learnerId: req.user.id,
-        moduleId: `generated-${Date.now()}`,
-        status: "ACTIVE",
-        spec: lessonSpec,
-      });
+    try {
+      const learnerProfile = await storage.getLearnerProfile(req.user.id);
+      if (learnerProfile) {
+        const lessonSpec = await generateLesson(learnerProfile.gradeLevel);
+        await storage.createLesson({
+          learnerId: req.user.id,
+          moduleId: `generated-${Date.now()}`,
+          status: "ACTIVE",
+          spec: lessonSpec,
+        });
+      }
+    } catch (error) {
+      console.error("Failed to generate a new lesson after quiz completion:", error);
+      // Don't fail the request if new lesson generation fails
     }
     
     res.json({
