@@ -51,7 +51,7 @@ export function registerRoutes(app: Express): Server {
     res.json(learners);
   }));
   
-  // Get learner profile
+  // Get learner profile (create if needed)
   app.get("/api/learner-profile/:userId", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
     const userId = parseInt(req.params.userId);
     
@@ -61,41 +61,54 @@ export function registerRoutes(app: Express): Server {
       (req.user?.role === "PARENT" && (await storage.getUsersByParentId(req.user.id)).some(u => u.id === userId)) ||
       (req.user?.id === userId)
     ) {
-      const profile = await storage.getLearnerProfile(userId);
-      if (!profile) {
-        return res.status(404).json({ error: "Learner profile not found" });
+      try {
+        // Get existing profile or create a new one
+        let profile = await storage.getLearnerProfile(userId);
+        
+        // If no profile exists and it's the current user, create one
+        if (!profile && req.user?.id === userId) {
+          console.log(`Creating learner profile for user ${userId}`);
+          // Create a default profile with grade level 5
+          profile = await storage.createLearnerProfile({
+            userId,
+            gradeLevel: 5,  // Default to grade 5
+            graph: { nodes: [], edges: [] },
+          });
+        } else if (!profile) {
+          return res.status(404).json({ error: "Learner profile not found" });
+        }
+        
+        return res.json(profile);
+      } catch (error) {
+        console.error('Error getting or creating learner profile:', error);
+        return res.status(500).json({ error: "Failed to get or create learner profile" });
       }
-      return res.json(profile);
     }
     
     return res.status(403).json({ error: "Forbidden" });
   }));
   
   // Get active lesson for learner
-  app.get("/api/lessons/active", hasRole(["LEARNER"]), asyncHandler(async (req: AuthRequest, res) => {
+  app.get("/api/lessons/active", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
     if (!req.user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
     
-    let activeLesson = await storage.getActiveLesson(req.user.id);
-    
-    // If no active lesson, generate a new one
-    if (!activeLesson) {
-      const learnerProfile = await storage.getLearnerProfile(req.user.id);
-      if (!learnerProfile) {
-        return res.status(404).json({ error: "Learner profile not found" });
+    try {
+      // Allow any user to fetch active lesson in learner mode
+      let activeLesson = await storage.getActiveLesson(req.user.id);
+      
+      // Just return the active lesson if found without auto-generating
+      if (activeLesson) {
+        return res.json(activeLesson);
       }
       
-      const lessonSpec = await generateLesson(learnerProfile.gradeLevel);
-      activeLesson = await storage.createLesson({
-        learnerId: req.user.id,
-        moduleId: `generated-${Date.now()}`,
-        status: "ACTIVE",
-        spec: lessonSpec,
-      });
+      // If no active lesson, don't auto-generate (handle on frontend)
+      return res.json(null);
+    } catch (error) {
+      console.error('Error fetching active lesson:', error);
+      return res.status(500).json({ error: "Failed to fetch active lesson" });
     }
-    
-    res.json(activeLesson);
   }));
   
   // Create a custom lesson for a learner
@@ -104,10 +117,10 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).json({ error: "Unauthorized" });
     }
     
-    const { topic, gradeLevel, learnerId } = req.body;
+    const { topic = '', gradeLevel, learnerId } = req.body;
     
-    if (!topic || !gradeLevel || !learnerId) {
-      return res.status(400).json({ error: "Missing required fields: topic, gradeLevel, learnerId" });
+    if (!gradeLevel || !learnerId) {
+      return res.status(400).json({ error: "Missing required fields: gradeLevel, learnerId" });
     }
     
     // Validate user permissions

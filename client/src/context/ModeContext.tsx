@@ -56,36 +56,42 @@ export const ModeProvider: React.FC<{ children: React.ReactNode }> = ({ children
   
   // Determine if user can toggle modes
   const canToggleMode = (): boolean => {
+    // For development, allow toggling even without a user
+    const isDev = true; // process.env.NODE_ENV === 'development';
+    if (isDev) return true;
+    
     if (!user) return false;
     
-    // Only parent users can toggle to LEARNER mode
-    if (user.role === 'PARENT') return true;
-    
-    // Learners can toggle to GROWN_UP if they have the parent permission
-    // (We'd need to add this flag to the user profile schema)
-    if (user.role === 'LEARNER') {
-      return true; // For now, allow all learners to toggle
-    }
-    
-    return false;
+    // Allow all roles to toggle in this version
+    return true;
   };
   
   const toggleMode = () => {
-    if (!canToggleMode()) return;
+    // Add debug messages
+    console.log('Toggle mode called', { mode, canToggle: canToggleMode() });
+    
+    if (!canToggleMode()) {
+      console.log('Cannot toggle mode');
+      return;
+    }
     
     const newMode = mode === 'LEARNER' ? 'GROWN_UP' : 'LEARNER';
+    console.log('Setting new mode', { newMode });
     
     // Store the preference if in browser
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('preferredMode', newMode);
+      console.log('Stored mode in localStorage');
     }
     
     setMode(newMode);
     
     // Navigate to the appropriate dashboard
     if (newMode === 'LEARNER') {
+      console.log('Navigating to learner view');
       navigate('/learner');
     } else {
+      console.log('Navigating to dashboard');
       navigate('/dashboard');
     }
   };
