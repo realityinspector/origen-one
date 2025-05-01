@@ -1,11 +1,11 @@
-import { createContext, ReactNode, useContext } from "react";
+import React, { createContext, ReactNode, useContext, useEffect } from "react";
 import {
   useQuery,
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
 import type { User as SelectUser, InsertUser } from "../../../shared/schema";
-import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
+import { getQueryFn, apiRequest, queryClient, setAuthToken, initializeAuthFromStorage } from "../lib/queryClient";
 import { useToast } from "./use-toast";
 
 type AuthContextType = {
@@ -37,6 +37,15 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   
+  // Initialize auth from storage when the app loads
+  useEffect(() => {
+    const init = async () => {
+      await initializeAuthFromStorage();
+      // After initializing the token, the user query below will automatically run
+    };
+    init();
+  }, []);
+  
   const {
     data: user,
     error,
@@ -56,8 +65,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiRequest("POST", "/api/login", credentials);
       return res.data as LoginResponse;
     },
-    onSuccess: (response: LoginResponse) => {
+    onSuccess: async (response: LoginResponse) => {
+      // Store the token in AsyncStorage and set it in axios headers
+      await setAuthToken(response.token);
+      
+      // Update the user data in the query cache
       queryClient.setQueryData(["/api/user"], response.user);
+      
       toast({
         title: "Login successful",
         description: `Welcome back, ${response.user.name}!`,
@@ -83,7 +97,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const res = await apiRequest("POST", "/api/register", userData);
       return res.data as RegisterResponse;
     },
-    onSuccess: (response: RegisterResponse) => {
+    onSuccess: async (response: RegisterResponse) => {
+      // Store the token in AsyncStorage and set it in axios headers
+      await setAuthToken(response.token);
+      
+      // Update the user data in the query cache
       queryClient.setQueryData(["/api/user"], response.user);
       
       // Check if user was automatically promoted to admin
@@ -112,8 +130,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     mutationFn: async () => {
       await apiRequest("POST", "/api/logout");
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      // Clear the auth token
+      await setAuthToken(null);
+      
+      // Clear the user data from the query cache
       queryClient.setQueryData(["/api/user"], null);
+      
       toast({
         title: "Logged out",
         description: "You have been logged out successfully.",
