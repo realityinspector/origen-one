@@ -7,103 +7,88 @@ import {
   ScrollView,
   ActivityIndicator,
   SafeAreaView,
-  Alert,
+  FlatList,
 } from 'react-native';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { apiRequest, queryClient } from '../lib/queryClient';
 import { colors, typography, commonStyles } from '../styles/theme';
-import { ArrowLeft, CheckCircle, XCircle, Award } from 'react-feather';
 import QuizComponent from '../components/QuizComponent';
+import { ArrowLeft, CheckCircle, AlertCircle } from 'react-feather';
 
-const QuizPage = ({ route, navigation }: any) => {
-  const { lessonId } = route.params;
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+const QuizPage = ({ params }: { params: { lessonId: string } }) => {
+  const { lessonId } = params;
+  const [, setLocation] = useLocation();
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
-  const [quizCompleted, setQuizCompleted] = useState(false);
-  const [quizResults, setQuizResults] = useState<any>(null);
+  const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [quizScore, setQuizScore] = useState<{
+    score: number;
+    correctCount: number;
+    totalQuestions: number;
+    newAchievements: any[];
+  } | null>(null);
 
-  // Fetch the active lesson for quiz
+  // Fetch active lesson
   const {
     data: lesson,
-    error: lessonError,
-    isLoading: lessonLoading,
+    error,
+    isLoading,
   } = useQuery({
     queryKey: ['/api/lessons/active'],
     queryFn: () => apiRequest('GET', '/api/lessons/active').then(res => res.data),
+    retry: 1,
   });
 
-  // Mutation for submitting quiz answers
-  const submitQuizMutation = useMutation({
-    mutationFn: (answers: number[]) =>
-      apiRequest('POST', `/api/lessons/${lessonId}/answer`, { answers })
-        .then(res => res.data),
+  // Submit answers mutation
+  const submitAnswersMutation = useMutation({
+    mutationFn: (answers: number[]) => {
+      return apiRequest('POST', `/api/lessons/${lessonId}/answer`, { answers }).then(res => res.data);
+    },
     onSuccess: (data) => {
-      setQuizResults(data);
+      setQuizSubmitted(true);
+      setQuizScore(data);
+      // Invalidate related queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/lessons/active'] });
       queryClient.invalidateQueries({ queryKey: ['/api/achievements'] });
-    },
-    onError: (error: Error) => {
-      Alert.alert(
-        'Error',
-        'Failed to submit quiz answers. Please try again.',
-        [
-          { text: 'OK' }
-        ]
-      );
+      if (lesson?.learnerId) {
+        queryClient.invalidateQueries({
+          queryKey: [`/api/learner-profile/${lesson.learnerId}`],
+        });
+      }
     },
   });
 
   const handleSelectAnswer = (questionIndex: number, answerIndex: number) => {
-    const newSelectedAnswers = [...selectedAnswers];
-    newSelectedAnswers[questionIndex] = answerIndex;
-    setSelectedAnswers(newSelectedAnswers);
-  };
-
-  const handleNextQuestion = () => {
-    if (currentQuestionIndex < (lesson?.spec.questions.length || 0) - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    }
-  };
-
-  const handlePreviousQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    }
+    if (quizSubmitted) return; // Don't allow changes after submission
+    
+    const newAnswers = [...selectedAnswers];
+    newAnswers[questionIndex] = answerIndex;
+    setSelectedAnswers(newAnswers);
   };
 
   const handleSubmitQuiz = () => {
-    // Check if all questions have been answered
-    if (selectedAnswers.length < (lesson?.spec.questions.length || 0)) {
-      Alert.alert(
-        'Incomplete Quiz',
-        'Please answer all questions before submitting.',
-        [
-          { text: 'OK' }
-        ]
-      );
-      return;
+    // Make sure all questions have answers
+    if (lesson && selectedAnswers.length === lesson.spec.questions.length) {
+      // Check that all questions have an answer (no undefined values)
+      const hasAllAnswers = selectedAnswers.every(ans => ans !== undefined);
+      if (hasAllAnswers) {
+        submitAnswersMutation.mutate(selectedAnswers);
+      } else {
+        // Alert user to answer all questions
+        alert('Please answer all questions before submitting.');
+      }
+    } else {
+      // Alert user to answer all questions
+      alert('Please answer all questions before submitting.');
     }
-
-    submitQuizMutation.mutate(selectedAnswers);
-    setQuizCompleted(true);
   };
 
-  const handleReturnToDashboard = () => {
-    navigation.navigate('LearnerDashboard');
+  const handleContinue = () => {
+    // Redirect to learner home to see the new auto-generated lesson
+    setLocation('/learner');
   };
 
-  if (lessonLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading quiz questions...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (lessonError || !lesson) {
+  if (error) {
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
@@ -111,59 +96,45 @@ const QuizPage = ({ route, navigation }: any) => {
             Error loading quiz. Please try again.
           </Text>
           <TouchableOpacity
-            style={styles.button}
-            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+            onPress={() => setLocation('/learner')}
           >
-            <Text style={styles.buttonText}>Go Back</Text>
+            <Text style={styles.backButtonText}>Go Back</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
     );
   }
 
-  const questions = lesson.spec.questions || [];
-  const currentQuestion = questions[currentQuestionIndex];
-
-  if (quizCompleted && quizResults) {
-    // Show quiz results
+  if (isLoading || submitAnswersMutation.isPending) {
     return (
       <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.resultsContainer}>
-            <Text style={styles.resultsTitle}>Quiz Results</Text>
-            
-            <View style={styles.scoreCard}>
-              <Text style={styles.scoreText}>Your Score</Text>
-              <Text style={styles.scoreValue}>{quizResults.score}%</Text>
-              <Text style={styles.scoreDetail}>
-                {quizResults.correctCount} out of {quizResults.totalQuestions} correct
-              </Text>
-            </View>
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={styles.loadingText}>
+            {submitAnswersMutation.isPending 
+              ? 'Checking your answers...'
+              : 'Loading quiz questions...'}
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
-            {quizResults.newAchievements && quizResults.newAchievements.length > 0 && (
-              <View style={styles.achievementsContainer}>
-                <Text style={styles.achievementsTitle}>
-                  <Award size={20} color={colors.primary} style={{marginRight: 8}} />
-                  New Achievements Earned
-                </Text>
-                
-                {quizResults.newAchievements.map((achievement: any, index: number) => (
-                  <View key={index} style={styles.achievementCard}>
-                    <Text style={styles.achievementTitle}>{achievement.title}</Text>
-                    <Text style={styles.achievementDesc}>{achievement.description}</Text>
-                  </View>
-                ))}
-              </View>
-            )}
-            
-            <TouchableOpacity 
-              style={styles.button}
-              onPress={handleReturnToDashboard}
-            >
-              <Text style={styles.buttonText}>Return to Dashboard</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
+  if (!lesson || !lesson.spec || !lesson.spec.questions) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.errorContainer}>
+          <Text style={styles.errorText}>
+            Quiz not found. Please return to the lesson.
+          </Text>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => setLocation('/lesson')}
+          >
+            <Text style={styles.backButtonText}>Go Back to Lesson</Text>
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     );
   }
@@ -171,99 +142,108 @@ const QuizPage = ({ route, navigation }: any) => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <ArrowLeft size={24} color={colors.textPrimary} />
-        </TouchableOpacity>
+        {!quizSubmitted && (
+          <TouchableOpacity style={styles.backButtonSmall} onPress={() => setLocation('/lesson')}>
+            <ArrowLeft size={24} color={colors.textPrimary} />
+          </TouchableOpacity>
+        )}
         <Text style={styles.headerTitle}>
-          Question {currentQuestionIndex + 1} of {questions.length}
+          {quizSubmitted ? 'Quiz Results' : 'Knowledge Check'}
         </Text>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {currentQuestion && (
-          <QuizComponent
-            question={currentQuestion}
-            selectedAnswer={selectedAnswers[currentQuestionIndex]}
-            onSelectAnswer={(answerIndex) => 
-              handleSelectAnswer(currentQuestionIndex, answerIndex)
-            }
-          />
+        {quizSubmitted && quizScore ? (
+          // Quiz Results View
+          <View>
+            <View style={styles.scoreCard}>
+              <View style={styles.scoreIconContainer}>
+                {quizScore.score >= 70 ? (
+                  <CheckCircle size={48} color={colors.success} />
+                ) : (
+                  <AlertCircle size={48} color={colors.warning} />
+                )}
+              </View>
+              <Text style={styles.scoreTitle}>
+                {quizScore.score >= 70 ? 'Great job!' : 'Keep practicing!'}
+              </Text>
+              <Text style={styles.scoreText}>
+                You got {quizScore.correctCount} out of {quizScore.totalQuestions} questions correct
+              </Text>
+              <View style={styles.scoreBarContainer}>
+                <View 
+                  style={[styles.scoreBar, { width: `${quizScore.score}%` }]}
+                />
+              </View>
+              <Text style={styles.scorePercentage}>{quizScore.score}%</Text>
+            </View>
+
+            {quizScore.newAchievements && quizScore.newAchievements.length > 0 && (
+              <View style={styles.achievementsContainer}>
+                <Text style={styles.achievementsTitle}>Achievements Unlocked!</Text>
+                {quizScore.newAchievements.map((achievement, index) => (
+                  <View key={index} style={styles.achievementItem}>
+                    <View style={styles.achievementIcon}>
+                      <CheckCircle size={24} color={colors.success} />
+                    </View>
+                    <Text style={styles.achievementText}>{achievement.title}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+
+            <View style={styles.reviewSection}>
+              <Text style={styles.reviewTitle}>Question Review</Text>
+              {lesson.spec.questions.map((question, index) => (
+                <QuizComponent
+                  key={index}
+                  question={question}
+                  selectedAnswer={selectedAnswers[index]}
+                  showAnswers={true}
+                  onSelectAnswer={() => {}}
+                />
+              ))}
+            </View>
+
+            <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
+              <Text style={styles.continueButtonText}>Continue Learning</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          // Quiz Questions View
+          <View>
+            <Text style={styles.quizTitle}>{lesson.spec.title} Quiz</Text>
+            <Text style={styles.quizDescription}>
+              Test your knowledge of the lesson material by answering the following questions.
+            </Text>
+
+            {lesson.spec.questions.map((question, index) => (
+              <View key={index} style={styles.questionContainer}>
+                <Text style={styles.questionNumber}>Question {index + 1} of {lesson.spec.questions.length}</Text>
+                <QuizComponent
+                  question={question}
+                  selectedAnswer={selectedAnswers[index]}
+                  showAnswers={false}
+                  onSelectAnswer={(answerIndex) => handleSelectAnswer(index, answerIndex)}
+                />
+              </View>
+            ))}
+
+            <TouchableOpacity 
+              style={[styles.submitButton, {
+                opacity: selectedAnswers.length === lesson.spec.questions.length && 
+                         selectedAnswers.every(ans => ans !== undefined) ? 1 : 0.5
+              }]}
+              onPress={handleSubmitQuiz}
+              disabled={selectedAnswers.length !== lesson.spec.questions.length || 
+                       !selectedAnswers.every(ans => ans !== undefined)}
+            >
+              <Text style={styles.submitButtonText}>Submit Answers</Text>
+            </TouchableOpacity>
+          </View>
         )}
       </ScrollView>
-
-      <View style={styles.footer}>
-        <View style={styles.progressIndicator}>
-          {questions.map((_, index) => (
-            <View 
-              key={index}
-              style={[
-                styles.progressDot,
-                index === currentQuestionIndex && styles.progressDotActive,
-                selectedAnswers[index] !== undefined && styles.progressDotAnswered
-              ]}
-            />
-          ))}
-        </View>
-
-        <View style={styles.navigationButtons}>
-          <TouchableOpacity
-            style={[
-              styles.navButton,
-              currentQuestionIndex === 0 && styles.navButtonDisabled
-            ]}
-            onPress={handlePreviousQuestion}
-            disabled={currentQuestionIndex === 0}
-          >
-            <Text 
-              style={[
-                styles.navButtonText,
-                currentQuestionIndex === 0 && styles.navButtonTextDisabled
-              ]}
-            >
-              Previous
-            </Text>
-          </TouchableOpacity>
-
-          {currentQuestionIndex < questions.length - 1 ? (
-            <TouchableOpacity
-              style={[
-                styles.navButton,
-                styles.navButtonPrimary,
-                !selectedAnswers[currentQuestionIndex] && styles.navButtonDisabled
-              ]}
-              onPress={handleNextQuestion}
-              disabled={selectedAnswers[currentQuestionIndex] === undefined}
-            >
-              <Text 
-                style={[
-                  styles.navButtonTextPrimary,
-                  !selectedAnswers[currentQuestionIndex] && styles.navButtonTextDisabled
-                ]}
-              >
-                Next
-              </Text>
-            </TouchableOpacity>
-          ) : (
-            <TouchableOpacity
-              style={[
-                styles.navButton,
-                styles.navButtonSubmit,
-                selectedAnswers.length < questions.length && styles.navButtonDisabled
-              ]}
-              onPress={handleSubmitQuiz}
-              disabled={selectedAnswers.length < questions.length || submitQuizMutation.isPending}
-            >
-              <Text style={styles.navButtonTextSubmit}>
-                {submitQuizMutation.isPending ? 'Submitting...' : 'Submit Quiz'}
-              </Text>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
     </SafeAreaView>
   );
 };
@@ -285,81 +265,125 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     ...typography.subtitle1,
+    textAlign: 'center',
   },
-  backButton: {
+  backButtonSmall: {
     padding: 4,
   },
   scrollContent: {
     flexGrow: 1,
     padding: 16,
   },
-  footer: {
-    padding: 16,
-    backgroundColor: colors.surfaceColor,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
+  quizTitle: {
+    ...typography.h2,
+    marginBottom: 8,
   },
-  progressIndicator: {
-    flexDirection: 'row',
-    justifyContent: 'center',
+  quizDescription: {
+    ...typography.body1,
+    color: colors.textSecondary,
+    marginBottom: 24,
+  },
+  questionContainer: {
+    marginBottom: 24,
+  },
+  questionNumber: {
+    ...typography.subtitle2,
+    color: colors.textSecondary,
+    marginBottom: 8,
+  },
+  submitButton: {
+    ...commonStyles.button,
+    marginTop: 16,
+    marginBottom: 32,
+  },
+  submitButtonText: {
+    ...commonStyles.buttonText,
+  },
+  scoreCard: {
+    backgroundColor: colors.surfaceColor,
+    borderRadius: 8,
+    padding: 24,
+    marginBottom: 24,
+    alignItems: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  scoreIconContainer: {
     marginBottom: 16,
   },
-  progressDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.divider,
-    marginHorizontal: 4,
+  scoreTitle: {
+    ...typography.h2,
+    marginBottom: 8,
+    textAlign: 'center',
   },
-  progressDotActive: {
-    backgroundColor: colors.primary,
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-  },
-  progressDotAnswered: {
-    backgroundColor: colors.secondaryDark,
-  },
-  navigationButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  navButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    backgroundColor: colors.surfaceColor,
-    borderWidth: 1,
-    borderColor: colors.divider,
-    flex: 1,
-    marginHorizontal: 4,
-    alignItems: 'center',
-  },
-  navButtonPrimary: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  navButtonSubmit: {
-    backgroundColor: colors.success,
-    borderColor: colors.success,
-  },
-  navButtonDisabled: {
-    opacity: 0.5,
-  },
-  navButtonText: {
-    ...typography.button,
-    color: colors.textPrimary,
-  },
-  navButtonTextPrimary: {
-    ...typography.button,
-    color: colors.onPrimary,
-  },
-  navButtonTextSubmit: {
-    ...typography.button,
-    color: colors.onPrimary,
-  },
-  navButtonTextDisabled: {
+  scoreText: {
+    ...typography.body1,
     color: colors.textSecondary,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  scoreBarContainer: {
+    width: '100%',
+    height: 16,
+    backgroundColor: colors.divider,
+    borderRadius: 8,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  scoreBar: {
+    height: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: 8,
+  },
+  scorePercentage: {
+    ...typography.h3,
+    color: colors.primary,
+  },
+  achievementsContainer: {
+    backgroundColor: colors.primaryLight,
+    borderRadius: 8,
+    padding: 16,
+    marginBottom: 24,
+  },
+  achievementsTitle: {
+    ...typography.h3,
+    color: colors.onPrimary,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  achievementItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 8,
+    padding: 12,
+  },
+  achievementIcon: {
+    marginRight: 12,
+  },
+  achievementText: {
+    ...typography.subtitle1,
+    color: colors.onPrimary,
+  },
+  reviewSection: {
+    marginBottom: 24,
+  },
+  reviewTitle: {
+    ...typography.h3,
+    marginBottom: 16,
+  },
+  continueButton: {
+    ...commonStyles.button,
+    marginTop: 16,
+    marginBottom: 32,
+    backgroundColor: colors.success,
+  },
+  continueButtonText: {
+    ...commonStyles.buttonText,
   },
   loadingContainer: {
     flex: 1,
@@ -385,79 +409,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: 'center',
   },
-  button: {
+  backButton: {
     ...commonStyles.button,
   },
-  buttonText: {
+  backButtonText: {
     ...commonStyles.buttonText,
-  },
-  resultsContainer: {
-    padding: 16,
-  },
-  resultsTitle: {
-    ...typography.h2,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  scoreCard: {
-    backgroundColor: colors.surfaceColor,
-    borderRadius: 8,
-    padding: 24,
-    alignItems: 'center',
-    marginBottom: 24,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  scoreText: {
-    ...typography.subtitle2,
-    color: colors.textSecondary,
-    marginBottom: 8,
-  },
-  scoreValue: {
-    ...typography.h1,
-    color: colors.primary,
-    fontSize: 48,
-    marginBottom: 8,
-  },
-  scoreDetail: {
-    ...typography.body2,
-    color: colors.textSecondary,
-  },
-  achievementsContainer: {
-    backgroundColor: colors.surfaceColor,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 24,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  achievementsTitle: {
-    ...typography.subtitle1,
-    color: colors.primary,
-    marginBottom: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  achievementCard: {
-    backgroundColor: colors.primaryLight,
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 8,
-  },
-  achievementTitle: {
-    ...typography.subtitle1,
-    color: colors.onPrimary,
-    marginBottom: 4,
-  },
-  achievementDesc: {
-    ...typography.body2,
-    color: colors.onPrimary,
   },
 });
 
