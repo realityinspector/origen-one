@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../hooks/use-auth';
 import { Redirect, Route } from 'wouter';
+import { useMode } from '../context/ModeContext';
 
 export function LearnerRoute({
   path,
@@ -10,6 +11,7 @@ export function LearnerRoute({
   component: React.ComponentType<any>;
 }) {
   const { user, isLoading } = useAuth();
+  const { isLearnerMode } = useMode();
 
   if (isLoading) {
     return (
@@ -31,8 +33,8 @@ export function LearnerRoute({
     );
   }
 
-  // Not a learner, redirect to dashboard
-  if (user.role !== 'LEARNER') {
+  // Not in learner mode, redirect to dashboard
+  if (!isLearnerMode) {
     return (
       <Route path={path}>
         <Redirect to="/dashboard" />

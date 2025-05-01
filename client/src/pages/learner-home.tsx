@@ -30,7 +30,17 @@ const LearnerHome = () => {
     error: lessonError,
   } = useQuery({
     queryKey: ['/api/lessons/active'],
-    queryFn: () => apiRequest('GET', '/api/lessons/active').then(res => res.data),
+    queryFn: async () => {
+      try {
+        console.log('Fetching active lesson...');
+        const res = await apiRequest('GET', '/api/lessons/active');
+        console.log('Active lesson response:', res);
+        return res.data;
+      } catch (err) {
+        console.error('Error fetching active lesson:', err);
+        throw err;
+      }
+    },
   });
 
   // Fetch learner profile
@@ -40,18 +50,33 @@ const LearnerHome = () => {
     error: profileError,
   } = useQuery({
     queryKey: [`/api/learner-profile/${user?.id}`],
-    queryFn: () => apiRequest('GET', `/api/learner-profile/${user?.id}`).then(res => res.data),
+    queryFn: async () => {
+      try {
+        console.log(`Fetching learner profile for user ${user?.id}...`);
+        const res = await apiRequest('GET', `/api/learner-profile/${user?.id}`);
+        console.log('Learner profile response:', res);
+        return res.data;
+      } catch (err) {
+        console.error('Error fetching learner profile:', err);
+        throw err;
+      }
+    },
     enabled: !!user?.id,
   });
 
   // Generate a new lesson
   const generateLessonMutation = useMutation({
     mutationFn: (data: { learnerId: number, topic: string, gradeLevel: number }) => {
+      console.log('Generating new lesson with data:', data);
       return apiRequest('POST', '/api/lessons/create', data).then(res => res.data);
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Successfully generated new lesson:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/lessons/active'] });
     },
+    onError: (error) => {
+      console.error('Error generating lesson:', error);
+    }
   });
 
   const onRefresh = useCallback(async () => {
@@ -118,6 +143,16 @@ const LearnerHome = () => {
             <Text style={styles.errorText}>
               Something went wrong. Please try again.
             </Text>
+            {lessonError && (
+              <Text style={styles.errorDetail}>
+                Lesson error: {lessonError.message || String(lessonError)}
+              </Text>
+            )}
+            {profileError && (
+              <Text style={styles.errorDetail}>
+                Profile error: {profileError.message || String(profileError)}
+              </Text>
+            )}
             <TouchableOpacity style={styles.retryButton} onPress={onRefresh}>
               <Text style={styles.retryButtonText}>Retry</Text>
             </TouchableOpacity>
@@ -313,8 +348,15 @@ const styles = StyleSheet.create({
   errorText: {
     ...typography.body1,
     color: colors.error,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  errorDetail: {
+    ...typography.body2,
+    color: colors.error,
     marginBottom: 16,
     textAlign: 'center',
+    paddingHorizontal: 20,
   },
   retryButton: {
     ...commonStyles.button,
