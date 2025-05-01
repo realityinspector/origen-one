@@ -4,6 +4,7 @@ import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { generateLesson, checkForAchievements } from "./utils";
 import { asyncHandler, authenticateJwt, hasRoleMiddleware, AuthRequest } from "./middleware/auth";
+import { USE_AI } from "./config/flags";
 
 // Use our imported middleware functions for authentication
 function isAuthenticated(req: Request, res: Response, next: NextFunction) {
@@ -90,6 +91,57 @@ export function registerRoutes(app: Express): Server {
     }
     
     res.json(activeLesson);
+  }));
+  
+  // Create a custom lesson for a learner
+  app.post("/api/lessons/create", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    const { topic, gradeLevel, learnerId } = req.body;
+    
+    if (!topic || !gradeLevel || !learnerId) {
+      return res.status(400).json({ error: "Missing required fields: topic, gradeLevel, learnerId" });
+    }
+    
+    // Validate user permissions
+    const targetLearnerId = Number(learnerId);
+    
+    // Self-create for learners
+    if (req.user.role === "LEARNER" && req.user.id !== targetLearnerId) {
+      return res.status(403).json({ error: "Learners can only create lessons for themselves" });
+    }
+    
+    // Parents can only create for their children
+    if (req.user.role === "PARENT") {
+      const children = await storage.getUsersByParentId(req.user.id);
+      if (!children.some(child => child.id === targetLearnerId)) {
+        return res.status(403).json({ error: "Parent can only create lessons for their children" });
+      }
+    }
+    
+    // Generate the customized lesson
+    try {
+      if (!USE_AI) {
+        return res.status(400).json({ error: "AI lesson generation is currently disabled" });
+      }
+      
+      const lessonSpec = await generateLesson(gradeLevel, topic);
+      
+      // Create the lesson
+      const newLesson = await storage.createLesson({
+        learnerId: targetLearnerId,
+        moduleId: `custom-${Date.now()}`,
+        status: "ACTIVE",
+        spec: lessonSpec,
+      });
+      
+      res.json(newLesson);
+    } catch (error) {
+      console.error('Error creating custom lesson:', error);
+      res.status(500).json({ error: "Failed to generate lesson content" });
+    }
   }));
   
   // Get lesson history
