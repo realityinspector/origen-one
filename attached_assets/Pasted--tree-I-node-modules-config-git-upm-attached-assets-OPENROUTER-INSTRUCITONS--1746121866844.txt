@@ -1,0 +1,88 @@
+ tree -I 'node_modules|\.config|\.git|\.upm' 
+.
+├── attached_assets
+│   ├── OPENROUTER-INSTRUCITONS.MD
+│   └── Pasted-I-ll-design-a-simple-scroll-centric-React-Native-MVP-for-the-AI-powered-learning-platform-described-1746068068207.txt
+├── CHANGE-ROUND.md
+├── client
+│   ├── index.html
+│   ├── index.tsx
+│   ├── package.json
+│   ├── public
+│   │   └── index.html
+│   ├── src
+│   │   ├── App.tsx
+│   │   ├── components
+│   │   │   ├── AchievementBadge.tsx
+│   │   │   ├── KnowledgeGraph.tsx
+│   │   │   ├── LessonCard.tsx
+│   │   │   ├── PlausibleAnalytics.tsx
+│   │   │   ├── QuizComponent.tsx
+│   │   │   ├── ui
+│   │   │   │   └── toast.tsx
+│   │   │   └── UserCreationForm.tsx
+│   │   ├── config
+│   │   │   └── flags.ts
+│   │   ├── hooks
+│   │   │   ├── use-auth.tsx
+│   │   │   └── use-toast.tsx
+│   │   ├── index.tsx
+│   │   ├── lib
+│   │   │   ├── protected-route.tsx
+│   │   │   └── queryClient.ts
+│   │   ├── pages
+│   │   │   ├── admin-dashboard.tsx
+│   │   │   ├── auth-page.tsx
+│   │   │   ├── home-page.tsx
+│   │   │   ├── learner-dashboard.tsx
+│   │   │   ├── lesson-page.tsx
+│   │   │   ├── parent-dashboard.tsx
+│   │   │   ├── progress-page.tsx
+│   │   │   └── quiz-page.tsx
+│   │   └── styles
+│   │       └── theme.tsx
+│   └── vite.config.ts
+├── drizzle
+│   └── migrations
+│       ├── 0000_initial_migration.sql
+│       └── meta
+│           └── _journal.json
+├── export.py
+├── generated-icon.png
+├── jest.config.js
+├── package.json
+├── package-lock.json
+├── playwright.config.ts
+├── README.md
+├── renovate.json
+├── scripts
+│   ├── generate-migrations.ts
+│   ├── migrate.ts
+│   ├── push-schema.ts
+│   ├── seed-clean.ts
+│   └── seed.ts
+├── server
+│   ├── auth.ts
+│   ├── config
+│   │   └── flags.ts
+│   ├── db.ts
+│   ├── index.ts
+│   ├── middleware
+│   │   └── auth.ts
+│   ├── openrouter.ts
+│   ├── perplexity.ts
+│   ├── routes.ts
+│   ├── services
+│   │   └── ai.ts
+│   ├── storage.ts
+│   └── utils.ts
+├── shared
+│   └── schema.ts
+├── tests
+│   ├── e2e
+│   │   └── auth.spec.ts
+│   └── unit
+│       └── utils.test.ts
+└── tsconfig.json
+
+24 directories, 61 files
