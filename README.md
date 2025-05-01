@@ -1,145 +1,44 @@
-# Adaptive Tutor MVP
+# ORIGEN: The Open Source AI Tutor
 
-Lean open-source prototype for adaptive learning.  
-Single backend + web client, minimal dependencies, parent-controlled data.
+## Admin Onboarding
 
-## Recent Updates
+This application has an automatic admin onboarding workflow that will create the first admin user if no users exist in the system. This is a one-time process that happens automatically when the application is first installed.
 
-- Replaced session-based authentication with JWT authentication
-- Implemented AI provider adapter to support both OpenRouter and Perplexity
-- Added feature flags for toggling AI generation and statistics
+### How Admin Onboarding Works
 
----
+1. The workflow checks if any users exist in the system.
+2. If no users exist, it creates a default admin user with the following credentials:
+   - Username: `admin`
+   - Email: `admin@origen.edu`
+   - A secure randomly generated password
 
-## Vision
+3. The credentials are saved to a file named `admin-credentials.txt` in the project root directory.
+4. **IMPORTANT:** After logging in for the first time, immediately change the password to something secure that you can remember.
 
-- Generate lessons, quizzes, and feedback with **Llama-70B via OpenRouter** only.  
-- Persist each learner’s activity as a **versioned knowledge graph**.  
-- **Parents own exportable data** (one-click JSON dump).  
-- Works offline, syncs when online.  
-- Viral trial path: clone → set API key → seed script → run.
+### Running the Admin Onboarding Workflow Manually
 
----
-
-## Feature Matrix
-
-| Domain            | Function                                                                       | Path / Module                             |
-|-------------------|--------------------------------------------------------------------------------|-------------------------------------------|
-| Auth & Identity   | JWT (`HS256`), roles: **admin, parent, learner**                                | `src/middleware/auth.ts`                  |
-| Lesson Engine     | `POST /ai/lesson` → returns adaptive lesson JSON (OpenRouter Llama)            | `src/routes/ai.ts`                        |
-| Quiz Engine       | `POST /ai/quiz` → generates quiz from lesson context                           | `src/routes/ai.ts`                        |
-| Feedback Engine   | `POST /ai/feedback` → formative feedback on quiz attempt                        | `src/routes/ai.ts`                        |
-| Knowledge Graph   | `GET /graph` (viewer), `PATCH /graph` (update), GraphQL-like queries soon      | `src/services/graph.ts`                   |
-| Offline Cache     | React Query + AsyncStorage, replay queue for POSTs                             | `app/hooks/useOnlineQueue.ts`             |
-| Data Export       | `GET /export` → zipped JSON of user, lessons, graph                            | `src/routes/export.ts`                    |
-| Seed Script       | Demo admin / parent / learner + 4 static lessons                               | `scripts/seed.ts`                         |
-| Feature Flags     | `USE_AI`, `ENABLE_STATS` env toggles                                           | `src/config/flags.ts`                     |
-| Telemetry Lite    | Plausible page-view only (no PII)                                              | `public/_plausible.js`                    |
-| CI Gate           | ESLint ▸ TypeScript ▸ Unit tests ▸ Migrations ▸ Playwright smoke               | `.github/workflows/ci.yml`                |
-
----
-
-## Stack
-
-* **Backend:** Node 20, Fastify, Drizzle ORM (Postgres), Zod  
-* **AI:** OpenRouter ➜ `meta-llama/70b-chat` (switchable with `model=` param)  
-* **Frontend:** React 18, Vite, TanStack Query, d3-force (graph)  
-* **Auth:** jsonwebtoken, bcrypt  
-* **DX:** ESLint, Prettier, Vitest, Playwright  
-* **Infra:** Docker Compose (`node`, `postgres`, optional `redis`), GitHub Actions CI
-
----
-
-## Repo Layout
-
-```
-/
-├─ app/                   # React client
-├─ src/                   # Fastify server
-│  ├─ routes/             # REST endpoints
-│  ├─ services/           # AI, graph, db adapters
-│  └─ middleware/         # auth, error, rate-limit
-├─ drizzle/               # SQL migrations
-├─ scripts/               # tooling (seed, dev-helpers)
-├─ .github/               # CI pipeline
-└─ docker-compose.yml
-```
-
----
-
-## Quick Start
+The workflow runs automatically when the application is first installed. However, if you need to run it manually, you can use the following command:
 
 ```bash
-git clone https://github.com/your-org/adaptive-tutor.git
-cd adaptive-tutor
-cp .env.example .env               # add your OPENROUTER_API_KEY
-docker compose up -d db
-npm install
-npm run migrate                    # drizzle-kit
-npm run seed                       # demo data
-npm run dev                        # Vite + Fastify w/ HMR
+ts-node -r dotenv/config scripts/admin-onboard.ts
 ```
 
-API docs live at `http://localhost:3000/docs` (OpenAPI autogen).
+Or you can use the configured workflow:
 
----
-
-## Environment Variables
-
-| Key                 | Example                  | Notes                                   |
-|---------------------|--------------------------|-----------------------------------------|
-| `OPENROUTER_API_KEY`| sk-or-************************ | **required**                           |
-| `DATABASE_URL`      | postgres://user:pw@db/app | set by docker-compose for local dev     |
-| `JWT_SECRET`        | supersecret              | rotate in prod                          |
-| `USE_AI`            | `1`                      | `0` → static generators                 |
-| `ENABLE_STATS`      | `1`                      | `0` → no Plausible                      |
-
----
-
-## API Surface (essential)
-
-| Method | Path                | Description                     |
-|--------|---------------------|---------------------------------|
-| POST   | /auth/login         | email, password → JWT           |
-| GET    | /lessons/active     | current lesson for learner      |
-| POST   | /ai/lesson          | topic, level → lesson JSON      |
-| POST   | /ai/quiz            | lessonId → quiz JSON            |
-| POST   | /ai/feedback        | quizId, answers → feedback      |
-| GET    | /graph              | learner graph                   |
-| PATCH  | /graph              | upsert edge/vertex              |
-| GET    | /export             | zip of all learner data         |
-
----
-
-## Dev Commands
-
-```
-npm run lint           # strict eslint (no warnings)
-npm run test           # vitest unit + integration
-npm run e2e            # playwright smoke suite
-npm run migrate        # apply pending drizzle migrations
-npm run gen            # drizzle-kit generate types
+```bash
+npm run admin:onboard
 ```
 
----
+### First-time Setup Instructions
 
-## Roadmap
+1. After the application is installed, the admin onboarding workflow will run automatically.
+2. Look for the `admin-credentials.txt` file in the project root directory.
+3. Log in using the provided admin credentials at `/auth`.
+4. Navigate to your profile settings and change the default password immediately.
+5. You can now start using the admin features to manage the application.
 
-- Mobile build (Expo) sharing 95 % of codebase
-- Real-time collaborative graph editing (Socket.IO)
-- Role-based granular data export (per module)
-- AI-explainability overlay (token attributions)
+## Security Notice
 
----
+The admin onboarding workflow is designed to be self-disposing, meaning it will only create an admin user if none exists. Once an admin user has been created, the workflow will exit without making any changes, even if run manually.
 
-## Contributing
-
-1. Fork → feature branch → PR.  
-2. Commit lint + tests must pass.  
-3. Follow `CONTRIBUTING.md` coding standards.
-
----
-
-## License
-
-MIT
+For production environments, it's recommended to delete the `admin-credentials.txt` file after you've successfully logged in and changed the password.
