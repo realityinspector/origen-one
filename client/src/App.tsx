@@ -4,6 +4,9 @@ import AuthPage from './pages/auth-page';
 import HomePage from './pages/home-page';
 import DashboardPage from './pages/dashboard-page';
 import AdminPage from './pages/admin-page';
+import AdminUsersPage from './pages/admin-users-page';
+import AdminLessonsPage from './pages/admin-lessons-page';
+import AdminSettingsPage from './pages/admin-settings-page';
 import WelcomePage from './pages/welcome-page';
 import { ProtectedRoute } from './lib/protected-route';
 import { AdminRoute } from './lib/admin-route';
@@ -48,6 +51,9 @@ export default function App() {
         <Route path="/auth" component={AuthPage} />
         <ProtectedRoute path="/dashboard" component={DashboardPage} />
         <AdminRoute path="/admin" component={AdminPage} />
+        <AdminRoute path="/admin/users" component={AdminUsersPage} />
+        <AdminRoute path="/admin/lessons" component={AdminLessonsPage} />
+        <AdminRoute path="/admin/settings" component={AdminSettingsPage} />
         <ProtectedRoute path="/" component={HomePage} />
         <Route>
           <div className="not-found">

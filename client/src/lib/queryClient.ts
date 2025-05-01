@@ -53,13 +53,25 @@ export const axiosInstance = axios.create({
   },
 });
 
-// Add auth token to requests
-export const setAuthToken = (token: string | null) => {
+// Add auth token to requests and store it
+export const setAuthToken = async (token: string | null) => {
   if (token) {
     axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    await AsyncStorage.setItem('AUTH_TOKEN', token);
   } else {
     delete axiosInstance.defaults.headers.common["Authorization"];
+    await AsyncStorage.removeItem('AUTH_TOKEN');
   }
+};
+
+// Initialize token from storage (call this when app starts)
+export const initializeAuthFromStorage = async () => {
+  const token = await AsyncStorage.getItem('AUTH_TOKEN');
+  if (token) {
+    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    return true;
+  }
+  return false;
 };
 
 type QueryFnOptions = {
