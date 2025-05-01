@@ -23,6 +23,7 @@ export const colors = {
   info: '#2196F3',
   inputBackground: '#F9F9F9',
   text: '#000000',  // Added for compatibility
+  border: '#E0E0E0',  // Added for border colors
 };
 
 // Typography
