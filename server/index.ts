@@ -16,23 +16,22 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files from client/dist in production
-if (process.env.NODE_ENV === "production") {
-  const clientDistPath = path.join(__dirname, "../client/dist");
-  app.use(express.static(clientDistPath));
-}
+// Serve static files from client/dist in all environments
+const clientDistPath = path.join(__dirname, "../client/dist");
+app.use(express.static(clientDistPath));
 
-// Register routes
+// Register API routes first
 const server = registerRoutes(app);
 
-// Serve React app for all non-API routes in production
-if (process.env.NODE_ENV === "production") {
-  app.get("*", (req, res) => {
-    if (!req.path.startsWith("/api/")) {
-      res.sendFile(path.join(__dirname, "../client/dist/index.html"));
-    }
-  });
-}
+// Serve React app for all other routes - this must come after API routes
+app.use((req, res) => {
+  // For any route that is not handled by the API or static files
+  if (!req.path.startsWith('/api/')) {
+    res.sendFile(path.join(__dirname, "../client/dist/index.html"));
+  } else {
+    res.status(404).json({ error: "API endpoint not found" });
+  }
+});
 
 // Start server
 server.listen(Number(PORT), "0.0.0.0", () => {

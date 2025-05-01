@@ -43,6 +43,7 @@
     "react-feather": "^2.0.10",
     "react-native": "^0.79.1",
     "react-native-svg": "^15.11.2",
+    "react-native-svg-web": "^1.0.9",
     "react-native-web": "^0.20.0",
     "ts-jest": "^29.3.2",
     "ts-node": "^10.9.2",
