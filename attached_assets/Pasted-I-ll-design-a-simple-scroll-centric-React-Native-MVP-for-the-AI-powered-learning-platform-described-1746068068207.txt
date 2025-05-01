@@ -1,0 +1,285 @@
+I'll design a simple, scroll-centric React Native MVP for the AI-powered learning platform described in the documents. This design will focus on the core functionality while keeping the implementation straightforward.
+
+# AI Tutor Mobile App - MVP Design Requirements
+
+## Overview
+
+The AI Tutor mobile app will be a simplified version of the learning platform described in the documents, focusing on essential features for learners, parents, and administrators. The app will use a scroll-centric design for intuitive navigation and provide personalized learning experiences through AI-generated lessons.
+
+## Tech Stack
+
+- **Frontend**: React Native with TypeScript
+- **Build Tool**: Vite
+- **Database**: PostgreSQL
+- **API**: RESTful API using Express.js
+- **Authentication**: JWT-based authentication
+- **State Management**: React Context API or Redux Toolkit
+
+## User Roles and Permissions
+
+1. **Admin**
+   - Create parent accounts
+   - View system-wide analytics
+   - Manage learning modules
+
+2. **Parent**
+   - Create and manage child accounts
+   - Monitor child progress
+   - Schedule lessons
+
+3. **Child (Learner)**
+   - Access personalized lessons
+   - Complete quizzes
+   - View their own progress
+
+## Core Features
+
+### 1. Authentication and User Management
+
+- **Admin Login**: Secure login for administrators
+- **Parent Login**: Authentication for parents with password reset functionality
+- **Child Access**: Simplified login for children (through parent accounts)
+
+### 2. User Creation Flow
+
+- **Admin creates parent accounts**: Email, name, password
+- **Parents create child accounts**: Name, age/grade level, optional learning preferences
+
+### 3. Learning Experience
+
+- **Onboarding Questionnaire**: Simple assessment to determine child's starting level
+- **AI-Generated Lessons**: Personalized content based on grade level and progress
+- **Progress Tracking**: Visual representation of completed lessons and mastery level
+
+### 4. Lesson Structure
+
+- **Story-Based Learning**: Short, engaging content with relevant visuals
+- **Interactive Quizzes**: Simple multiple-choice questions to test understanding
+- **Achievement System**: Basic rewards for completed lessons and milestones
+
+## Screen Designs
+
+### Admin Screens
+
+1. **Admin Dashboard**
+   - List of parent accounts
+   - System statistics
+   - Button to create new parent account
+
+2. **Create Parent Account**
+   - Form with fields for parent information
+   - Submit button to create account
+
+### Parent Screens
+
+1. **Parent Dashboard**
+   - List of child accounts
+   - Quick progress overview for each child
+   - Button to add new child account
+
+2. **Child Progress View**
+   - Detailed progress for selected child
+   - Recent activity
+   - Knowledge graph visualization
+
+3. **Add Child Account**
+   - Form with basic child information
+   - Grade level selection
+
+### Learner Screens
+
+1. **Learner Home**
+   - Current active lesson
+   - Progress visualization (simplified knowledge graph)
+   - Achievement badges
+
+2. **Lesson View**
+   - Story content with engaging visuals
+   - Next button to navigate to quiz
+
+3. **Quiz View**
+   - Question with multiple-choice options
+   - Submit button
+   - Results and explanation after submission
+
+4. **Achievement View**
+   - Earned badges
+   - Progress toward next achievements
+
+## Technical Architecture
+
+### Frontend Components
+
+1. **Authentication**
+   - LoginScreen
+   - UserTypeSelection
+
+2. **Admin**
+   - AdminDashboard
+   - ParentCreationForm
+
+3. **Parent**
+   - ParentDashboard
+   - ChildManagement
+   - ProgressMonitoring
+
+4. **Learner**
+   - LearnerHome
+   - LessonPlayer
+   - QuizComponent
+   - AchievementDisplay
+
+### Backend API Endpoints
+
+1. **Authentication**
+   - `POST /api/auth/login`
+   - `POST /api/auth/refresh-token`
+
+2. **User Management**
+   - `POST /api/users/create` (Admin creates parent)
+   - `POST /api/users/learners` (Parent creates child)
+   - `GET /api/users/learners` (Get all learners for parent)
+
+3. **Lessons**
+   - `GET /api/lessons/active` (Get active lesson for learner)
+   - `POST /api/lessons/queue` (Create new lesson)
+   - `POST /api/lessons/{lesson_id}/answer` (Submit quiz answer)
+   - `GET /api/lessons` (Get lesson history)
+
+4. **Progress Tracking**
+   - `GET /api/users/graph` (Get knowledge graph)
+   - `GET /api/achievements` (Get achievements)
+
+### Database Schema
+
+1. **Users Table**
+   ```
+   - id (UUID)
+   - email (String)
+   - name (String)
+   - role (Enum: ADMIN, PARENT, LEARNER)
+   - password_hash (String)
+   - created_at (Timestamp)
+   ```
+
+2. **Learner Profiles Table**
+   ```
+   - id (UUID)
+   - user_id (Foreign Key -> Users.id)
+   - grade_level (Integer)
+   - graph (JSON) - Knowledge graph representation
+   - created_at (Timestamp)
+   ```
+
+3. **Lessons Table**
+   ```
+   - id (UUID)
+   - learner_id (Foreign Key -> Learner_Profiles.id)
+   - module_id (String)
+   - status (Enum: QUEUED, ACTIVE, DONE)
+   - spec (JSON) - Lesson content and quiz data
+   - score (Integer, nullable)
+   - created_at (Timestamp)
+   - completed_at (Timestamp, nullable)
+   ```
+
+4. **Achievements Table**
+   ```
+   - id (UUID)
+   - learner_id (Foreign Key -> Learner_Profiles.id)
+   - type (String)
+   - payload (JSON)
+   - awarded_at (Timestamp)
+   ```
+
+## Development Approach
+
+### Phase 1: Setup and Authentication (2 weeks)
+- Project initialization with React Native and Vite
+- Database setup with PostgreSQL
+- Authentication system implementation
+- Basic user management
+
+### Phase 2: Core Learning Features (3 weeks)
+- Lesson generation system
+- Quiz component
+- Progress tracking
+- Basic knowledge graph
+
+### Phase 3: UI/UX and Refinement (2 weeks)
+- Polishing user interfaces
+- Implementing scroll-centric navigation
+- Adding simple animations
+- Testing and bug fixes
+
+## MVP Simplifications
+
+To keep the MVP simple, the following features will be simplified or deferred:
+
+1. **AI Implementation**
+   - Use predefined lesson templates instead of full AI generation
+   - Implement basic adaptive quiz selection
+
+2. **Knowledge Graph**
+   - Simplified visual representation
+   - Limited node connections
+
+3. **Achievement System**
+   - Basic badges for completion (no complex criteria)
+
+4. **User Management**
+   - Limited ability to customize learner profiles
+   - Basic progress reports
+
+## Design Principles
+
+1. **Scroll-Centric Navigation**
+   - Vertical scrolling as primary interaction method
+   - Minimize tabs and complex navigation
+   - Swipe gestures for moving between related screens
+
+2. **Simplicity**
+   - Clean, uncluttered interfaces
+   - Focus on one primary action per screen
+   - Clear visual hierarchy
+
+3. **Engagement**
+   - Vibrant colors and appealing illustrations
+   - Immediate feedback on actions
+   - Progress visualization always visible
+
+## Mobile-Specific Considerations
+
+1. **Offline Support**
+   - Cache active lessons for offline use
+   - Queue quiz answers for submission when online
+
+2. **Performance**
+   - Optimize image loading for various devices
+   - Implement pagination for history views
+
+3. **Accessibility**
+   - Support screen readers
+   - Ensure adequate contrast
+   - Support dynamic text sizing
+
+## Future Expansion
+
+After the MVP proves successful, these features can be considered:
+
+1. **Enhanced AI Tutoring**
+   - Real-time lesson generation
+   - Adaptive learning paths
+   - Multi-agent system architecture
+
+2. **Community Features**
+   - Hub scheduling and coordination
+   - Parent messaging
+   - Resource sharing
+
+3. **Advanced Analytics**
+   - Detailed learning insights
+   - Predictive recommendations
+   - Learning style identification
+
+This MVP design focuses on creating a simple but effective learning platform that captures the essence of the community-centric education approach while keeping implementation straightforward and achievable.
