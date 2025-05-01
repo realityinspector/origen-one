@@ -9,7 +9,10 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, 'src'),
       '@shared': resolve(__dirname, '../shared'),
+      'react-native': 'react-native-web',
+      'react-native-svg': 'react-native-svg-web',
     },
+    extensions: ['.web.js', '.web.jsx', '.web.ts', '.web.tsx', '.js', '.jsx', '.ts', '.tsx'],
   },
   server: {
     port: 5001,
@@ -27,14 +30,8 @@ export default defineConfig({
     assetsDir: 'assets',
     rollupOptions: {
       input: resolve(__dirname, 'index.html'),
-      external: [
-        'react-native',
-        'react-native-web',
-        'react-native-gesture-handler',
-        'react-native-reanimated',
-        'react-native-svg',
-        'react-native-markdown-display'
-      ]
+      // We don't want to externalize these dependencies anymore
+      // as they should be bundled for the web
     }
   },
 });
