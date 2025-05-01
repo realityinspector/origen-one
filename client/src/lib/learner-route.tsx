@@ -44,7 +44,7 @@ export function LearnerRoute({
 
   return (
     <Route path={path}>
-      <Component />
+      {(params) => <Component params={params} />}
     </Route>
   );
 }
