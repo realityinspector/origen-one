@@ -3,7 +3,10 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import * as schema from '../shared/schema';
 import { migrate } from 'drizzle-orm/neon-serverless/migrator';
 import path from 'path';
+import dotenv from 'dotenv';
 import ws from 'ws';
+
+dotenv.config();
 
 async function main() {
   if (!process.env.DATABASE_URL) {
@@ -16,17 +19,17 @@ async function main() {
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
   const db = drizzle(pool, { schema });
 
-  console.log('Pushing schema to database using migrations...');
+  console.log('Running migrations...');
   
   // Run migrations
   const migrationsFolder = path.resolve('drizzle', 'migrations');
   await migrate(db, { migrationsFolder });
   
-  console.log('Schema pushed successfully!');
+  console.log('Migrations applied successfully!');
   await pool.end();
 }
 
 main().catch((err) => {
-  console.error('Error pushing schema:', err);
+  console.error('Error applying migrations:', err);
   process.exit(1);
 });
