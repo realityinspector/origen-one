@@ -40,7 +40,16 @@ const ActiveLessonPage = () => {
 
   const handleStartQuiz = () => {
     if (lesson) {
-      setLocation(`/quiz/${lesson.id}`);
+      try {
+        console.log('Starting quiz for lesson ID:', lesson.id);
+        setLocation(`/quiz/${lesson.id}`);
+      } catch (err) {
+        console.error('Error navigating to quiz:', err);
+        alert('There was a problem starting the quiz. Please try again.');
+      }
+    } else {
+      console.error('Cannot start quiz: No active lesson found');
+      alert('No active lesson found. Please return to learner home and try again.');
     }
   };
 

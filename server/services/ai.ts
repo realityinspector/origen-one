@@ -66,7 +66,7 @@ export async function chat(
   }
 
   const { 
-    model = "meta-llama/70b-chat", 
+    model = "openai/gpt-4o", 
     temperature = 0.8, 
     max_tokens, 
     response_format 
