@@ -38,17 +38,7 @@ const AuthPage = () => {
   const [, setLocation] = useLocation();
   useEffect(() => {
     if (user) {
-      switch (user.role) {
-        case 'ADMIN':
-          setLocation('/admin');
-          break;
-        case 'PARENT':
-          setLocation('/parent');
-          break;
-        case 'LEARNER':
-          setLocation('/learner');
-          break;
-      }
+      setLocation('/dashboard');
     }
   }, [user, setLocation]);
   
