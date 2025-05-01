@@ -21,6 +21,8 @@ export const colors = {
   success: '#4CAF50',
   warning: '#FFC107',
   info: '#2196F3',
+  inputBackground: '#F9F9F9',
+  text: '#000000',  // Added for compatibility
 };
 
 // Typography
@@ -42,6 +44,24 @@ export const typography = StyleSheet.create({
     fontWeight: 'bold',
     color: colors.textPrimary,
     marginBottom: 8,
+  },
+  h4: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+    marginBottom: 8,
+  },
+  h5: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+    marginBottom: 6,
+  },
+  h6: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+    marginBottom: 4,
   },
   subtitle1: {
     fontSize: 16,
