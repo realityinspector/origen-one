@@ -26,6 +26,11 @@ function hasRole(roles: string[]) {
 export function registerRoutes(app: Express): Server {
   // Set up authentication routes
   setupAuth(app);
+
+  // Health check endpoint
+  app.get("/api/healthcheck", (req: Request, res: Response) => {
+    res.json({ status: "ok", message: "Server is running" });
+  });
   
   // Get all parent accounts (Admin only)
   app.get("/api/parents", hasRole(["ADMIN"]), asyncHandler(async (req: AuthRequest, res) => {
