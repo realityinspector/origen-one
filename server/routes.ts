@@ -3,37 +3,22 @@ import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { generateLesson, checkForAchievements } from "./utils";
+import { asyncHandler, authenticateJwt, hasRoleMiddleware, AuthRequest } from "./middleware/auth";
 
-// Define a better async handler for express
-function asyncHandler(fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) {
-  return function(req: Request, res: Response, next: NextFunction) {
-    return Promise
-      .resolve(fn(req, res, next))
-      .catch(next);
-  };
-}
-
+// Use our imported middleware functions for authentication
 function isAuthenticated(req: Request, res: Response, next: NextFunction) {
-  if (req.isAuthenticated()) {
-    return next();
-  }
-  res.status(401).json({ error: "Unauthorized" });
-  return;
+  return authenticateJwt(req as AuthRequest, res, next);
 }
 
 function hasRole(roles: string[]) {
-  return (req: Request, res: Response, next: NextFunction): void => {
-    if (!req.isAuthenticated()) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
-    }
-    
-    if (!roles.includes(req.user!.role)) {
-      res.status(403).json({ error: "Forbidden" });
-      return;
-    }
-    
-    next();
+  return (req: Request, res: Response, next: NextFunction) => {
+    // First authenticate the user
+    authenticateJwt(req as AuthRequest, res, (err?: any) => {
+      if (err) return next(err);
+      
+      // Then check the role
+      return hasRoleMiddleware(roles)(req as AuthRequest, res, next);
+    });
   };
 }
 
@@ -42,18 +27,18 @@ export function registerRoutes(app: Express): Server {
   setupAuth(app);
   
   // Get all parent accounts (Admin only)
-  app.get("/api/parents", hasRole(["ADMIN"]), asyncHandler(async (req, res) => {
+  app.get("/api/parents", hasRole(["ADMIN"]), asyncHandler(async (req: AuthRequest, res) => {
     const parents = await storage.getAllParents();
     res.json(parents);
   }));
   
   // Get learners for a parent (Parent only)
-  app.get("/api/learners", hasRole(["PARENT", "ADMIN"]), asyncHandler(async (req, res) => {
+  app.get("/api/learners", hasRole(["PARENT", "ADMIN"]), asyncHandler(async (req: AuthRequest, res) => {
     let learners;
-    if (req.user!.role === "ADMIN" && req.query.parentId) {
+    if (req.user?.role === "ADMIN" && req.query.parentId) {
       learners = await storage.getUsersByParentId(Number(req.query.parentId));
-    } else if (req.user!.role === "PARENT") {
-      learners = await storage.getUsersByParentId(req.user!.id);
+    } else if (req.user?.role === "PARENT") {
+      learners = await storage.getUsersByParentId(req.user.id);
     } else {
       return res.status(400).json({ error: "Invalid request" });
     }
@@ -61,14 +46,14 @@ export function registerRoutes(app: Express): Server {
   }));
   
   // Get learner profile
-  app.get("/api/learner-profile/:userId", isAuthenticated, asyncHandler(async (req, res) => {
+  app.get("/api/learner-profile/:userId", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
     const userId = parseInt(req.params.userId);
     
     // Admins can view any profile, parents can view their children, learners can view their own
     if (
-      req.user!.role === "ADMIN" ||
-      (req.user!.role === "PARENT" && (await storage.getUsersByParentId(req.user!.id)).some(u => u.id === userId)) ||
-      (req.user!.id === userId)
+      req.user?.role === "ADMIN" ||
+      (req.user?.role === "PARENT" && (await storage.getUsersByParentId(req.user.id)).some(u => u.id === userId)) ||
+      (req.user?.id === userId)
     ) {
       const profile = await storage.getLearnerProfile(userId);
       if (!profile) {
@@ -81,19 +66,23 @@ export function registerRoutes(app: Express): Server {
   }));
   
   // Get active lesson for learner
-  app.get("/api/lessons/active", hasRole(["LEARNER"]), asyncHandler(async (req, res) => {
-    let activeLesson = await storage.getActiveLesson(req.user!.id);
+  app.get("/api/lessons/active", hasRole(["LEARNER"]), asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    let activeLesson = await storage.getActiveLesson(req.user.id);
     
     // If no active lesson, generate a new one
     if (!activeLesson) {
-      const learnerProfile = await storage.getLearnerProfile(req.user!.id);
+      const learnerProfile = await storage.getLearnerProfile(req.user.id);
       if (!learnerProfile) {
         return res.status(404).json({ error: "Learner profile not found" });
       }
       
       const lessonSpec = await generateLesson(learnerProfile.gradeLevel);
       activeLesson = await storage.createLesson({
-        learnerId: req.user!.id,
+        learnerId: req.user.id,
         moduleId: `generated-${Date.now()}`,
         status: "ACTIVE",
         spec: lessonSpec,
@@ -104,17 +93,21 @@ export function registerRoutes(app: Express): Server {
   }));
   
   // Get lesson history
-  app.get("/api/lessons", isAuthenticated, asyncHandler(async (req, res) => {
+  app.get("/api/lessons", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
     let learnerId: number;
     
-    if (req.user!.role === "LEARNER") {
-      learnerId = req.user!.id;
+    if (req.user.role === "LEARNER") {
+      learnerId = req.user.id;
     } else if (req.query.learnerId) {
       learnerId = Number(req.query.learnerId);
       
       // Check if user is authorized to view this learner's lessons
-      if (req.user!.role === "PARENT") {
-        const children = await storage.getUsersByParentId(req.user!.id);
+      if (req.user.role === "PARENT") {
+        const children = await storage.getUsersByParentId(req.user.id);
         if (!children.some(child => child.id === learnerId)) {
           return res.status(403).json({ error: "Forbidden" });
         }
@@ -129,7 +122,11 @@ export function registerRoutes(app: Express): Server {
   }));
   
   // Submit answer to a quiz question
-  app.post("/api/lessons/:lessonId/answer", hasRole(["LEARNER"]), asyncHandler(async (req, res) => {
+  app.post("/api/lessons/:lessonId/answer", hasRole(["LEARNER"]), asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
     const lessonId = req.params.lessonId;
     const { answers } = req.body;
     
@@ -143,7 +140,7 @@ export function registerRoutes(app: Express): Server {
       return res.status(404).json({ error: "Lesson not found" });
     }
     
-    if (lesson.learnerId !== req.user!.id) {
+    if (lesson.learnerId !== req.user.id) {
       return res.status(403).json({ error: "Forbidden" });
     }
     
@@ -171,24 +168,24 @@ export function registerRoutes(app: Express): Server {
     const updatedLesson = await storage.updateLessonStatus(lessonId, "DONE", score);
     
     // Check for achievements
-    const lessonHistory = await storage.getLessonHistory(req.user!.id);
+    const lessonHistory = await storage.getLessonHistory(req.user.id);
     const newAchievements = checkForAchievements(lessonHistory, updatedLesson);
     
     // Award any new achievements
     for (const achievement of newAchievements) {
       await storage.createAchievement({
-        learnerId: req.user!.id,
+        learnerId: req.user.id,
         type: achievement.type,
         payload: achievement.payload
       });
     }
     
     // Generate a new lesson
-    const learnerProfile = await storage.getLearnerProfile(req.user!.id);
+    const learnerProfile = await storage.getLearnerProfile(req.user.id);
     if (learnerProfile) {
       const lessonSpec = await generateLesson(learnerProfile.gradeLevel);
       await storage.createLesson({
-        learnerId: req.user!.id,
+        learnerId: req.user.id,
         moduleId: `generated-${Date.now()}`,
         status: "ACTIVE",
         spec: lessonSpec,
@@ -205,17 +202,21 @@ export function registerRoutes(app: Express): Server {
   }));
   
   // Get achievements for a learner
-  app.get("/api/achievements", isAuthenticated, asyncHandler(async (req, res) => {
+  app.get("/api/achievements", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
     let learnerId: number;
     
-    if (req.user!.role === "LEARNER") {
-      learnerId = req.user!.id;
+    if (req.user.role === "LEARNER") {
+      learnerId = req.user.id;
     } else if (req.query.learnerId) {
       learnerId = Number(req.query.learnerId);
       
       // Check if user is authorized to view this learner's achievements
-      if (req.user!.role === "PARENT") {
-        const children = await storage.getUsersByParentId(req.user!.id);
+      if (req.user.role === "PARENT") {
+        const children = await storage.getUsersByParentId(req.user.id);
         if (!children.some(child => child.id === learnerId)) {
           return res.status(403).json({ error: "Forbidden" });
         }

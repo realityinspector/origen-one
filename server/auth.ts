@@ -1,82 +1,15 @@
-import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
 import { Express, Request, Response, NextFunction } from "express";
-import session from "express-session";
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
-import { promisify } from "util";
 import { storage } from "./storage";
-import { User as SelectUser } from "../shared/schema";
+import { User } from "../shared/schema";
+import { asyncHandler, hashPassword, comparePasswords, generateToken, authenticateJwt, hasRoleMiddleware, AuthRequest } from "./middleware/auth";
 
-// Define a better async handler for express
-function asyncHandler(fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) {
-  return function(req: Request, res: Response, next: NextFunction) {
-    return Promise
-      .resolve(fn(req, res, next))
-      .catch(next);
-  };
-}
-
-declare global {
-  namespace Express {
-    interface User extends SelectUser {}
-  }
-}
-
-const scryptAsync = promisify(scrypt);
-
-async function hashPassword(password: string) {
-  const salt = randomBytes(16).toString("hex");
-  const buf = (await scryptAsync(password, salt, 64)) as Buffer;
-  return `${buf.toString("hex")}.${salt}`;
-}
-
-async function comparePasswords(supplied: string, stored: string) {
-  const [hashed, salt] = stored.split(".");
-  const hashedBuf = Buffer.from(hashed, "hex");
-  const suppliedBuf = (await scryptAsync(supplied, salt, 64)) as Buffer;
-  return timingSafeEqual(hashedBuf, suppliedBuf);
-}
-
+/**
+ * Sets up JWT authentication routes
+ */
 export function setupAuth(app: Express) {
-  const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "ai-tutor-secret",
-    resave: false,
-    saveUninitialized: false,
-    store: storage.sessionStore,
-    cookie: {
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 1 week
-    }
-  };
-
   app.set("trust proxy", 1);
-  app.use(session(sessionSettings));
-  app.use(passport.initialize());
-  app.use(passport.session());
 
-  passport.use(
-    new LocalStrategy(async (username, password, done) => {
-      try {
-        const user = await storage.getUserByUsername(username);
-        if (!user || !(await comparePasswords(password, user.password))) {
-          return done(null, false, { message: "Invalid username or password" });
-        }
-        return done(null, user);
-      } catch (error) {
-        return done(error);
-      }
-    }),
-  );
-
-  passport.serializeUser((user, done) => done(null, user.id));
-  passport.deserializeUser(async (id: number, done) => {
-    try {
-      const user = await storage.getUser(id);
-      done(null, user);
-    } catch (error) {
-      done(error);
-    }
-  });
-
+  // Register a new user
   app.post("/api/register", asyncHandler(async (req, res, next) => {
     const { username, email, name, role, password, parentId } = req.body;
     
@@ -114,45 +47,45 @@ export function setupAuth(app: Express) {
       });
     }
 
-    req.login(user, (err) => {
-      if (err) return next(err);
-      res.status(201).json(user);
+    // Generate JWT token
+    const token = generateToken(user);
+    
+    // Return the token and user data (excluding password)
+    const { password: _, ...userWithoutPassword } = user;
+    res.status(201).json({
+      token,
+      user: userWithoutPassword
     });
   }));
 
-  app.post("/api/login", asyncHandler(async (req, res, next) => {
-    return new Promise((resolve, reject) => {
-      passport.authenticate("local", (err, user, info) => {
-        if (err) {
-          return reject(err);
-        }
-        if (!user) {
-          res.status(401).json({ error: info?.message || "Authentication failed" });
-          return resolve(undefined);
-        }
-        req.login(user, (loginErr) => {
-          if (loginErr) {
-            return reject(loginErr);
-          }
-          res.status(200).json(user);
-          return resolve(undefined);
-        });
-      })(req, res, next);
+  // Login and return a JWT token
+  app.post("/api/login", asyncHandler(async (req, res) => {
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: "Username and password are required" });
+    }
+    
+    // Find the user
+    const user = await storage.getUserByUsername(username);
+    if (!user || !(await comparePasswords(password, user.password))) {
+      return res.status(401).json({ error: "Invalid username or password" });
+    }
+    
+    // Generate JWT token
+    const token = generateToken(user);
+    
+    // Return the token and user data (excluding password)
+    const { password: _, ...userWithoutPassword } = user;
+    res.status(200).json({
+      token,
+      user: userWithoutPassword
     });
   }));
 
-  app.post("/api/logout", asyncHandler(async (req, res, next) => {
-    return new Promise((resolve, reject) => {
-      req.logout((err) => {
-        if (err) return reject(err);
-        res.sendStatus(200);
-        resolve(undefined);
-      });
-    });
-  }));
-
-  app.get("/api/user", asyncHandler(async (req, res) => {
-    if (!req.isAuthenticated()) return res.sendStatus(401);
-    res.json(req.user);
+  // Get current user info
+  app.get("/api/user", authenticateJwt, asyncHandler(async (req: AuthRequest, res) => {
+    const { password: _, ...userWithoutPassword } = req.user!;
+    res.json(userWithoutPassword);
   }));
 }

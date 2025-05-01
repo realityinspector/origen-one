@@ -14,6 +14,7 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from client/dist in production
 if (process.env.NODE_ENV === "production") {

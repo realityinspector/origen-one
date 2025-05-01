@@ -2,11 +2,7 @@ import { users, lessons, learnerProfiles, achievements } from "../shared/schema"
 import type { User, InsertUser, Lesson, InsertLesson, LearnerProfile, InsertLearnerProfile, Achievement, InsertAchievement } from "../shared/schema";
 import { db } from "./db";
 import { eq, and, desc } from "drizzle-orm";
-import session from "express-session";
-import connectPg from "connect-pg-simple";
 import { pool } from "./db";
-
-const PostgresSessionStore = connectPg(session);
 
 export interface IStorage {
   // User operations
@@ -31,20 +27,11 @@ export interface IStorage {
   // Achievement operations
   createAchievement(achievement: InsertAchievement): Promise<Achievement>;
   getAchievements(learnerId: number): Promise<Achievement[]>;
-  
-  // Session store
-  sessionStore: any;
 }
 
 export class DatabaseStorage implements IStorage {
-  sessionStore: any;
-  
   constructor() {
-    this.sessionStore = new PostgresSessionStore({ 
-      pool, 
-      tableName: 'session',
-      createTableIfMissing: true 
-    });
+    // Initialize database connection if needed
   }
 
   // User operations
