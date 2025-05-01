@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import {
   View,
   Text,
@@ -16,7 +17,7 @@ import { useToast } from '../hooks/use-toast';
 import { colors, typography, commonStyles } from '../styles/theme';
 import { Book, User, Shield } from 'react-feather';
 
-const AuthPage = ({ navigation }: any) => {
+const AuthPage = () => {
   const { user, loginMutation, registerMutation } = useAuth();
   const { toast } = useToast();
   const [isLogin, setIsLogin] = useState(true);
@@ -34,21 +35,22 @@ const AuthPage = ({ navigation }: any) => {
   const [regRole, setRegRole] = useState('PARENT'); // Default role
   
   // Redirect if already logged in
+  const [, setLocation] = useLocation();
   useEffect(() => {
     if (user) {
       switch (user.role) {
         case 'ADMIN':
-          navigation.navigate('AdminDashboard');
+          setLocation('/admin');
           break;
         case 'PARENT':
-          navigation.navigate('ParentDashboard');
+          setLocation('/parent');
           break;
         case 'LEARNER':
-          navigation.navigate('LearnerDashboard');
+          setLocation('/learner');
           break;
       }
     }
-  }, [user, navigation]);
+  }, [user, setLocation]);
   
   const handleLogin = () => {
     if (!loginUsername || !loginPassword) {

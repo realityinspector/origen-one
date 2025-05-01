@@ -21,7 +21,9 @@
     "@types/node": "^22.15.3",
     "@types/passport": "^1.0.17",
     "@types/passport-local": "^1.0.38",
+    "@types/wouter": "^2.0.1",
     "@types/ws": "^8.18.1",
+    "@vitejs/plugin-react": "^4.4.1",
     "axios": "^1.9.0",
     "connect-pg-simple": "^10.0.0",
     "cors": "^2.8.5",
@@ -44,6 +46,8 @@
     "react-native-web": "^0.20.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3",
+    "vite": "^6.3.4",
+    "wouter": "^3.7.0",
     "ws": "^8.18.1"
   }
 }
