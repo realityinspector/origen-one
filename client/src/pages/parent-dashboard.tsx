@@ -15,7 +15,7 @@ import { apiRequest, queryClient } from '../lib/queryClient';
 import { useAuth } from '../hooks/use-auth';
 import { useToast } from '../hooks/use-toast';
 import { colors, typography, commonStyles } from '../styles/theme';
-import { User, Book, Plus, X, Award, BarChart2 } from 'react-feather';
+import { User, Book, Plus, X, Award, BarChart2, Download } from 'react-feather';
 
 const ParentDashboard = ({ navigation }: any) => {
   const { user, logoutMutation } = useAuth();
@@ -133,6 +133,16 @@ const ParentDashboard = ({ navigation }: any) => {
         >
           <BarChart2 size={16} color={colors.onPrimary} />
           <Text style={styles.actionButtonText}>Progress</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.actionButton, styles.exportButton]}
+          onPress={() => {
+            // Open export endpoint in new window for download
+            window.open(`/api/export?learnerId=${item.id}`, '_blank');
+          }}
+        >
+          <Download size={16} color={colors.onPrimary} />
+          <Text style={styles.actionButtonText}>Export</Text>
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -440,6 +450,9 @@ const styles = StyleSheet.create({
   },
   progressButton: {
     backgroundColor: colors.primary,
+  },
+  exportButton: {
+    backgroundColor: colors.secondary,
   },
   actionButtonText: {
     color: colors.onPrimary,

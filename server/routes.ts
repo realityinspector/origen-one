@@ -229,6 +229,57 @@ export function registerRoutes(app: Express): Server {
     res.json(achievements);
   }));
   
+  // Export learner data (for data portability)
+  app.get("/api/export", hasRole(["PARENT", "ADMIN"]), asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    if (!req.query.learnerId) {
+      return res.status(400).json({ error: "learnerId is required" });
+    }
+    
+    const learnerId = Number(req.query.learnerId);
+    
+    // Verify parent has access to this learner
+    if (req.user.role === "PARENT") {
+      const children = await storage.getUsersByParentId(req.user.id);
+      if (!children.some(child => child.id === learnerId)) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+    }
+    
+    // Get all the learner data
+    const [learner, profile, lessons, achievements] = await Promise.all([
+      storage.getUser(learnerId),
+      storage.getLearnerProfile(learnerId),
+      storage.getLessonHistory(learnerId, 1000), // Get a large number of lessons
+      storage.getAchievements(learnerId)
+    ]);
+    
+    if (!learner) {
+      return res.status(404).json({ error: "Learner not found" });
+    }
+    
+    // Remove sensitive information
+    const { password: _, ...learnerData } = learner;
+    
+    // Set filename for download
+    const filename = `learner-data-${learnerId}-${new Date().toISOString().split('T')[0]}.json`;
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Return combined data
+    res.json({
+      learner: learnerData,
+      profile,
+      lessons,
+      achievements,
+      exportDate: new Date().toISOString(),
+      exportedBy: req.user.id
+    });
+  }));
+  
   // Error handling middleware
   app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     console.error(err);

@@ -16,22 +16,20 @@
 
 6. ✅ **Replit Setup** – Set up Replit with node and PostgreSQL; created .env.example with required environment variables.
 
-## Remaining Tasks
+7. ✅ **Shrink dependency surface** – Removed unused dependencies (react-native-reanimated, ws client on server). Kept only React Native core, TanStack Query, Drizzle ORM, and axios.
 
-1. **Shrink dependency surface** – Remove unused dependencies (e.g., react-native-reanimated, hammerjs, ws client on server). Keep only React Native core, TanStack Query, Drizzle ORM, and axios.
+8. ✅ **Cut navigation bloat** – Simplified learner flow to *Home → Lesson → Quiz → Feedback*. Replaced multi-nested stacks with scroll-centric design.
 
-2. **Cut navigation bloat** – Simplify learner flow to *Home → Lesson → Quiz → Feedback*. Replace multi-nested stacks with one ScrollView per role (scroll-centric design).
+9. ✅ **Offline-first caching** – Added React Query persistor and AsyncStorage; cache GET /lessons/active and other essential queries for offline support.
 
-3. **Offline-first caching** – Add React Query persistor and AsyncStorage; cache GET /lessons/active and queued answers for replay.
+10. ✅ **Single-screen knowledge graph** – Replaced heavy graph libraries with d3-force mini; fetch graph data once, memoize, and render in `<Svg>`.
 
-4. **Single-screen knowledge graph** – Replace heavy graph libraries with d3-force mini; fetch graph data once, memoize, and render in `<Svg>`.
+11. ✅ **Parent data portability** – Added /api/export endpoint to export a learner's complete data (users, lessons, graph) and implemented export button in parent dashboard.
 
-5. **Parent data portability** – Add /api/export endpoint to export a learner's complete data (users, lessons, graph).
+12. ✅ **CI sanity gate** – Set up GitHub Actions with workflows for lint, type-check, unit tests, migration-apply, and Playwright smoke test.
 
-6. **CI sanity gate** – Set up GitHub Actions: lint, type-check, unit tests, migration-apply, and Playwright smoke test.
+13. ✅ **Remove legacy UI state** – Verified application already uses Context + TanStack Query architecture instead of Redux.
 
-7. **Remove legacy UI state** – Replace Redux toolkit with Context + TanStack Query.
+14. ✅ **Telemetry lite** – Implemented self-hosted Plausible for page views only using PlausibleAnalytics component, toggled with ENABLE_STATS flag.
 
-8. **Telemetry lite** – Replace Google Analytics with self-hosted Plausible for page views only, toggled with ENABLE_STATS flag.
-
-9. **Automated dependency updates** – Enable Renovate/Dependabot with tests required for major version updates.
+15. ✅ **Automated dependency updates** – Enabled Renovate with configuration for automated updates and test requirements for major version updates.
