@@ -1,26 +1,67 @@
 import { QueryClient } from "@tanstack/react-query";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+
+// Create a custom persister since the package exports have changed
+export const queryPersister = {
+  persistClient: async (client: any) => {
+    await AsyncStorage.setItem(
+      'LEARNER_APP_CACHE',
+      JSON.stringify({
+        timestamp: Date.now(),
+        buster: 'v1',
+        clientState: client
+      })
+    );
+  },
+  restoreClient: async () => {
+    const cacheString = await AsyncStorage.getItem('LEARNER_APP_CACHE');
+    if (!cacheString) return;
+    
+    try {
+      const cache = JSON.parse(cacheString);
+      return cache.clientState;
+    } catch {}
+    
+    return undefined;
+  },
+  removeClient: async () => {
+    await AsyncStorage.removeItem('LEARNER_APP_CACHE');
+  }
+};
 
 const API_URL = process.env.NODE_ENV === "production" 
   ? "https://api.ai-tutor-app.example.com" 
-  : "http://localhost:8000";
+  : "http://localhost:5000";
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
       staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 24 * 60 * 60 * 1000, // 24 hours
+      networkMode: 'offlineFirst',
     },
   },
 });
 
+// We're using our custom persister defined above for offline support
+
 export const axiosInstance = axios.create({
   baseURL: API_URL,
-  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
+
+// Add auth token to requests
+export const setAuthToken = (token: string | null) => {
+  if (token) {
+    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+  } else {
+    delete axiosInstance.defaults.headers.common["Authorization"];
+  }
+};
 
 type QueryFnOptions = {
   on401?: "throw" | "returnNull";
