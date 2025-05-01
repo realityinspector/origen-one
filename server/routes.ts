@@ -91,7 +91,7 @@ export function registerRoutes(app: Express): Server {
         return res.status(404).json({ error: "Learner profile not found" });
       }
       
-      const lessonSpec = generateLesson(learnerProfile.gradeLevel);
+      const lessonSpec = await generateLesson(learnerProfile.gradeLevel);
       activeLesson = await storage.createLesson({
         learnerId: req.user!.id,
         moduleId: `generated-${Date.now()}`,
@@ -186,7 +186,7 @@ export function registerRoutes(app: Express): Server {
     // Generate a new lesson
     const learnerProfile = await storage.getLearnerProfile(req.user!.id);
     if (learnerProfile) {
-      const lessonSpec = generateLesson(learnerProfile.gradeLevel);
+      const lessonSpec = await generateLesson(learnerProfile.gradeLevel);
       await storage.createLesson({
         learnerId: req.user!.id,
         moduleId: `generated-${Date.now()}`,

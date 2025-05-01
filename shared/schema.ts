@@ -64,6 +64,16 @@ export const lessons = pgTable("lessons", {
       correctIndex: number;
       explanation: string;
     }[];
+    graph?: {
+      nodes: {
+        id: string;
+        label: string;
+      }[];
+      edges: {
+        source: string;
+        target: string;
+      }[];
+    };
   }>(),
   score: integer("score"),
   createdAt: timestamp("created_at").defaultNow(),
