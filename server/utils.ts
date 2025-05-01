@@ -1,5 +1,5 @@
 import { Lesson, InsertLesson } from "../shared/schema";
-import { generateLessonContent, generateQuizQuestions as aiGenerateQuizQuestions, generateKnowledgeGraph } from "./openrouter";
+import { generateLessonContent, generateQuizQuestions as aiGenerateQuizQuestions, generateKnowledgeGraph } from "./services/ai";
 
 // Grade level topics for lesson generation
 const gradeTopics: Record<number, string[]> = {
@@ -13,34 +13,44 @@ const gradeTopics: Record<number, string[]> = {
   8: ["Statistics", "Essay Writing", "American History", "Biology"],
 };
 
-// Function to generate an AI lesson based on grade level and topic
-export async function generateLesson(gradeLevel: number, topic?: string): Promise<InsertLesson['spec']> {
-  try {
-    // Default to grade 3 if outside of range
-    const safeGradeLevel = gradeLevel >= 1 && gradeLevel <= 8 ? gradeLevel : 3;
-    
-    // Select a random topic if none provided
-    const availableTopics = gradeTopics[safeGradeLevel];
-    const selectedTopic = topic || availableTopics[Math.floor(Math.random() * availableTopics.length)];
+import { USE_AI } from './config/flags';
 
-    // Create async calls for both content and questions
-    const contentPromise = generateLessonContent(safeGradeLevel, selectedTopic);
-    const questionsPromise = aiGenerateQuizQuestions(safeGradeLevel, selectedTopic, 5);
-    const graphPromise = generateKnowledgeGraph(selectedTopic, safeGradeLevel);
-    
-    // Wait for both to complete
-    const [content, questions, graph] = await Promise.all([contentPromise, questionsPromise, graphPromise]);
-    
-    // Return the lesson spec
-    return {
-      title: `${selectedTopic} for Grade ${safeGradeLevel}`,
-      content: content,
-      questions: questions,
-      graph: graph
-    };
-  } catch (error) {
-    console.error('Error generating lesson with AI:', error);
-    // Fall back to static content in case of AI service failure
+// Function to generate a lesson based on grade level and topic
+export async function generateLesson(gradeLevel: number, topic?: string): Promise<InsertLesson['spec']> {
+  // Check if we should use AI or static content based on feature flag
+
+  if (USE_AI) {
+    try {
+      // Default to grade 3 if outside of range
+      const safeGradeLevel = gradeLevel >= 1 && gradeLevel <= 8 ? gradeLevel : 3;
+      
+      // Select a random topic if none provided
+      const availableTopics = gradeTopics[safeGradeLevel];
+      const selectedTopic = topic || availableTopics[Math.floor(Math.random() * availableTopics.length)];
+
+      // Create async calls for both content and questions
+      const contentPromise = generateLessonContent(safeGradeLevel, selectedTopic);
+      const questionsPromise = aiGenerateQuizQuestions(safeGradeLevel, selectedTopic, 5);
+      const graphPromise = generateKnowledgeGraph(selectedTopic, safeGradeLevel);
+      
+      // Wait for all to complete
+      const [content, questions, graph] = await Promise.all([contentPromise, questionsPromise, graphPromise]);
+      
+      // Return the lesson spec
+      return {
+        title: `${selectedTopic} for Grade ${safeGradeLevel}`,
+        content: content,
+        questions: questions,
+        graph: graph
+      };
+    } catch (error) {
+      console.error('Error generating lesson with AI:', error);
+      // Fall back to static content in case of AI service failure
+      return generateStaticLesson(gradeLevel, topic);
+    }
+  } else {
+    // Use static content when USE_AI is disabled
+    console.log('Using static lesson content (USE_AI=0)');
     return generateStaticLesson(gradeLevel, topic);
   }
 }
