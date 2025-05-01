@@ -20,6 +20,18 @@ args = "Server"
 task = "workflow.run"
 args = "DB Push"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "DB Generate Migrations"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "DB Migrate"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "DB Seed"
+
 [[workflows.workflow]]
 name = "Server"
 author = "agent"
@@ -36,6 +48,30 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npx ts-node -r dotenv/config scripts/push-schema.ts"
+
+[[workflows.workflow]]
+name = "DB Generate Migrations"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "ts-node -r dotenv/config scripts/generate-migrations.ts"
+
+[[workflows.workflow]]
+name = "DB Migrate"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "ts-node -r dotenv/config scripts/migrate.ts"
+
+[[workflows.workflow]]
+name = "DB Seed"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "ts-node -r dotenv/config scripts/seed-clean.ts"
 
 [deployment]
 run = ["sh", "-c", "cd server && npm install && NODE_ENV=development PORT=5000 node index.js"]
