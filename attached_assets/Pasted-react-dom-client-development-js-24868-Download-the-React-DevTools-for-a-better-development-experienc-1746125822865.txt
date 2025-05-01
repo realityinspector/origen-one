@@ -1,0 +1,47 @@
+react-dom-client.development.js:24868 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
+index.js:24 "shadow*" style props are deprecated. Use "boxShadow".
+Dv @ index.js:24Understand this warningAI
+auth:1 Access to XMLHttpRequest at 'http://localhost:5000/api/user' from origin 'https://f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev:5000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.Understand this errorAI
+localhost:5000/api/user:1 
+            
+            
+           Failed to load resource: net::ERR_FAILEDUnderstand this errorAI
+auth:1 Access to XMLHttpRequest at 'http://localhost:5000/api/user' from origin 'https://f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev:5000' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.Understand this errorAI
+queryClient.ts:75 
+            
+            
+           GET http://localhost:5000/api/user net::ERR_FAILED 403 (Forbidden)
+(anonymous) @ xhr.js:195
+xhr @ xhr.js:15
+B1 @ dispatchRequest.js:49
+_request @ Axios.js:187
+request @ Axios.js:40
+Wo.<computed> @ Axios.js:213
+(anonymous) @ bind.js:5
+(anonymous) @ queryClient.ts:75
+f @ query.js:193
+C @ retryer.js:80
+(anonymous) @ retryer.js:104Understand this errorAI
+index.js:24 props.pointerEvents is deprecated. Use style.pointerEvents
+Dv @ index.js:24
+iU @ index.js:805
+rb @ index.js:23
+View @ index.js:111
+react-stack-bottom-frame @ react-dom-client.development.js:23863
+ip @ react-dom-client.development.js:5529
+jS @ react-dom-client.development.js:8645
+Yp @ react-dom-client.development.js:10861
+Oe @ react-dom-client.development.js:1519
+O0 @ react-dom-client.development.js:15140
+w0 @ react-dom-client.development.js:14956
+em @ react-dom-client.development.js:14936
+S0 @ react-dom-client.development.js:14419
+q0 @ react-dom-client.development.js:16231
+Su @ react-dom-client.development.js:16079
+am @ react-dom-client.development.js:16116
+(anonymous) @ react-dom-client.development.js:16250Understand this warningAI
+auth:1 Access to XMLHttpRequest at 'http://localhost:5000/api/register' from origin 'https://f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev:5000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: No 'Access-Control-Allow-Origin' header is present on the requested resource.Understand this errorAI
+queryClient.ts:92 
+            
+            
+           POST http://localhost
