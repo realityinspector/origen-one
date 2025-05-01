@@ -31,7 +31,7 @@ export const queryPersister = {
 };
 
 const API_URL = process.env.NODE_ENV === "production" 
-  ? "https://api.ai-tutor-app.example.com" 
+  ? "https://api.origen-ai-tutor.replit.app" 
   : "http://localhost:5000";
 
 export const queryClient = new QueryClient({

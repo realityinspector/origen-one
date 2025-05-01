@@ -60,8 +60,8 @@ export async function askOpenRouter(options: OpenRouterOptions): Promise<OpenRou
       headers: {
         'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://ai-tutor-app.replit.app',
-        'X-Title': 'AI Tutor Educational Platform'
+        'HTTP-Referer': 'https://origen-ai-tutor.replit.app',
+        'X-Title': 'ORIGEN - The Open Source AI Tutor'
       }
     });
 
