@@ -187,19 +187,59 @@ function generateStaticQuizQuestions(topic: string, gradeLevel: number) {
       });
       break;
       
+    case "Plants":
+      questions.push({
+        text: "What do plants need to make their own food?",
+        options: ["Water only", "Sunlight, water, and carbon dioxide", "Just soil", "Fertilizer"],
+        correctIndex: 1,
+        explanation: "Plants use sunlight, water, and carbon dioxide to create food through photosynthesis."
+      });
+      questions.push({
+        text: "What is the process called when plants make their own food?",
+        options: ["Respiration", "Germination", "Photosynthesis", "Pollination"],
+        correctIndex: 2,
+        explanation: "Photosynthesis is the process where plants convert sunlight, water, and carbon dioxide into food."
+      });
+      break;
+    
+    case "Decimals":
+      questions.push({
+        text: "Which of these is a decimal number?",
+        options: ["1/4", "0.25", "25%", "25"],
+        correctIndex: 1,
+        explanation: "0.25 is a decimal number because it uses a decimal point to show part of a whole."
+      });
+      questions.push({
+        text: "What is 0.5 + 0.7?",
+        options: ["0.12", "1.2", "0.57", "1.5"],
+        correctIndex: 1,
+        explanation: "0.5 + 0.7 = 1.2"
+      });
+      break;
+      
     // Default questions if topic doesn't match
     default:
       questions.push({
-        text: `What grade level is this ${topic} lesson for?`,
-        options: ["Grade 1", "Grade 2", `Grade ${gradeLevel}`, "Grade 5"],
+        text: `What is a key characteristic of ${topic}?`,
+        options: [
+          `${topic} is not real`, 
+          `${topic} only exists in books`, 
+          `${topic} is important to learn about`, 
+          `${topic} is too advanced for Grade ${gradeLevel}`
+        ],
         correctIndex: 2,
-        explanation: `This ${topic} lesson is designed for students in Grade ${gradeLevel}.`
+        explanation: `${topic} is an important subject to learn about in Grade ${gradeLevel}.`
       });
       questions.push({
-        text: `What subject are we learning about?`,
-        options: ["Math", "Science", topic, "History"],
+        text: `Why do we study ${topic}?`,
+        options: [
+          "It's not useful", 
+          "Only for tests", 
+          `To better understand the world around us`, 
+          "Because teachers say so"
+        ],
         correctIndex: 2,
-        explanation: `We are learning about ${topic} in this lesson.`
+        explanation: `Studying ${topic} helps us understand the world around us better.`
       });
   }
   
