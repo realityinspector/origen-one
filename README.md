@@ -3,6 +3,12 @@
 Lean open-source prototype for adaptive learning.  
 Single backend + web client, minimal dependencies, parent-controlled data.
 
+## Recent Updates
+
+- Replaced session-based authentication with JWT authentication
+- Implemented AI provider adapter to support both OpenRouter and Perplexity
+- Added feature flags for toggling AI generation and statistics
+
 ---
 
 ## Vision
