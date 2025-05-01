@@ -30,9 +30,8 @@ export const queryPersister = {
   }
 };
 
-const API_URL = process.env.NODE_ENV === "production" 
-  ? "https://api.origen-ai-tutor.replit.app" 
-  : "http://localhost:5000";
+// In Replit environment, the API is served from the same origin
+const API_URL = '';  // Empty string means use the current origin
 
 export const queryClient = new QueryClient({
   defaultOptions: {

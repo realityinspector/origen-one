@@ -8,9 +8,7 @@ const PORT = process.env.PORT || 5000;
 
 // Middleware
 app.use(cors({
-  origin: process.env.NODE_ENV === "production" 
-    ? "https://origen-ai-tutor.replit.app" 
-    : "http://localhost:5000",
+  origin: true, // Allow requests from any origin in development
   credentials: true
 }));
 app.use(express.json());
