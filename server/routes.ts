@@ -1,0 +1,239 @@
+import express, { Express, Request, Response, NextFunction, RequestHandler } from "express";
+import { createServer, type Server } from "http";
+import { setupAuth } from "./auth";
+import { storage } from "./storage";
+import { generateLesson, checkForAchievements } from "./utils";
+
+// Define a better async handler for express
+function asyncHandler(fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) {
+  return function(req: Request, res: Response, next: NextFunction) {
+    return Promise
+      .resolve(fn(req, res, next))
+      .catch(next);
+  };
+}
+
+function isAuthenticated(req: Request, res: Response, next: NextFunction) {
+  if (req.isAuthenticated()) {
+    return next();
+  }
+  res.status(401).json({ error: "Unauthorized" });
+  return;
+}
+
+function hasRole(roles: string[]) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    if (!req.isAuthenticated()) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    
+    if (!roles.includes(req.user!.role)) {
+      res.status(403).json({ error: "Forbidden" });
+      return;
+    }
+    
+    next();
+  };
+}
+
+export function registerRoutes(app: Express): Server {
+  // Set up authentication routes
+  setupAuth(app);
+  
+  // Get all parent accounts (Admin only)
+  app.get("/api/parents", hasRole(["ADMIN"]), asyncHandler(async (req, res) => {
+    const parents = await storage.getAllParents();
+    res.json(parents);
+  }));
+  
+  // Get learners for a parent (Parent only)
+  app.get("/api/learners", hasRole(["PARENT", "ADMIN"]), asyncHandler(async (req, res) => {
+    let learners;
+    if (req.user!.role === "ADMIN" && req.query.parentId) {
+      learners = await storage.getUsersByParentId(Number(req.query.parentId));
+    } else if (req.user!.role === "PARENT") {
+      learners = await storage.getUsersByParentId(req.user!.id);
+    } else {
+      return res.status(400).json({ error: "Invalid request" });
+    }
+    res.json(learners);
+  }));
+  
+  // Get learner profile
+  app.get("/api/learner-profile/:userId", isAuthenticated, asyncHandler(async (req, res) => {
+    const userId = parseInt(req.params.userId);
+    
+    // Admins can view any profile, parents can view their children, learners can view their own
+    if (
+      req.user!.role === "ADMIN" ||
+      (req.user!.role === "PARENT" && (await storage.getUsersByParentId(req.user!.id)).some(u => u.id === userId)) ||
+      (req.user!.id === userId)
+    ) {
+      const profile = await storage.getLearnerProfile(userId);
+      if (!profile) {
+        return res.status(404).json({ error: "Learner profile not found" });
+      }
+      return res.json(profile);
+    }
+    
+    return res.status(403).json({ error: "Forbidden" });
+  }));
+  
+  // Get active lesson for learner
+  app.get("/api/lessons/active", hasRole(["LEARNER"]), asyncHandler(async (req, res) => {
+    let activeLesson = await storage.getActiveLesson(req.user!.id);
+    
+    // If no active lesson, generate a new one
+    if (!activeLesson) {
+      const learnerProfile = await storage.getLearnerProfile(req.user!.id);
+      if (!learnerProfile) {
+        return res.status(404).json({ error: "Learner profile not found" });
+      }
+      
+      const lessonSpec = generateLesson(learnerProfile.gradeLevel);
+      activeLesson = await storage.createLesson({
+        learnerId: req.user!.id,
+        moduleId: `generated-${Date.now()}`,
+        status: "ACTIVE",
+        spec: lessonSpec,
+      });
+    }
+    
+    res.json(activeLesson);
+  }));
+  
+  // Get lesson history
+  app.get("/api/lessons", isAuthenticated, asyncHandler(async (req, res) => {
+    let learnerId: number;
+    
+    if (req.user!.role === "LEARNER") {
+      learnerId = req.user!.id;
+    } else if (req.query.learnerId) {
+      learnerId = Number(req.query.learnerId);
+      
+      // Check if user is authorized to view this learner's lessons
+      if (req.user!.role === "PARENT") {
+        const children = await storage.getUsersByParentId(req.user!.id);
+        if (!children.some(child => child.id === learnerId)) {
+          return res.status(403).json({ error: "Forbidden" });
+        }
+      }
+    } else {
+      return res.status(400).json({ error: "learnerId is required" });
+    }
+    
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+    const lessons = await storage.getLessonHistory(learnerId, limit);
+    res.json(lessons);
+  }));
+  
+  // Submit answer to a quiz question
+  app.post("/api/lessons/:lessonId/answer", hasRole(["LEARNER"]), asyncHandler(async (req, res) => {
+    const lessonId = req.params.lessonId;
+    const { answers } = req.body;
+    
+    if (!Array.isArray(answers)) {
+      return res.status(400).json({ error: "Answers must be an array" });
+    }
+    
+    const lesson = await storage.getLessonById(lessonId);
+    
+    if (!lesson) {
+      return res.status(404).json({ error: "Lesson not found" });
+    }
+    
+    if (lesson.learnerId !== req.user!.id) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+    
+    if (lesson.status !== "ACTIVE") {
+      return res.status(400).json({ error: "Lesson is not active" });
+    }
+    
+    // Calculate score
+    if (!lesson.spec) {
+      return res.status(400).json({ error: "Invalid lesson specification" });
+    }
+    
+    const questions = lesson.spec.questions;
+    let correctCount = 0;
+    
+    for (let i = 0; i < Math.min(answers.length, questions.length); i++) {
+      if (answers[i] === questions[i].correctIndex) {
+        correctCount++;
+      }
+    }
+    
+    const score = Math.round((correctCount / questions.length) * 100);
+    
+    // Update lesson status
+    const updatedLesson = await storage.updateLessonStatus(lessonId, "DONE", score);
+    
+    // Check for achievements
+    const lessonHistory = await storage.getLessonHistory(req.user!.id);
+    const newAchievements = checkForAchievements(lessonHistory, updatedLesson);
+    
+    // Award any new achievements
+    for (const achievement of newAchievements) {
+      await storage.createAchievement({
+        learnerId: req.user!.id,
+        type: achievement.type,
+        payload: achievement.payload
+      });
+    }
+    
+    // Generate a new lesson
+    const learnerProfile = await storage.getLearnerProfile(req.user!.id);
+    if (learnerProfile) {
+      const lessonSpec = generateLesson(learnerProfile.gradeLevel);
+      await storage.createLesson({
+        learnerId: req.user!.id,
+        moduleId: `generated-${Date.now()}`,
+        status: "ACTIVE",
+        spec: lessonSpec,
+      });
+    }
+    
+    res.json({
+      lesson: updatedLesson,
+      score,
+      correctCount,
+      totalQuestions: questions.length,
+      newAchievements: newAchievements.map(a => a.payload)
+    });
+  }));
+  
+  // Get achievements for a learner
+  app.get("/api/achievements", isAuthenticated, asyncHandler(async (req, res) => {
+    let learnerId: number;
+    
+    if (req.user!.role === "LEARNER") {
+      learnerId = req.user!.id;
+    } else if (req.query.learnerId) {
+      learnerId = Number(req.query.learnerId);
+      
+      // Check if user is authorized to view this learner's achievements
+      if (req.user!.role === "PARENT") {
+        const children = await storage.getUsersByParentId(req.user!.id);
+        if (!children.some(child => child.id === learnerId)) {
+          return res.status(403).json({ error: "Forbidden" });
+        }
+      }
+    } else {
+      return res.status(400).json({ error: "learnerId is required" });
+    }
+    
+    const achievements = await storage.getAchievements(learnerId);
+    res.json(achievements);
+  }));
+  
+  // Error handling middleware
+  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+    console.error(err);
+    res.status(500).json({ error: "An internal server error occurred" });
+  });
+
+  const httpServer = createServer(app);
+  return httpServer;
+}
