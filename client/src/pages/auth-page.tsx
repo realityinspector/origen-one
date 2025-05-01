@@ -118,8 +118,8 @@ const AuthPage = () => {
           <View style={styles.logoContainer}>
             <Book size={48} color={colors.primary} />
           </View>
-          <Text style={styles.title}>AI Tutor</Text>
-          <Text style={styles.subtitle}>Personalized learning for every child</Text>
+          <Text style={styles.title}>ORIGEN</Text>
+          <Text style={styles.subtitle}>The Open Source AI Tutor</Text>
         </View>
         
         <View style={styles.tabContainer}>
@@ -278,7 +278,7 @@ const AuthPage = () => {
         </View>
         
         <View style={styles.featuresContainer}>
-          <Text style={styles.featuresTitle}>Why Choose AI Tutor?</Text>
+          <Text style={styles.featuresTitle}>Why Choose ORIGEN?</Text>
           
           <View style={styles.featureItem}>
             <View style={styles.featureIcon}>

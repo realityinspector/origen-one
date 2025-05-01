@@ -45,7 +45,7 @@ const HomePage = ({ navigation }: any) => {
           <View style={styles.logoContainer}>
             <Book size={40} color={colors.primary} />
           </View>
-          <Text style={styles.title}>AI Tutor</Text>
+          <Text style={styles.title}>ORIGEN</Text>
           <Text style={styles.subtitle}>Welcome, {user.name}!</Text>
         </View>
 

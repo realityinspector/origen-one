@@ -10,7 +10,7 @@ export default function App() {
   return (
     <div className="app-container">
       <PlausibleAnalytics 
-        domain="learning-platform.app" 
+        domain="origen-ai-tutor.org" 
         enabled={process.env.NODE_ENV === 'production' && process.env.ENABLE_STATS !== 'false'} 
       />
       <Switch>

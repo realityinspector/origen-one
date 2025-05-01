@@ -33,7 +33,7 @@ export interface AuthRequest extends Request {
 }
 
 const scryptAsync = promisify(scrypt);
-const JWT_SECRET = process.env.JWT_SECRET || 'ai-tutor-jwt-secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'origen-ai-tutor-jwt-secret';
 const JWT_EXPIRES_IN = '7d'; // 7 days
 
 // Password hashing and verification

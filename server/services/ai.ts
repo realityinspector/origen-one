@@ -50,8 +50,8 @@ const ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 const HEADERS = (key: string) => ({
   "Content-Type": "application/json",
   Authorization: `Bearer ${key}`,
-  "HTTP-Referer": "https://your-app.com", // required by OpenRouter
-  "X-Title": "Adaptive-Tutor-MVP"
+  "HTTP-Referer": "https://origen-ai-tutor.replit.app", // required by OpenRouter
+  "X-Title": "ORIGEN - The Open Source AI Tutor"
 });
 
 /**
