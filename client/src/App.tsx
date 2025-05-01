@@ -61,7 +61,12 @@ export default function App() {
       />
       <ModeProvider>
         <HomeRedirect />
-        <div className="mode-toggle-wrapper" style={{ position: 'fixed', top: 10, right: 10, zIndex: 1000 }}>
+        <div style={{ 
+          position: 'fixed', 
+          top: 20, 
+          right: 20, 
+          zIndex: 9999,
+        }}>
           <ModeToggle />
         </div>
         <Switch>
