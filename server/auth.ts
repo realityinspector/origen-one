@@ -2,6 +2,9 @@ import { Express, Request, Response, NextFunction } from "express";
 import { storage } from "./storage";
 import { User } from "../shared/schema";
 import { asyncHandler, hashPassword, comparePasswords, generateToken, authenticateJwt, hasRoleMiddleware, AuthRequest } from "./middleware/auth";
+import { db } from "./db";
+import { users } from "../shared/schema";
+import { count } from "drizzle-orm";
 
 /**
  * Sets up JWT authentication routes
@@ -28,18 +31,29 @@ export function setupAuth(app: Express) {
       return res.status(400).json({ error: "Username already exists" });
     }
     
+    // Check if this is the first user being registered
+    const userCountResult = await db.select({ count: count() }).from(users);
+    const isFirstUser = userCountResult[0].count === 0;
+    
+    // If this is the first user, make them an admin regardless of the requested role
+    const effectiveRole = isFirstUser ? "ADMIN" : role;
+    
+    if (isFirstUser) {
+      console.log(`First user registration detected. Setting ${username} as ADMIN.`);
+    }
+    
     // Create the user
     const user = await storage.createUser({
       username,
       email,
       name,
-      role,
+      role: effectiveRole, // Use admin role if first user
       password: await hashPassword(password),
       parentId: parentId || null,
     });
 
     // If role is LEARNER, create a learner profile
-    if (role === "LEARNER" && req.body.gradeLevel) {
+    if (effectiveRole === "LEARNER" && req.body.gradeLevel) {
       await storage.createLearnerProfile({
         userId: user.id,
         gradeLevel: req.body.gradeLevel,
@@ -54,7 +68,8 @@ export function setupAuth(app: Express) {
     const { password: _, ...userWithoutPassword } = user;
     res.status(201).json({
       token,
-      user: userWithoutPassword
+      user: userWithoutPassword,
+      wasPromotedToAdmin: isFirstUser && role !== "ADMIN" // Flag to notify frontend if role was changed
     });
   }));
 

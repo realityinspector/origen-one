@@ -46,16 +46,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
+  interface LoginResponse {
+    user: SelectUser;
+    token: string;
+  }
+
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
       const res = await apiRequest("POST", "/api/login", credentials);
-      return res.data;
+      return res.data as LoginResponse;
     },
-    onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/user"], user);
+    onSuccess: (response: LoginResponse) => {
+      queryClient.setQueryData(["/api/user"], response.user);
       toast({
         title: "Login successful",
-        description: `Welcome back, ${user.name}!`,
+        description: `Welcome back, ${response.user.name}!`,
       });
     },
     onError: (error: Error) => {
@@ -67,17 +72,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
   });
 
+  interface RegisterResponse {
+    user: SelectUser;
+    token: string;
+    wasPromotedToAdmin?: boolean;
+  }
+
   const registerMutation = useMutation({
     mutationFn: async (userData: RegisterData) => {
       const res = await apiRequest("POST", "/api/register", userData);
-      return res.data;
+      return res.data as RegisterResponse;
     },
-    onSuccess: (user: SelectUser) => {
-      queryClient.setQueryData(["/api/user"], user);
-      toast({
-        title: "Registration successful",
-        description: `Welcome, ${user.name}!`,
-      });
+    onSuccess: (response: RegisterResponse) => {
+      queryClient.setQueryData(["/api/user"], response.user);
+      
+      // Check if user was automatically promoted to admin
+      if (response.wasPromotedToAdmin) {
+        toast({
+          title: "You are the first user!",
+          description: `Welcome, ${response.user.name}! As the first user, you've been automatically granted administrator privileges.`,
+        });
+      } else {
+        toast({
+          title: "Registration successful",
+          description: `Welcome, ${response.user.name}!`,
+        });
+      }
     },
     onError: (error: Error) => {
       toast({
