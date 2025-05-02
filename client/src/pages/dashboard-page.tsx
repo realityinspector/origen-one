@@ -84,8 +84,13 @@ const DashboardPage: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>ORIGEN™ Learning Dashboard</Text>
-        <Text style={styles.welcomeText}>Welcome, {user?.name || 'User'}!</Text>
+        <View style={styles.headerContent}>
+          <View>
+            <Text style={styles.headerTitle}>ORIGEN™ Learning Dashboard</Text>
+            <Text style={styles.welcomeText}>Welcome, {user?.name || 'User'}!</Text>
+          </View>
+          <Text style={styles.trademark}>™</Text>
+        </View>
       </View>
       
       <View style={styles.tabs}>
@@ -328,6 +333,17 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
     paddingHorizontal: 24,
   },
+  headerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  trademark: {
+    ...typography.h4,
+    color: colors.onPrimary,
+    marginLeft: 4,
+    fontWeight: 'bold',
+  },
   headerTitle: {
     ...typography.h2,
     color: colors.onPrimary,
@@ -414,7 +430,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
+    // boxShadow not supported in React Native
+    elevation: 2,
   },
   featureIconContainer: {
     width: 64,
@@ -470,7 +487,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.08)',
+    // boxShadow not supported in React Native
+    elevation: 3,
     alignItems: 'center',
   },
   statsContainer: {
@@ -487,7 +505,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.border,
-    boxShadow: '0px 1px 3px rgba(0, 0, 0, 0.1)',
+    // boxShadow not supported in React Native
+    elevation: 1,
   },
   statValue: {
     ...typography.h3,
@@ -507,7 +526,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
+    // boxShadow not supported in React Native
+    elevation: 2,
   },
   emptyState: {
     flex: 1,
@@ -539,7 +559,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
+    // boxShadow not supported in React Native
+    elevation: 2,
     overflow: 'hidden',
   },
   modeToggleContent: {
