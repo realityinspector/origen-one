@@ -35,10 +35,10 @@ const WelcomePage: React.FC = () => {
                       <Text style={styles.ctaButtonText}>Get Started</Text>
                     </View>
                   </Link>
-                  <View style={styles.githubButton} onTouchEnd={openGitHub}>
+                  <TouchableOpacity style={styles.githubButton} onPress={openGitHub}>
                     <GitHub size={20} color={colors.onPrimary} />
                     <Text style={styles.githubButtonText}>View on GitHub</Text>
-                  </View>
+                  </TouchableOpacity>
                 </View>
               </View>
               <View style={styles.heroGraphicContainer}>
@@ -305,18 +305,31 @@ const styles = StyleSheet.create({
     marginTop: 16,
     flexDirection: 'row',
     flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+  },
+  ctaButtonWrapper: {
+    margin: 0,
+    padding: 0,
+    height: 50,
+    justifyContent: 'center',
   },
   githubButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     backgroundColor: 'transparent',
     borderWidth: 2,
     borderColor: colors.onPrimary,
     paddingVertical: 14,
     paddingHorizontal: 24,
-    borderRadius: 8,
+    borderRadius: 10,
     marginLeft: 16,
-    marginTop: 8,
+    height: 50,
+    shadowColor: 'rgba(0, 0, 0, 0.2)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
   githubButtonText: {
     ...typography.button,
@@ -327,16 +340,28 @@ const styles = StyleSheet.create({
   },
   ctaButton: {
     backgroundColor: colors.onPrimary,
-    paddingVertical: 16,
+    paddingVertical: 14,
     paddingHorizontal: 32,
-    borderRadius: 8,
-    // boxShadow isn't supported in React Native, use elevation instead
-    elevation: 4,
+    borderRadius: 10,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: 'rgba(0, 0, 0, 0.2)',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
   },
   ctaButtonLarge: {
-    paddingVertical: 20,
+    paddingVertical: 16,
     paddingHorizontal: 40,
-    borderRadius: 10,
+    borderRadius: 12,
+    height: 56,
+  },
+  ctaButtonLargeWrapper: {
+    margin: 0,
+    padding: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   ctaButtonText: {
     ...typography.button,
