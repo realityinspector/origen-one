@@ -14,6 +14,7 @@ import { useLocation } from 'wouter';
 import { apiRequest, queryClient } from '../lib/queryClient';
 import { colors, typography, commonStyles } from '../styles/theme';
 import QuizComponent from '../components/QuizComponent';
+import OrigenHeader from '../components/OrigenHeader';
 import { ArrowLeft, CheckCircle, AlertCircle } from 'react-feather';
 
 const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
@@ -23,6 +24,7 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
     const [, setLocation] = useLocation();
     return (
       <SafeAreaView style={styles.container}>
+        <OrigenHeader subtitle="Missing Lesson ID" />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
             Missing lesson ID. Please return to your active lesson.
@@ -110,6 +112,7 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
+        <OrigenHeader subtitle="Quiz Error" />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
             Error loading quiz. Please try again.
@@ -128,6 +131,7 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
   if (isLoading || submitAnswersMutation.isPending) {
     return (
       <SafeAreaView style={styles.container}>
+        <OrigenHeader subtitle="Knowledge Check" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>
@@ -143,6 +147,7 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
   if (!lesson || !lesson.spec || !lesson.spec.questions) {
     return (
       <SafeAreaView style={styles.container}>
+        <OrigenHeader subtitle="Quiz Not Found" />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
             Quiz not found. Please return to the lesson.
@@ -160,13 +165,14 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+      <OrigenHeader subtitle={quizSubmitted ? 'Quiz Results' : 'Knowledge Check'} />
+      <View style={styles.subheader}>
         {!quizSubmitted && (
           <TouchableOpacity style={styles.backButtonSmall} onPress={() => setLocation('/lesson')}>
             <ArrowLeft size={24} color={colors.textPrimary} />
           </TouchableOpacity>
         )}
-        <Text style={styles.headerTitle}>
+        <Text style={styles.subheaderTitle}>
           {quizSubmitted ? 'Quiz Results' : 'Knowledge Check'}
         </Text>
         <View style={{ width: 24 }} />
@@ -272,7 +278,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  header: {
+  subheader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -282,7 +288,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.divider,
     backgroundColor: colors.surfaceColor,
   },
-  headerTitle: {
+  subheaderTitle: {
     ...typography.subtitle1,
     textAlign: 'center',
   },
