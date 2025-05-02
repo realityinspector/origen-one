@@ -53,11 +53,27 @@ function setupAuth(app) {
         }
         // Generate JWT token
         const token = (0, auth_1.generateToken)(user);
+        // Additional logging for production debugging
+        console.log('Registration completed for:', username);
+        console.log('Token generation successful:', !!token);
         // Return the token and user data (excluding password)
         const { password: _, ...userWithoutPassword } = user;
+        // Log the response structure
+        const responseObj = {
+            token,
+            user: userWithoutPassword,
+            wasPromotedToAdmin: isFirstUser && role !== "ADMIN" // Flag to notify frontend if role was changed
+        };
+        console.log('Registration response structure:', {
+            hasToken: !!responseObj.token,
+            hasUser: !!responseObj.user,
+            userFieldsIfPresent: responseObj.user ? Object.keys(responseObj.user) : null
+        });
+        // Use both user and userData fields for maximum compatibility
         res.status(201).json({
             token,
             user: userWithoutPassword,
+            userData: userWithoutPassword, // Add userData as an alternative
             wasPromotedToAdmin: isFirstUser && role !== "ADMIN" // Flag to notify frontend if role was changed
         });
     }));
@@ -74,11 +90,22 @@ function setupAuth(app) {
         }
         // Generate JWT token
         const token = (0, auth_1.generateToken)(user);
+        // Additional logging for production debugging
+        console.log('Login successful for:', username);
+        console.log('Token generation successful:', !!token);
         // Return the token and user data (excluding password)
         const { password: _, ...userWithoutPassword } = user;
+        // Log the response structure
+        console.log('Login response structure:', {
+            hasToken: !!token,
+            hasUser: !!userWithoutPassword,
+            userFieldsIfPresent: userWithoutPassword ? Object.keys(userWithoutPassword) : null
+        });
+        // Use both user and userData fields for maximum compatibility
         res.status(200).json({
             token,
-            user: userWithoutPassword
+            user: userWithoutPassword,
+            userData: userWithoutPassword // Add userData as an alternative
         });
     }));
     // Get current user info
