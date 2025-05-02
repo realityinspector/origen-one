@@ -14,7 +14,21 @@ const ModeContext = createContext<ModeContextType | undefined>(undefined);
 
 export const ModeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
+  
+  // Add safer navigation function
+  const safeNavigate = (path: string) => {
+    try {
+      console.log('Safe navigating to:', path);
+      setLocation(path);
+    } catch (error) {
+      console.error('Navigation error:', error);
+      // Fallback to direct location change if navigation fails
+      if (typeof window !== 'undefined') {
+        window.location.href = path;
+      }
+    }
+  };
   
   // Default to the user's actual role, or to stored preference
   const initialMode = (): UserMode => {
@@ -89,10 +103,10 @@ export const ModeProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Navigate to the appropriate dashboard
     if (newMode === 'LEARNER') {
       console.log('Navigating to learner view');
-      navigate('/learner');
+      safeNavigate('/learner');
     } else {
       console.log('Navigating to dashboard');
-      navigate('/dashboard');
+      safeNavigate('/dashboard');
     }
   };
   
