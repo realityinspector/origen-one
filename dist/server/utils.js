@@ -1,0 +1,262 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateLesson = generateLesson;
+exports.checkForAchievements = checkForAchievements;
+const ai_1 = require("./services/ai");
+// Grade level topics for lesson generation
+const gradeTopics = {
+    1: ["Numbers", "Letters", "Colors", "Shapes"],
+    2: ["Addition", "Subtraction", "Reading", "Time"],
+    3: ["Multiplication", "Division", "Geography", "Science"],
+    4: ["Fractions", "Grammar", "History", "Animals"],
+    5: ["Decimals", "Writing", "Solar System", "Plants"],
+    6: ["Algebra", "Literature", "Ancient Civilizations", "Ecosystems"],
+    7: ["Geometry", "Poetry", "World Geography", "Chemistry"],
+    8: ["Statistics", "Essay Writing", "American History", "Biology"],
+};
+const flags_1 = require("./config/flags");
+// Function to generate a lesson based on grade level and topic
+async function generateLesson(gradeLevel, topic) {
+    // Check if we should use AI or static content based on feature flag
+    if (flags_1.USE_AI) {
+        try {
+            // Default to grade 3 if outside of range
+            const safeGradeLevel = gradeLevel >= 1 && gradeLevel <= 8 ? gradeLevel : 3;
+            // Select a random topic if none provided
+            const availableTopics = gradeTopics[safeGradeLevel];
+            const selectedTopic = topic || availableTopics[Math.floor(Math.random() * availableTopics.length)];
+            // Create async calls for both content and questions
+            const contentPromise = (0, ai_1.generateLessonContent)(safeGradeLevel, selectedTopic);
+            const questionsPromise = (0, ai_1.generateQuizQuestions)(safeGradeLevel, selectedTopic, 5);
+            const graphPromise = (0, ai_1.generateKnowledgeGraph)(selectedTopic, safeGradeLevel);
+            // Wait for all to complete
+            const [content, questions, graph] = await Promise.all([contentPromise, questionsPromise, graphPromise]);
+            // Return the lesson spec
+            return {
+                title: `${selectedTopic} for Grade ${safeGradeLevel}`,
+                content: content,
+                questions: questions,
+                graph: graph
+            };
+        }
+        catch (error) {
+            console.error('Error generating lesson with AI:', error);
+            // Fall back to static content in case of AI service failure
+            return generateStaticLesson(gradeLevel, topic);
+        }
+    }
+    else {
+        // Use static content when USE_AI is disabled
+        console.log('Using static lesson content (USE_AI=0)');
+        return generateStaticLesson(gradeLevel, topic);
+    }
+}
+// Fallback function that provides static content if AI fails
+function generateStaticLesson(gradeLevel, topic) {
+    // Default to grade 3 if outside of range
+    const safeGradeLevel = gradeLevel >= 1 && gradeLevel <= 8 ? gradeLevel : 3;
+    // Select a random topic if none provided
+    const availableTopics = gradeTopics[safeGradeLevel];
+    const selectedTopic = topic || availableTopics[Math.floor(Math.random() * availableTopics.length)];
+    // Generate basic lesson content
+    const lessonContent = `
+    # ${selectedTopic} for Grade ${safeGradeLevel}
+    
+    Today we're going to learn about ${selectedTopic.toLowerCase()}.
+    
+    ${getStaticContentForTopic(selectedTopic, safeGradeLevel)}
+  `;
+    // Generate quiz questions
+    const questions = generateStaticQuizQuestions(selectedTopic, safeGradeLevel);
+    // Generate a simple knowledge graph
+    const graph = {
+        nodes: [
+            { id: "main", label: selectedTopic },
+            { id: "sub1", label: `Basic ${selectedTopic}` },
+            { id: "sub2", label: `Advanced ${selectedTopic}` },
+            { id: "related1", label: "Related Concept 1" },
+            { id: "related2", label: "Related Concept 2" }
+        ],
+        edges: [
+            { source: "main", target: "sub1" },
+            { source: "main", target: "sub2" },
+            { source: "main", target: "related1" },
+            { source: "main", target: "related2" },
+            { source: "sub1", target: "related1" }
+        ]
+    };
+    return {
+        title: `${selectedTopic} for Grade ${safeGradeLevel}`,
+        content: lessonContent,
+        questions: questions,
+        graph: graph
+    };
+}
+function getStaticContentForTopic(topic, gradeLevel) {
+    // Static content that doesn't rely on AI
+    const contentMap = {
+        "Numbers": "Numbers are the building blocks of mathematics. We use them to count, measure, and understand the world around us.",
+        "Letters": "Letters are symbols that represent sounds in our language. When we put letters together, we create words.",
+        "Colors": "Colors are what we see when light reflects off objects. The primary colors are red, blue, and yellow.",
+        "Shapes": "Shapes are forms and outlines of objects. Basic shapes include circles, squares, triangles, and rectangles.",
+        "Addition": "Addition is when we combine groups of things to find the total. The + sign means we're adding numbers together.",
+        "Subtraction": "Subtraction is finding the difference between two numbers. The - sign means we're taking away from a number.",
+        "Reading": "Reading is understanding written text. We look at words and understand their meaning.",
+        "Time": "Time is how we measure when events happen. We use clocks to tell time in hours, minutes, and seconds.",
+        "Multiplication": "Multiplication is a fast way to add the same number multiple times. For example, 3 × 4 means 3 + 3 + 3 + 3.",
+        "Division": "Division is sharing a number into equal groups. For example, 12 ÷ 3 means splitting 12 into 3 equal groups.",
+        "Geography": "Geography is the study of Earth's features, including land, water, and where people live.",
+        "Science": "Science is how we study and understand the natural world through observation and experiments.",
+        "Fractions": "Fractions represent parts of a whole. For example, 1/4 means one out of four equal parts.",
+        "Grammar": "Grammar is the set of rules that explain how words are used in a language.",
+        "History": "History is the study of past events and how they have shaped our world today.",
+        "Animals": "Animals are living organisms that can move, eat, and respond to their environment. There are many different types of animals.",
+        "Decimals": "Decimals are a way of writing fractions. The decimal point separates the whole number from the fraction.",
+        "Writing": "Writing is using letters and words to communicate ideas and stories.",
+        "Solar System": "The Solar System consists of the Sun and everything that orbits around it, including planets, moons, asteroids, and comets.",
+        "Plants": "Plants are living organisms that make their own food through a process called photosynthesis using sunlight, water, and carbon dioxide."
+    };
+    // Return content or a default message
+    return contentMap[topic] || `Let's explore the fascinating world of ${topic.toLowerCase()}!`;
+}
+function generateStaticQuizQuestions(topic, gradeLevel) {
+    // Static questions that don't rely on AI
+    const questions = [];
+    // Generate a few sample questions based on topic
+    switch (topic) {
+        case "Numbers":
+            questions.push({
+                text: "Which number comes after 5?",
+                options: ["4", "5", "6", "7"],
+                correctIndex: 2,
+                explanation: "The number that comes after 5 is 6."
+            });
+            questions.push({
+                text: "What is 3 + 2?",
+                options: ["4", "5", "6", "7"],
+                correctIndex: 1,
+                explanation: "3 + 2 = 5"
+            });
+            break;
+        case "Addition":
+            questions.push({
+                text: "What is 7 + 3?",
+                options: ["9", "10", "11", "12"],
+                correctIndex: 1,
+                explanation: "7 + 3 = 10"
+            });
+            questions.push({
+                text: "What is 5 + 8?",
+                options: ["12", "13", "14", "15"],
+                correctIndex: 1,
+                explanation: "5 + 8 = 13"
+            });
+            break;
+        case "Multiplication":
+            questions.push({
+                text: "What is 3 × 4?",
+                options: ["7", "10", "12", "15"],
+                correctIndex: 2,
+                explanation: "3 × 4 = 12, which means 3 + 3 + 3 + 3 = 12"
+            });
+            questions.push({
+                text: "What is 5 × 2?",
+                options: ["7", "8", "9", "10"],
+                correctIndex: 3,
+                explanation: "5 × 2 = 10, which means 5 + 5 = 10"
+            });
+            break;
+        case "Plants":
+            questions.push({
+                text: "What do plants need to make their own food?",
+                options: ["Water only", "Sunlight, water, and carbon dioxide", "Just soil", "Fertilizer"],
+                correctIndex: 1,
+                explanation: "Plants use sunlight, water, and carbon dioxide to create food through photosynthesis."
+            });
+            questions.push({
+                text: "What is the process called when plants make their own food?",
+                options: ["Respiration", "Germination", "Photosynthesis", "Pollination"],
+                correctIndex: 2,
+                explanation: "Photosynthesis is the process where plants convert sunlight, water, and carbon dioxide into food."
+            });
+            break;
+        case "Decimals":
+            questions.push({
+                text: "Which of these is a decimal number?",
+                options: ["1/4", "0.25", "25%", "25"],
+                correctIndex: 1,
+                explanation: "0.25 is a decimal number because it uses a decimal point to show part of a whole."
+            });
+            questions.push({
+                text: "What is 0.5 + 0.7?",
+                options: ["0.12", "1.2", "0.57", "1.5"],
+                correctIndex: 1,
+                explanation: "0.5 + 0.7 = 1.2"
+            });
+            break;
+        // Default questions if topic doesn't match
+        default:
+            questions.push({
+                text: `What is a key characteristic of ${topic}?`,
+                options: [
+                    `${topic} is not real`,
+                    `${topic} only exists in books`,
+                    `${topic} is important to learn about`,
+                    `${topic} is too advanced for Grade ${gradeLevel}`
+                ],
+                correctIndex: 2,
+                explanation: `${topic} is an important subject to learn about in Grade ${gradeLevel}.`
+            });
+            questions.push({
+                text: `Why do we study ${topic}?`,
+                options: [
+                    "It's not useful",
+                    "Only for tests",
+                    `To better understand the world around us`,
+                    "Because teachers say so"
+                ],
+                correctIndex: 2,
+                explanation: `Studying ${topic} helps us understand the world around us better.`
+            });
+    }
+    return questions;
+}
+// Function to check if an achievement should be awarded
+function checkForAchievements(lessonHistory, completedLesson) {
+    const achievements = [];
+    // First lesson completed
+    if (lessonHistory.filter(l => l.status === "DONE").length === 1) {
+        achievements.push({
+            type: "FIRST_LESSON",
+            payload: {
+                title: "First Steps",
+                description: "Completed your very first lesson!",
+                icon: "award"
+            }
+        });
+    }
+    // 5 lessons completed
+    if (lessonHistory.filter(l => l.status === "DONE").length === 5) {
+        achievements.push({
+            type: "FIVE_LESSONS",
+            payload: {
+                title: "Learning Explorer",
+                description: "Completed 5 lessons!",
+                icon: "book-open"
+            }
+        });
+    }
+    // Perfect score on a quiz
+    if (completedLesson && completedLesson.score === 100) {
+        achievements.push({
+            type: "PERFECT_SCORE",
+            payload: {
+                title: "Perfect Score!",
+                description: "Got all answers correct in a quiz!",
+                icon: "star"
+            }
+        });
+    }
+    return achievements;
+}
+//# sourceMappingURL=utils.js.map
