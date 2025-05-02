@@ -24,12 +24,8 @@ const server = registerRoutes(app);
 
 // Serve React app for all other routes - this must come after API routes
 app.use((req, res) => {
-  // For any route that is not handled by the API or static files
-  if (!req.path.startsWith('/api/')) {
-    res.sendFile(path.join(__dirname, "../client/dist/index.html"));
-  } else {
-    res.status(404).json({ error: "API endpoint not found" });
-  }
+  // Send all non-API requests to the React app
+  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
 });
 
 // Start API server on port 5000
@@ -37,14 +33,6 @@ server.listen(Number(PORT), "0.0.0.0", () => {
   console.log(`API server running on http://0.0.0.0:${PORT}`);
 });
 
-// Create HTTP server on port 8000 for web traffic
-const httpApp = express();
-httpApp.use(express.static(clientDistPath));
-httpApp.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
-});
-
-httpApp.listen(HTTP_PORT, "0.0.0.0", () => {
-  console.log(`HTTP server running on http://0.0.0.0:${HTTP_PORT}`);
-});
+// We're only using the main server on port 5000 for this app
+// We no longer need a separate HTTP server since everything is served from one port
 

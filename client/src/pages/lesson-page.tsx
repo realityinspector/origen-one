@@ -13,6 +13,7 @@ import { apiRequest } from '../lib/queryClient';
 import { colors, typography, commonStyles } from '../styles/theme';
 import { ChevronRight, ArrowLeft } from 'react-feather';
 import Markdown from 'react-native-markdown-display';
+import OrigenHeader from '../components/OrigenHeader';
 
 const LessonPage = ({ route, navigation }: any) => {
   const { lessonId } = route.params;
@@ -45,6 +46,7 @@ const LessonPage = ({ route, navigation }: any) => {
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
+        <OrigenHeader subtitle="Lesson Error" />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
             Error loading lesson. Please try again.
@@ -63,6 +65,7 @@ const LessonPage = ({ route, navigation }: any) => {
   if (queryLoading || isLoading) {
     return (
       <SafeAreaView style={styles.container}>
+        <OrigenHeader subtitle="Personalized Lesson" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text style={styles.loadingText}>Loading your personalized lesson...</Text>
@@ -74,6 +77,7 @@ const LessonPage = ({ route, navigation }: any) => {
   if (!lesson) {
     return (
       <SafeAreaView style={styles.container}>
+        <OrigenHeader subtitle="Lesson Not Found" />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
             Lesson not found. Please return to the dashboard.
@@ -91,11 +95,12 @@ const LessonPage = ({ route, navigation }: any) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+      <OrigenHeader subtitle={lesson.spec.title} />
+      <View style={styles.subheader}>
         <TouchableOpacity style={styles.backButtonSmall} onPress={() => navigation.goBack()}>
           <ArrowLeft size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{lesson.spec.title}</Text>
+        <Text style={styles.subheaderTitle}>Personalized Lesson</Text>
         <View style={{ width: 24 }} />
       </View>
 
@@ -174,7 +179,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  header: {
+  subheader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -184,7 +189,7 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.divider,
     backgroundColor: colors.surfaceColor,
   },
-  headerTitle: {
+  subheaderTitle: {
     ...typography.subtitle1,
     textAlign: 'center',
   },

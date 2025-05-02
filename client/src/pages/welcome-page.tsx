@@ -196,7 +196,7 @@ const WelcomePage: React.FC = () => {
               </View>
             </View>
             
-            <Text style={styles.copyright}>© {new Date().getFullYear()} Origen AI. All rights reserved.</Text>
+            <Text style={styles.copyright}>All materials copyright © Sean McDonald {new Date().getFullYear()}</Text>
           </View>
         </View>
       </View>
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
     color: colors.secondary,
     marginBottom: 24,
     fontWeight: 'bold',
-    textShadow: '0px 1px 2px rgba(0, 0, 0, 0.3)',
+    // Note: textShadow isn't supported in React Native, so we're removing it
   },
   logoContainer: {
     width: 80,
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 32,
     borderRadius: 8,
-    boxShadow: '0px 4px 8px rgba(0, 0, 0, 0.1)',
+    // boxShadow isn't supported in React Native, use elevation instead
     elevation: 4,
   },
   ctaButtonLarge: {
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     padding: 24,
     margin: 12,
     width: 260,
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
+    // boxShadow isn't supported in React Native, use elevation instead
     elevation: 3,
     alignItems: 'center',
   },
