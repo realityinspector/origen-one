@@ -202,6 +202,71 @@ const DashboardPage: React.FC = () => {
             
             {(user?.role === 'PARENT' || user?.role === 'ADMIN') && (
               <>
+                {/* Onboarding Guide Section */}
+                <View style={styles.onboardingSection}>
+                  <View style={styles.onboardingHeader}>
+                    <Text style={styles.onboardingTitle}>Welcome to ORIGEN™ AI Tutor!</Text>
+                    <Text style={styles.onboardingSubtitle}>Your guide to personalized learning</Text>
+                  </View>
+                  
+                  <View style={styles.onboardingSteps}>
+                    <View style={styles.onboardingStep}>
+                      <View style={styles.onboardingStepNumber}>
+                        <Text style={styles.onboardingStepNumberText}>1</Text>
+                      </View>
+                      <View style={styles.onboardingStepContent}>
+                        <Text style={styles.onboardingStepTitle}>Add Your Learners</Text>
+                        <Text style={styles.onboardingStepDescription}>
+                          Start by adding your children or students using the "Manage Learners" option below. You'll be able to track their progress and customize their learning experience.
+                        </Text>
+                      </View>
+                    </View>
+                    
+                    <View style={styles.onboardingStep}>
+                      <View style={styles.onboardingStepNumber}>
+                        <Text style={styles.onboardingStepNumberText}>2</Text>
+                      </View>
+                      <View style={styles.onboardingStepContent}>
+                        <Text style={styles.onboardingStepTitle}>Experience Learner Mode</Text>
+                        <Text style={styles.onboardingStepDescription}>
+                          Toggle to "Learner Mode" to see the app as your child does. In this view, you can create personalized AI lessons, take quizzes, and view their knowledge graphs.
+                        </Text>
+                      </View>
+                    </View>
+                    
+                    <View style={styles.onboardingStep}>
+                      <View style={styles.onboardingStepNumber}>
+                        <Text style={styles.onboardingStepNumberText}>3</Text>
+                      </View>
+                      <View style={styles.onboardingStepContent}>
+                        <Text style={styles.onboardingStepTitle}>Monitor Progress</Text>
+                        <Text style={styles.onboardingStepDescription}>
+                          View detailed reports on your learner's progress, achievements, and areas for improvement. Track their knowledge growth through interactive visualizations.
+                        </Text>
+                      </View>
+                    </View>
+                    
+                    <View style={styles.onboardingStep}>
+                      <View style={styles.onboardingStepNumber}>
+                        <Text style={styles.onboardingStepNumberText}>4</Text>
+                      </View>
+                      <View style={styles.onboardingStepContent}>
+                        <Text style={styles.onboardingStepTitle}>Customize Learning Path</Text>
+                        <Text style={styles.onboardingStepDescription}>
+                          Guide your learner's journey by suggesting topics, reviewing their completed lessons, and helping them create new personalized AI-generated content.
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                  
+                  <View style={styles.onboardingTip}>
+                    <Text style={styles.onboardingTipTitle}>Pro Tip:</Text>
+                    <Text style={styles.onboardingTipText}>
+                      Try creating a lesson yourself first to understand how the AI tutor works. This will help you guide your learners more effectively!
+                    </Text>
+                  </View>
+                </View>
+                
                 <View style={styles.contentSection}>
                   <Text style={styles.sectionTitle}>Learner Management</Text>
                   <Link href="/learners">
@@ -659,6 +724,92 @@ const styles = StyleSheet.create({
     ...typography.button,
     color: colors.onPrimary,
     fontWeight: '600',
+  },
+  
+  // Onboarding Guide Styles
+  onboardingSection: {
+    backgroundColor: colors.surfaceColor,
+    borderRadius: 12,
+    padding: 24,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: colors.primary + '30',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  onboardingHeader: {
+    marginBottom: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    paddingBottom: 16,
+  },
+  onboardingTitle: {
+    ...typography.h4,
+    color: colors.primary,
+    marginBottom: 8,
+    fontWeight: '700',
+  },
+  onboardingSubtitle: {
+    ...typography.subtitle1,
+    color: colors.textSecondary,
+  },
+  onboardingSteps: {
+    marginBottom: 24,
+  },
+  onboardingStep: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    alignItems: 'flex-start',
+  },
+  onboardingStepNumber: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+    marginTop: 4,
+  },
+  onboardingStepNumberText: {
+    ...typography.h6,
+    color: colors.onPrimary,
+    fontWeight: 'bold',
+  },
+  onboardingStepContent: {
+    flex: 1,
+  },
+  onboardingStepTitle: {
+    ...typography.h6,
+    color: colors.text,
+    marginBottom: 8,
+    fontWeight: '600',
+  },
+  onboardingStepDescription: {
+    ...typography.body2,
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
+  onboardingTip: {
+    backgroundColor: colors.secondary + '15',
+    borderRadius: 8,
+    padding: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: colors.secondary,
+  },
+  onboardingTipTitle: {
+    ...typography.subtitle1,
+    color: colors.secondary,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  onboardingTipText: {
+    ...typography.body2,
+    color: colors.text,
+    lineHeight: 20,
   },
 });
 
