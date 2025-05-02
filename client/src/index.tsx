@@ -101,11 +101,18 @@ function Root() {
       <ErrorBoundary>
         <QueryClientProvider client={queryClient}>
           <ToastProvider>
-            <AuthProvider>
-              <ModeProvider>
-                <App />
-              </ModeProvider>
-            </AuthProvider>
+            {/* Wrap everything in an extra error boundary to isolate auth issues */}
+            <ErrorBoundary>
+              <AuthProvider>
+                <ErrorBoundary>
+                  <ModeProvider>
+                    <ErrorBoundary>
+                      <App />
+                    </ErrorBoundary>
+                  </ModeProvider>
+                </ErrorBoundary>
+              </AuthProvider>
+            </ErrorBoundary>
           </ToastProvider>
         </QueryClientProvider>
       </ErrorBoundary>
