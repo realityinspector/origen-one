@@ -123,19 +123,12 @@ export const typography = StyleSheet.create({
   },
 });
 
-// Animation keyframes and durations for consistent animation effects
+// Animation durations for consistent animation effects
 export const animations = {
-  fadeIn: 'fade-in 0.3s ease-out',
-  slideIn: 'slide-in 0.4s ease-out',
-  slideUp: 'slide-up 0.3s ease-out',
-  pulse: 'pulse 2s infinite',
-  spin: 'spin 1s linear infinite',
-  bounce: 'bounce 0.5s ease-in-out',
-  growIn: 'grow-in 0.4s ease-out',
   // Short durations for micro-interactions
-  short: '0.15s',
-  medium: '0.3s',
-  long: '0.5s',
+  short: 150,  // milliseconds
+  medium: 300,  // milliseconds
+  long: 500,  // milliseconds
 };
 
 // Common styles for components with improved spacing, shadow effects, and consistent button styling
@@ -206,18 +199,14 @@ export const commonStyles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    // transition: 'all 0.2s ease', // Handled in CSS
     position: 'relative',
     // Pseudo-element styles added via CSS in global.css
-    // ':hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 8px rgba(0,0,0,0.2)' },
-    // ':active': { transform: 'translateY(1px)', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' },
   },
   buttonText: {
     color: colors.onPrimary,
     fontSize: 16,
     fontWeight: '600',
     letterSpacing: 0.5, // Slight letter spacing for readability
-    transition: 'all 0.2s ease',
   },
   outlineButton: {
     borderWidth: 2, // Slightly thicker border
@@ -227,16 +216,12 @@ export const commonStyles = StyleSheet.create({
     paddingHorizontal: 28,
     alignItems: 'center',
     justifyContent: 'center',
-    transition: 'all 0.2s ease',
-    // ':hover': { backgroundColor: 'rgba(98, 0, 238, 0.05)' },
-    // ':active': { backgroundColor: 'rgba(98, 0, 238, 0.1)' },
   },
   outlineButtonText: {
     color: colors.primary,
     fontSize: 16,
     fontWeight: '600',
     letterSpacing: 0.5,
-    transition: 'all 0.2s ease',
   },
   // Secondary action button (accent color)
   secondaryButton: {
@@ -251,16 +236,12 @@ export const commonStyles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    transition: 'all 0.2s ease',
-    // ':hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 8px rgba(0,0,0,0.2)' },
-    // ':active': { transform: 'translateY(1px)', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' },
   },
   secondaryButtonText: {
     color: colors.onPrimary,
     fontSize: 16,
     fontWeight: '600',
     letterSpacing: 0.5,
-    transition: 'all 0.2s ease',
   },
   // Accent button (using accent1 color)
   accentButton: {
@@ -275,7 +256,6 @@ export const commonStyles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-    transition: 'all 0.2s ease',
   },
   accentButtonText: {
     color: colors.onPrimary,

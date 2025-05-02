@@ -31,13 +31,13 @@ const WelcomePage: React.FC = () => {
                 <Text style={styles.heroOpenSource}>100% Open Source Educational Platform</Text>
                 <View style={styles.heroCta}>
                   <Link href="/auth">
-                    <View style={styles.ctaButton}>
-                      <Text style={styles.ctaButtonText}>Get Started</Text>
+                    <View style={[styles.ctaButton, {marginRight: 16}]}>
+                      <Text style={styles.ctaButtonText}>GET STARTED</Text>
                     </View>
                   </Link>
                   <TouchableOpacity style={styles.githubButton} onPress={openGitHub}>
                     <GitHub size={20} color={colors.onPrimary} />
-                    <Text style={styles.githubButtonText}>View on GitHub</Text>
+                    <Text style={styles.githubButtonText}>VIEW ON GITHUB</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -308,6 +308,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
   },
+  buttonContainer: {
+    height: 50,
+    marginRight: 16,
+    marginBottom: 16,
+    display: 'flex',
+    justifyContent: 'center',
+  },
   ctaButtonWrapper: {
     margin: 0,
     padding: 0,
@@ -324,12 +331,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 10,
-    marginLeft: 16,
     height: 50,
-    shadowColor: 'rgba(0, 0, 0, 0.2)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
   },
   githubButtonText: {
     ...typography.button,
@@ -346,10 +349,7 @@ const styles = StyleSheet.create({
     height: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: 'rgba(0, 0, 0, 0.2)',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.2)',
   },
   ctaButtonLarge: {
     paddingVertical: 16,
@@ -396,8 +396,7 @@ const styles = StyleSheet.create({
     padding: 24,
     margin: 12,
     width: 260,
-    // boxShadow isn't supported in React Native, use elevation instead
-    elevation: 3,
+    boxShadow: '0 2px 6px rgba(0, 0, 0, 0.1)',
     alignItems: 'center',
   },
   featureIconContainer: {
