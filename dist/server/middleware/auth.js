@@ -43,7 +43,18 @@ function generateToken(user) {
         userId: user.id,
         role: user.role
     };
-    return jsonwebtoken_1.default.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    // Log for debugging token generation
+    console.log('Generating token for user ID:', user.id, 'with role:', user.role);
+    console.log('Using JWT_SECRET:', JWT_SECRET.substring(0, 3) + '...' + JWT_SECRET.substring(JWT_SECRET.length - 3));
+    try {
+        const token = jsonwebtoken_1.default.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+        console.log('Token generated successfully, length:', token.length);
+        return token;
+    }
+    catch (error) {
+        console.error('Failed to generate token:', error);
+        throw error;
+    }
 }
 function verifyToken(token) {
     return jsonwebtoken_1.default.verify(token, JWT_SECRET);
