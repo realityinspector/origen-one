@@ -1,9 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, ScrollView, Linking } from 'react-native';
 import { Link } from 'wouter';
 import { useAuth } from '../hooks/use-auth';
 import { Redirect } from 'wouter';
 import { colors, typography } from '../styles/theme';
+import { GitHub, BookOpen, Eye, Shield, Users, Award } from 'react-feather';
 
 const WelcomePage: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -13,76 +14,368 @@ const WelcomePage: React.FC = () => {
     return <Redirect to="/dashboard" />;
   }
 
+  const openGitHub = () => {
+    Linking.openURL('https://github.com/realityinspector/origen-one');
+  };
+
   return (
-    <View style={styles.container}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Welcome to Origen AI Tutor</Text>
-        <Text style={styles.subtitle}>The personalized learning platform powered by AI</Text>
-        
-        <View style={styles.featuresContainer}>
-          <Text style={styles.featureItem}>✓ Personalized learning paths</Text>
-          <Text style={styles.featureItem}>✓ Adaptive content for your grade level</Text>
-          <Text style={styles.featureItem}>✓ Track progress with detailed analytics</Text>
-          <Text style={styles.featureItem}>✓ Parent and admin dashboards</Text>
+    <ScrollView style={styles.scrollView}>
+      <View style={styles.container}>
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <View style={styles.heroContent}>
+            <View style={styles.logoContainer}>
+              <Text style={styles.logoText}>O</Text>
+            </View>
+            <Text style={styles.heroTitle}>ORIGEN AI TUTOR</Text>
+            <Text style={styles.heroSubtitle}>Personalized learning powered by artificial intelligence</Text>
+            <View style={styles.heroCta}>
+              <Link href="/auth">
+                <View style={styles.ctaButton}>
+                  <Text style={styles.ctaButtonText}>Get Started</Text>
+                </View>
+              </Link>
+            </View>
+          </View>
         </View>
-        
-        <View style={styles.ctaContainer}>
+
+        {/* Features Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Why Choose Origen?</Text>
+          <View style={styles.featuresGrid}>
+            <View style={styles.featureCard}>
+              <View style={styles.featureIconContainer}>
+                <BookOpen size={24} color={colors.primary} />
+              </View>
+              <Text style={styles.featureTitle}>Personalized Learning</Text>
+              <Text style={styles.featureDescription}>AI-driven content that adapts to your child's learning pace and style</Text>
+            </View>
+            
+            <View style={styles.featureCard}>
+              <View style={styles.featureIconContainer}>
+                <Eye size={24} color={colors.primary} />
+              </View>
+              <Text style={styles.featureTitle}>Visual Learning</Text>
+              <Text style={styles.featureDescription}>Interactive knowledge graphs that make complex topics easy to understand</Text>
+            </View>
+            
+            <View style={styles.featureCard}>
+              <View style={styles.featureIconContainer}>
+                <Shield size={24} color={colors.primary} />
+              </View>
+              <Text style={styles.featureTitle}>Safe Environment</Text>
+              <Text style={styles.featureDescription}>Privacy-focused platform with age-appropriate content</Text>
+            </View>
+            
+            <View style={styles.featureCard}>
+              <View style={styles.featureIconContainer}>
+                <Users size={24} color={colors.primary} />
+              </View>
+              <Text style={styles.featureTitle}>Parent Dashboard</Text>
+              <Text style={styles.featureDescription}>Detailed insights into your child's progress and achievements</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* How It Works Section */}
+        <View style={[styles.section, styles.howItWorks]}>
+          <Text style={[styles.sectionTitle, styles.lightText]}>How It Works</Text>
+          <View style={styles.timelineContainer}>
+            <View style={styles.timelineItem}>
+              <View style={styles.timelineBullet}>
+                <Text style={styles.timelineNumber}>1</Text>
+              </View>
+              <View style={styles.timelineContent}>
+                <Text style={styles.timelineTitle}>Create an Account</Text>
+                <Text style={styles.timelineText}>Sign up as a parent or educator and add your learners</Text>
+              </View>
+            </View>
+            
+            <View style={styles.timelineItem}>
+              <View style={styles.timelineBullet}>
+                <Text style={styles.timelineNumber}>2</Text>
+              </View>
+              <View style={styles.timelineContent}>
+                <Text style={styles.timelineTitle}>Set Learning Goals</Text>
+                <Text style={styles.timelineText}>Choose topics and grade levels for personalized lessons</Text>
+              </View>
+            </View>
+            
+            <View style={styles.timelineItem}>
+              <View style={styles.timelineBullet}>
+                <Text style={styles.timelineNumber}>3</Text>
+              </View>
+              <View style={styles.timelineContent}>
+                <Text style={styles.timelineTitle}>Learn and Grow</Text>
+                <Text style={styles.timelineText}>AI generates custom lessons and adaptive quizzes</Text>
+              </View>
+            </View>
+            
+            <View style={styles.timelineItem}>
+              <View style={styles.timelineBullet}>
+                <Text style={styles.timelineNumber}>4</Text>
+              </View>
+              <View style={styles.timelineContent}>
+                <Text style={styles.timelineTitle}>Track Progress</Text>
+                <Text style={styles.timelineText}>Monitor achievements and learning milestones</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* CTA Section */}
+        <View style={styles.ctaSection}>
+          <Text style={styles.ctaTitle}>Ready to Transform Learning?</Text>
+          <Text style={styles.ctaSubtitle}>Join thousands of families using Origen AI Tutor</Text>
           <Link href="/auth">
-            <View style={styles.ctaButton}>
-              <Text style={styles.ctaButtonText}>Get Started</Text>
+            <View style={[styles.ctaButton, styles.ctaButtonLarge]}>
+              <Text style={styles.ctaButtonText}>Start Your Journey</Text>
             </View>
           </Link>
         </View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <View style={styles.footerContent}>
+            <Text style={styles.footerTitle}>ORIGEN AI TUTOR</Text>
+            <Text style={styles.footerSubtitle}>An open source AI-powered educational platform</Text>
+            
+            <View style={styles.footerLinks}>
+              <View style={styles.footerLinkItem} onTouchEnd={openGitHub}>
+                <GitHub size={18} color={colors.textSecondary} />
+                <Text style={styles.footerLinkText}>GitHub Repository</Text>
+              </View>
+            </View>
+            
+            <Text style={styles.copyright}>© {new Date().getFullYear()} Origen AI. All rights reserved.</Text>
+          </View>
+        </View>
       </View>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  scrollView: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  container: {
+    flex: 1,
+  },
+  heroSection: {
+    backgroundColor: colors.primary,
+    padding: 32,
+    minHeight: 500,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 24,
   },
-  content: {
+  heroContent: {
+    maxWidth: 800,
+    width: '100%',
+    alignItems: 'center',
+  },
+  logoContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: colors.onPrimary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  logoText: {
+    fontSize: 42,
+    fontWeight: 'bold',
+    color: colors.primary,
+  },
+  heroTitle: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: colors.onPrimary,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  heroSubtitle: {
+    ...typography.subtitle1,
+    fontSize: 20,
+    color: colors.onPrimary + 'DD',
+    textAlign: 'center',
+    marginBottom: 32,
+    maxWidth: 600,
+  },
+  heroCta: {
+    marginTop: 16,
+  },
+  ctaButton: {
+    backgroundColor: colors.onPrimary,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  ctaButtonLarge: {
+    paddingVertical: 20,
+    paddingHorizontal: 40,
+    borderRadius: 10,
+  },
+  ctaButtonText: {
+    ...typography.button,
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  section: {
+    padding: 32,
+    alignItems: 'center',
+  },
+  sectionTitle: {
+    ...typography.h2,
+    marginBottom: 40,
+    textAlign: 'center',
+    color: colors.textPrimary,
+    fontWeight: 'bold',
+  },
+  lightText: {
+    color: colors.onPrimary,
+  },
+  featuresGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    maxWidth: 1200,
+    width: '100%',
+  },
+  featureCard: {
+    backgroundColor: colors.surfaceColor,
+    borderRadius: 12,
+    padding: 24,
+    margin: 12,
+    width: 260,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    alignItems: 'center',
+  },
+  featureIconContainer: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: colors.primary + '15',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  featureTitle: {
+    ...typography.h4,
+    marginBottom: 8,
+    textAlign: 'center',
+    color: colors.textPrimary,
+  },
+  featureDescription: {
+    ...typography.body2,
+    textAlign: 'center',
+    color: colors.textSecondary,
+  },
+  howItWorks: {
+    backgroundColor: colors.primary,
+    width: '100%',
+  },
+  timelineContainer: {
     maxWidth: 800,
     width: '100%',
   },
-  title: {
-    ...typography.h1,
-    marginBottom: 16,
-    textAlign: 'center',
+  timelineItem: {
+    flexDirection: 'row',
+    marginBottom: 32,
+  },
+  timelineBullet: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.onPrimary,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  timelineNumber: {
+    fontSize: 20,
+    fontWeight: 'bold',
     color: colors.primary,
   },
-  subtitle: {
+  timelineContent: {
+    flex: 1,
+  },
+  timelineTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+    color: colors.onPrimary,
+  },
+  timelineText: {
+    fontSize: 16,
+    color: colors.onPrimary + 'DD',
+  },
+  ctaSection: {
+    padding: 48,
+    alignItems: 'center',
+    backgroundColor: colors.surfaceColor,
+  },
+  ctaTitle: {
+    ...typography.h2,
+    marginBottom: 16,
+    textAlign: 'center',
+    color: colors.textPrimary,
+  },
+  ctaSubtitle: {
     ...typography.subtitle1,
     marginBottom: 32,
     textAlign: 'center',
     color: colors.textSecondary,
   },
-  featuresContainer: {
-    marginBottom: 48,
-    alignSelf: 'center',
+  footer: {
+    backgroundColor: colors.textPrimary,
+    padding: 48,
+    width: '100%',
   },
-  featureItem: {
-    ...typography.body1,
-    marginBottom: 12,
-    color: colors.text,
+  footerContent: {
+    maxWidth: 800,
+    width: '100%',
+    marginLeft: 'auto',
+    marginRight: 'auto',
   },
-  ctaContainer: {
-    alignItems: 'center',
-  },
-  ctaButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 8,
-  },
-  ctaButtonText: {
-    ...typography.button,
+  footerTitle: {
+    ...typography.h3,
     color: colors.onPrimary,
+    marginBottom: 8,
+  },
+  footerSubtitle: {
+    ...typography.body2,
+    color: colors.onPrimary + '99',
+    marginBottom: 24,
+  },
+  footerLinks: {
+    marginBottom: 24,
+  },
+  footerLinkItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  footerLinkText: {
+    ...typography.body2,
+    color: colors.onPrimary + 'DD',
+    marginLeft: 8,
+  },
+  copyright: {
+    ...typography.caption,
+    color: colors.onPrimary + '99',
   },
 });
 
