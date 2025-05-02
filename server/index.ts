@@ -1,3 +1,4 @@
+
 import express from "express";
 import cors from "cors";
 import path from "path";
@@ -5,7 +6,7 @@ import { registerRoutes } from "./routes";
 
 const app = express();
 const PORT = Number(process.env.PORT || 5000);
-const HTTP_PORT = 8000;
+const HTTP_PORT = Number(process.env.HTTP_PORT || 8000);
 
 // Middleware
 app.use(cors({
@@ -29,10 +30,19 @@ app.use((req, res) => {
 });
 
 // Start API server on port 5000
-server.listen(Number(PORT), "0.0.0.0", () => {
+server.listen(PORT, "0.0.0.0", () => {
   console.log(`API server running on http://0.0.0.0:${PORT}`);
 });
 
-// We're only using the main server on port 5000 for this app
-// We no longer need a separate HTTP server since everything is served from one port
+// Start HTTP server on port 8000 for web traffic
+const httpApp = express();
+httpApp.use(express.static(clientDistPath));
 
+// Forward all requests to index.html for React Router
+httpApp.use((req, res) => {
+  res.sendFile(path.join(__dirname, "../client/dist/index.html"));
+});
+
+httpApp.listen(HTTP_PORT, "0.0.0.0", () => {
+  console.log(`HTTP server running on http://0.0.0.0:${HTTP_PORT}`);
+});
