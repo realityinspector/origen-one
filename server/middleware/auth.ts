@@ -57,7 +57,18 @@ export function generateToken(user: { id: number, role: string }): string {
     role: user.role
   };
   
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+  // Log for debugging token generation
+  console.log('Generating token for user ID:', user.id, 'with role:', user.role);
+  console.log('Using JWT_SECRET:', JWT_SECRET.substring(0, 3) + '...' + JWT_SECRET.substring(JWT_SECRET.length - 3));
+  
+  try {
+    const token = jwt.sign(payload, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    console.log('Token generated successfully, length:', token.length);
+    return token;
+  } catch (error) {
+    console.error('Failed to generate token:', error);
+    throw error;
+  }
 }
 
 export function verifyToken(token: string): JwtPayload {
