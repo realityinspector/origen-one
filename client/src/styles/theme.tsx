@@ -1,13 +1,16 @@
 import { StyleSheet } from 'react-native';
 
-// Color palette
+// Color palette - Refined with complementary accent colors
 export const colors = {
   primary: '#6200EE',
   primaryDark: '#3700B3',
   primaryLight: '#BB86FC',
   secondary: '#03DAC6',
   secondaryDark: '#018786',
-  background: '#F5F5F5',
+  accent1: '#FF7043', // New orange accent
+  accent2: '#5C6BC0', // New indigo accent
+  accent3: '#26A69A', // New teal accent
+  background: '#F9F9F9', // Slightly lighter
   surfaceColor: '#FFFFFF',
   error: '#B00020',
   onPrimary: '#FFFFFF',
@@ -17,7 +20,7 @@ export const colors = {
   onError: '#FFFFFF',
   textPrimary: '#212121',
   textSecondary: '#757575',
-  divider: '#EEEEEE',
+  divider: '#E0E0E0', // Slightly darker for better contrast
   success: '#4CAF50',
   warning: '#FFC107',
   info: '#2196F3',
@@ -26,116 +29,161 @@ export const colors = {
   border: '#E0E0E0',  // Added for border colors
 };
 
-// Typography
+// Typography - Improved with modern font hierarchy and better line spacing
 export const typography = StyleSheet.create({
   h1: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    fontSize: 28,
+    fontWeight: '700',
     color: colors.textPrimary,
-    marginBottom: 16,
+    marginBottom: 20,
+    lineHeight: 34,
+    letterSpacing: -0.5,
   },
   h2: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '700',
     color: colors.textPrimary,
-    marginBottom: 12,
+    marginBottom: 16,
+    lineHeight: 32,
+    letterSpacing: -0.25,
   },
   h3: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 20,
+    fontWeight: '700',
     color: colors.textPrimary,
-    marginBottom: 8,
+    marginBottom: 14,
+    lineHeight: 28,
   },
   h4: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '600',
     color: colors.textPrimary,
-    marginBottom: 8,
+    marginBottom: 12,
+    lineHeight: 26,
   },
   h5: {
-    fontSize: 15,
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
     color: colors.textPrimary,
-    marginBottom: 6,
+    marginBottom: 10,
+    lineHeight: 24,
   },
   h6: {
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: '600',
     color: colors.textPrimary,
-    marginBottom: 4,
+    marginBottom: 8,
+    lineHeight: 22,
   },
   subtitle1: {
     fontSize: 16,
     fontWeight: '600',
     color: colors.textPrimary,
+    lineHeight: 24,
+    letterSpacing: 0.15,
   },
   subtitle2: {
     fontSize: 14,
     fontWeight: '600',
     color: colors.textSecondary,
+    lineHeight: 22,
+    letterSpacing: 0.1,
   },
   body1: {
     fontSize: 16,
     color: colors.textPrimary,
+    lineHeight: 24,
+    letterSpacing: 0.5,
   },
   body2: {
     fontSize: 14,
     color: colors.textSecondary,
+    lineHeight: 22,
+    letterSpacing: 0.25,
   },
   button: {
     fontSize: 14,
     fontWeight: '600',
     textTransform: 'uppercase',
+    letterSpacing: 1,
+    lineHeight: 20,
   },
   caption: {
     fontSize: 12,
     color: colors.textSecondary,
+    lineHeight: 18,
+    letterSpacing: 0.4,
   },
   overline: {
     fontSize: 10,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
     color: colors.textSecondary,
+    lineHeight: 16,
   },
 });
 
-// Common styles for components
+// Animation keyframes and durations for consistent animation effects
+export const animations = {
+  fadeIn: 'fade-in 0.3s ease-out',
+  slideIn: 'slide-in 0.4s ease-out',
+  slideUp: 'slide-up 0.3s ease-out',
+  pulse: 'pulse 2s infinite',
+  spin: 'spin 1s linear infinite',
+  bounce: 'bounce 0.5s ease-in-out',
+  growIn: 'grow-in 0.4s ease-out',
+  // Short durations for micro-interactions
+  short: '0.15s',
+  medium: '0.3s',
+  long: '0.5s',
+};
+
+// Common styles for components with improved spacing, shadow effects, and consistent button styling
 export const commonStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
   },
+  // Improved card with better shadow
   card: {
     backgroundColor: colors.surfaceColor,
-    borderRadius: 8,
-    padding: 16,
-    marginVertical: 8,
+    borderRadius: 12, // More rounded corners
+    padding: 20, // More padding for content breathing
+    marginVertical: 12, // More spacing between cards
     marginHorizontal: 16,
-    elevation: 2,
+    elevation: 3, // Slightly stronger shadow for depth
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
   },
+  // Layout helpers
   row: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  spaceBetween: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   center: {
     justifyContent: 'center',
     alignItems: 'center',
   },
+  // Improved spacing in scroll views
   scrollViewContent: {
     flexGrow: 1,
-    padding: 16,
+    padding: 20, // More padding for better spacing
   },
+  // Form elements
   input: {
-    height: 50,
+    height: 52, // Slightly taller
     borderWidth: 1,
     borderColor: colors.divider,
-    borderRadius: 4,
-    paddingHorizontal: 12,
-    marginBottom: 16,
+    borderRadius: 8, // More consistent with other elements
+    paddingHorizontal: 16, // More padding
+    marginBottom: 20, // More margin for better spacing
     fontSize: 16,
     backgroundColor: colors.surfaceColor,
   },
@@ -143,55 +191,122 @@ export const commonStyles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 8,
     color: colors.textPrimary,
+    fontWeight: '500', // Slightly bolder label
   },
+  // Standardized button styling with hover and active states
   button: {
     backgroundColor: colors.primary,
-    borderRadius: 4,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    borderRadius: 8, // Consistent border radius
+    paddingVertical: 14, // More padding for better touch targets
+    paddingHorizontal: 28,
     alignItems: 'center',
     justifyContent: 'center',
+    elevation: 2, // Adding subtle shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    // transition: 'all 0.2s ease', // Handled in CSS
+    position: 'relative',
+    // Pseudo-element styles added via CSS in global.css
+    // ':hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 8px rgba(0,0,0,0.2)' },
+    // ':active': { transform: 'translateY(1px)', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' },
   },
   buttonText: {
     color: colors.onPrimary,
     fontSize: 16,
     fontWeight: '600',
+    letterSpacing: 0.5, // Slight letter spacing for readability
+    transition: 'all 0.2s ease',
   },
   outlineButton: {
-    borderWidth: 1,
+    borderWidth: 2, // Slightly thicker border
     borderColor: colors.primary,
-    borderRadius: 4,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
+    borderRadius: 8, // Consistent with primary button
+    paddingVertical: 14,
+    paddingHorizontal: 28,
     alignItems: 'center',
     justifyContent: 'center',
+    transition: 'all 0.2s ease',
+    // ':hover': { backgroundColor: 'rgba(98, 0, 238, 0.05)' },
+    // ':active': { backgroundColor: 'rgba(98, 0, 238, 0.1)' },
   },
   outlineButtonText: {
     color: colors.primary,
     fontSize: 16,
     fontWeight: '600',
+    letterSpacing: 0.5,
+    transition: 'all 0.2s ease',
   },
+  // Secondary action button (accent color)
+  secondaryButton: {
+    backgroundColor: colors.accent2,
+    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    transition: 'all 0.2s ease',
+    // ':hover': { transform: 'translateY(-2px)', boxShadow: '0 4px 8px rgba(0,0,0,0.2)' },
+    // ':active': { transform: 'translateY(1px)', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' },
+  },
+  secondaryButtonText: {
+    color: colors.onPrimary,
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    transition: 'all 0.2s ease',
+  },
+  // Accent button (using accent1 color)
+  accentButton: {
+    backgroundColor: colors.accent1,
+    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    transition: 'all 0.2s ease',
+  },
+  accentButtonText: {
+    color: colors.onPrimary,
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  // Other UI elements
   divider: {
     height: 1,
     backgroundColor: colors.divider,
-    marginVertical: 16,
+    marginVertical: 24, // More spacing around dividers
   },
   chip: {
     backgroundColor: colors.primaryLight,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 16,
-    marginRight: 8,
-    marginBottom: 8,
+    marginRight: 10,
+    marginBottom: 10,
+    elevation: 1, // Subtle elevation
   },
   chipText: {
     color: colors.onPrimary,
     fontSize: 14,
+    fontWeight: '500',
   },
   badge: {
-    minWidth: 20,
-    height: 20,
-    borderRadius: 10,
+    minWidth: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: colors.secondary,
     alignItems: 'center',
     justifyContent: 'center',
@@ -205,6 +320,24 @@ export const commonStyles = StyleSheet.create({
   error: {
     color: colors.error,
     fontSize: 14,
-    marginBottom: 8,
+    lineHeight: 20,
+    marginBottom: 10,
   },
+  // Section spacing
+  section: {
+    marginBottom: 32, // Good spacing between major sections
+  },
+  // Micro-spacing
+  mt4: { marginTop: 4 },
+  mt8: { marginTop: 8 },
+  mt16: { marginTop: 16 },
+  mt24: { marginTop: 24 },
+  mb4: { marginBottom: 4 },
+  mb8: { marginBottom: 8 },
+  mb16: { marginBottom: 16 },
+  mb24: { marginBottom: 24 },
+  mv8: { marginVertical: 8 },
+  mv16: { marginVertical: 16 },
+  mh8: { marginHorizontal: 8 },
+  mh16: { marginHorizontal: 16 },
 });

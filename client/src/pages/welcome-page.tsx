@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, ImageBackground, ScrollView, Linking } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, ScrollView, Linking, Image, TouchableOpacity } from 'react-native';
 import { Link } from 'wouter';
 import { useAuth } from '../hooks/use-auth';
 import { Redirect } from 'wouter';
-import { colors, typography } from '../styles/theme';
-import { GitHub, BookOpen, Eye, Shield, Users, Award } from 'react-feather';
+import { colors, typography, commonStyles } from '../styles/theme';
+import { GitHub, BookOpen, Eye, Shield, Users, Award, ExternalLink } from 'react-feather';
 
 const WelcomePage: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -186,16 +186,38 @@ const WelcomePage: React.FC = () => {
         {/* Footer */}
         <View style={styles.footer}>
           <View style={styles.footerContent}>
-            <Text style={styles.footerTitle}>ORIGEN AI TUTOR</Text>
-            <Text style={styles.footerSubtitle}>An open source AI-powered educational platform</Text>
-            
-            <View style={styles.footerLinks}>
-              <View style={styles.footerLinkItem} onTouchEnd={openGitHub}>
-                <GitHub size={18} color={colors.textSecondary} />
-                <Text style={styles.footerLinkText}>GitHub Repository</Text>
+            <View style={styles.footerTop}>
+              <View style={styles.footerMainInfo}>
+                <Text style={styles.footerTitle}>ORIGEN AI TUTOR</Text>
+                <Text style={styles.footerSubtitle}>An open source AI-powered educational platform</Text>
+              
+                <View style={styles.footerLinks}>
+                  <View style={styles.footerLinkItem} onTouchEnd={openGitHub}>
+                    <GitHub size={18} color={colors.onPrimary + 'DD'} />
+                    <Text style={styles.footerLinkText}>GitHub Repository</Text>
+                  </View>
+                </View>
+              </View>
+              
+              <View style={styles.footerLogoSection}>
+                <TouchableOpacity 
+                  onPress={() => Linking.openURL('https://allonething.xyz')}
+                  style={styles.footerLogoContainer}
+                >
+                  <Image 
+                    source={{ uri: '/aot-labs-logo.png' }} 
+                    style={styles.footerLogo}
+                    resizeMode="contain"
+                  />
+                  <View style={styles.footerLogoLink}>
+                    <ExternalLink size={14} color={colors.onPrimary + 'DD'} />
+                    <Text style={styles.footerLogoLinkText}>allonething.xyz</Text>
+                  </View>
+                </TouchableOpacity>
               </View>
             </View>
             
+            <View style={styles.footerDivider} />
             <Text style={styles.copyright}>All materials copyright © Sean McDonald {new Date().getFullYear()}</Text>
           </View>
         </View>
@@ -433,12 +455,29 @@ const styles = StyleSheet.create({
     backgroundColor: colors.textPrimary,
     padding: 48,
     width: '100%',
+    boxShadow: '0 -4px 10px rgba(0, 0, 0, 0.1)',
   },
   footerContent: {
     maxWidth: 800,
     width: '100%',
     marginLeft: 'auto',
     marginRight: 'auto',
+  },
+  footerTop: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginBottom: 32,
+  },
+  footerMainInfo: {
+    flex: 1,
+    minWidth: 300,
+    marginRight: 20,
+  },
+  footerLogoSection: {
+    minWidth: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   footerTitle: {
     ...typography.h3,
@@ -463,9 +502,32 @@ const styles = StyleSheet.create({
     color: colors.onPrimary + 'DD',
     marginLeft: 8,
   },
+  footerLogoContainer: {
+    alignItems: 'center',
+  },
+  footerLogo: {
+    width: 180, 
+    height: 55,
+    marginBottom: 12,
+  },
+  footerLogoLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  footerLogoLinkText: {
+    ...typography.body2,
+    color: colors.onPrimary + 'DD',
+    marginLeft: 4,
+  },
+  footerDivider: {
+    height: 1,
+    backgroundColor: colors.onPrimary + '22',
+    marginBottom: 24,
+  },
   copyright: {
     ...typography.caption,
     color: colors.onPrimary + '99',
+    textAlign: 'center',
   },
 });
 
