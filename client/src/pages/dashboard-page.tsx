@@ -11,7 +11,7 @@ import { useMode } from '../context/ModeContext';
 import ModeToggle from '../components/ModeToggle';
 
 const DashboardPage: React.FC = () => {
-  const { user } = useAuth();
+  const { user, logoutMutation } = useAuth();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
   const { toggleMode, isLearnerMode } = useMode();
@@ -297,6 +297,19 @@ const DashboardPage: React.FC = () => {
           </View>
         )}
       </ScrollView>
+
+      {/* Footer with Logout Button */}
+      <View style={styles.footer}>
+        <View style={styles.footerContent}>
+          <Text style={styles.footerTitle}>ORIGEN AI TUTOR</Text>
+          <TouchableOpacity 
+            style={styles.logoutButton}
+            onPress={() => logoutMutation.mutate()}
+          >
+            <Text style={styles.logoutButtonText}>Logout</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 };
@@ -556,6 +569,36 @@ const styles = StyleSheet.create({
     ...typography.button,
     color: colors.onPrimary,
     marginLeft: 8,
+  },
+  footer: {
+    backgroundColor: colors.textPrimary,
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  footerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    maxWidth: 800,
+    marginHorizontal: 'auto',
+    width: '100%',
+  },
+  footerTitle: {
+    ...typography.subtitle2,
+    color: colors.onPrimary,
+    fontWeight: 'bold',
+  },
+  logoutButton: {
+    backgroundColor: colors.error,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 4,
+    alignItems: 'center',
+  },
+  logoutButtonText: {
+    ...typography.button,
+    color: colors.onPrimary,
   },
 });
 

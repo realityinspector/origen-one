@@ -74,7 +74,8 @@ task = "shell.exec"
 args = "ts-node -r dotenv/config scripts/seed-clean.ts"
 
 [deployment]
-run = ["sh", "-c", "cd server && npm install && NODE_ENV=development PORT=5000 node index.js"]
+run = ["sh", "-c", "NODE_ENV=production PORT=5000 node dist/server/index.js"]
+build = ["sh", "-c", "cd client && npm run build && cd .. && npx tsc"]
 
 [[ports]]
 localPort = 5000
