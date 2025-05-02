@@ -24,17 +24,66 @@ const WelcomePage: React.FC = () => {
         {/* Hero Section */}
         <View style={styles.heroSection}>
           <View style={styles.heroContent}>
-            <View style={styles.logoContainer}>
-              <Text style={styles.logoText}>O</Text>
-            </View>
-            <Text style={styles.heroTitle}>ORIGEN AI TUTOR</Text>
-            <Text style={styles.heroSubtitle}>Personalized learning powered by artificial intelligence</Text>
-            <View style={styles.heroCta}>
-              <Link href="/auth">
-                <View style={styles.ctaButton}>
-                  <Text style={styles.ctaButtonText}>Get Started</Text>
+            <View style={styles.heroFlex}>
+              <View style={styles.heroTextContent}>
+                <Text style={styles.heroTitle}>ORIGEN™ AI TUTOR</Text>
+                <Text style={styles.heroSubtitle}>Personalized learning powered by artificial intelligence</Text>
+                <Text style={styles.heroOpenSource}>100% Open Source Educational Platform</Text>
+                <View style={styles.heroCta}>
+                  <Link href="/auth">
+                    <View style={styles.ctaButton}>
+                      <Text style={styles.ctaButtonText}>Get Started</Text>
+                    </View>
+                  </Link>
+                  <View style={styles.githubButton} onTouchEnd={openGitHub}>
+                    <GitHub size={20} color={colors.onPrimary} />
+                    <Text style={styles.githubButtonText}>View on GitHub</Text>
+                  </View>
                 </View>
-              </Link>
+              </View>
+              <View style={styles.heroGraphicContainer}>
+                {/* SVG Graphic */}
+                <svg width="300" height="300" viewBox="0 0 300 300">
+                  {/* Brain outline */}
+                  <path 
+                    d="M150,50 C220,50 250,100 250,150 C250,220 200,250 150,250 C80,250 50,200 50,150 C50,80 100,50 150,50 Z" 
+                    fill="none" 
+                    stroke="#ffffff" 
+                    strokeWidth="3"
+                    opacity="0.6"
+                  />
+                  
+                  {/* Neural network nodes */}
+                  <circle cx="150" cy="100" r="12" fill="#ffffff" />
+                  <circle cx="100" cy="150" r="12" fill="#ffffff" />
+                  <circle cx="200" cy="150" r="12" fill="#ffffff" />
+                  <circle cx="120" cy="200" r="12" fill="#ffffff" />
+                  <circle cx="180" cy="200" r="12" fill="#ffffff" />
+                  <circle cx="150" cy="150" r="18" fill="#ffffff" />
+                  
+                  {/* Neural network connections */}
+                  <line x1="150" y1="100" x2="100" y2="150" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                  <line x1="150" y1="100" x2="200" y2="150" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                  <line x1="150" y1="100" x2="150" y2="150" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                  <line x1="100" y1="150" x2="120" y2="200" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                  <line x1="200" y1="150" x2="180" y2="200" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                  <line x1="150" y1="150" x2="120" y2="200" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                  <line x1="150" y1="150" x2="180" y2="200" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                  <line x1="100" y1="150" x2="150" y2="150" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                  <line x1="200" y1="150" x2="150" y2="150" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                  
+                  {/* Animated pulses */}
+                  <circle cx="150" cy="150" r="18" fill="#ffffff" opacity="0.2">
+                    <animate attributeName="r" values="18;30;18" dur="3s" repeatCount="indefinite" />
+                    <animate attributeName="opacity" values="0.2;0.1;0.2" dur="3s" repeatCount="indefinite" />
+                  </circle>
+                  
+                  {/* Small book icon in the center */}
+                  <rect x="140" y="145" width="20" height="15" fill="#6200EE" rx="2" />
+                  <rect x="140" y="142" width="20" height="3" fill="#6200EE" rx="1" />
+                  <line x1="150" y1="145" x2="150" y2="160" stroke="#ffffff" strokeWidth="1" />
+                </svg>
+              </View>
             </View>
           </View>
         </View>
@@ -171,9 +220,35 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   heroContent: {
-    maxWidth: 800,
+    maxWidth: 1000,
     width: '100%',
     alignItems: 'center',
+  },
+  heroFlex: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  heroTextContent: {
+    flex: 1,
+    minWidth: 300,
+    paddingRight: 20,
+    alignItems: 'flex-start',
+  },
+  heroGraphicContainer: {
+    flex: 1,
+    minWidth: 300,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroOpenSource: {
+    ...typography.h6,
+    color: colors.secondary,
+    marginBottom: 24,
+    fontWeight: 'bold',
+    textShadow: '0px 1px 2px rgba(0, 0, 0, 0.3)',
   },
   logoContainer: {
     width: 80,
@@ -206,6 +281,27 @@ const styles = StyleSheet.create({
   },
   heroCta: {
     marginTop: 16,
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  githubButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: colors.onPrimary,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    marginLeft: 16,
+    marginTop: 8,
+  },
+  githubButtonText: {
+    ...typography.button,
+    color: colors.onPrimary,
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 8,
   },
   ctaButton: {
     backgroundColor: colors.onPrimary,
