@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image, Linking } from 'react-native';
 import { useAuth } from '../hooks/use-auth';
 import { colors, typography, commonStyles } from '../styles/theme';
 import { Link, useLocation } from 'wouter';
@@ -13,7 +13,7 @@ import ModeToggle from '../components/ModeToggle';
 const DashboardPage: React.FC = () => {
   const { user, logoutMutation } = useAuth();
   const queryClient = useQueryClient();
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const { toggleMode, isLearnerMode } = useMode();
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'create', 'progress', 'active'
   const learnerId = user?.role === 'LEARNER' ? user.id : null;
@@ -66,19 +66,19 @@ const DashboardPage: React.FC = () => {
 
   // Navigate to create lesson page
   const handleCreateLesson = () => {
-    navigate('/create-lesson');
+    setLocation('/create-lesson');
   };
 
   // Navigate to active lesson
   const handleContinueLesson = () => {
     if (activeLesson?.id) {
-      navigate(`/lesson/${activeLesson.id}`);
+      setLocation(`/lesson/${activeLesson.id}`);
     }
   };
 
   // Navigate to progress page
   const handleViewProgress = () => {
-    navigate('/progress');
+    setLocation('/progress');
   };
 
   return (
@@ -306,9 +306,21 @@ const DashboardPage: React.FC = () => {
       {/* Footer with Logout Button */}
       <View style={styles.footer}>
         <View style={styles.footerContent}>
-          <View>
-            <Text style={styles.footerTitle}>ORIGEN™ AI TUTOR</Text>
-            <Text style={styles.footerCopyright}>All materials copyright Sean McDonald 2025</Text>
+          <View style={styles.footerLeft}>
+            <View>
+              <Text style={styles.footerTitle}>ORIGEN™ AI TUTOR</Text>
+              <Text style={styles.footerCopyright}>All materials copyright Sean McDonald 2025</Text>
+            </View>
+            <TouchableOpacity 
+              onPress={() => Linking.openURL('https://allonething.xyz')}
+              style={styles.footerLogoContainer}
+            >
+              <Image 
+                source={{ uri: '/aot-labs-logo.png' }} 
+                style={styles.footerLogo}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
           </View>
           <TouchableOpacity 
             style={styles.logoutButton}
@@ -599,6 +611,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderTopWidth: 1,
     borderTopColor: colors.border,
+    boxShadow: '0 -4px 10px rgba(0, 0, 0, 0.1)',
   },
   footerContent: {
     flexDirection: 'row',
@@ -607,6 +620,10 @@ const styles = StyleSheet.create({
     maxWidth: 800,
     marginHorizontal: 'auto',
     width: '100%',
+  },
+  footerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   footerTitle: {
     ...typography.subtitle2,
@@ -619,16 +636,29 @@ const styles = StyleSheet.create({
     opacity: 0.8,
     marginTop: 4,
   },
+  footerLogoContainer: {
+    marginLeft: 20,
+  },
+  footerLogo: {
+    width: 120, 
+    height: 36,
+  },
   logoutButton: {
     backgroundColor: colors.error,
     paddingVertical: 8,
     paddingHorizontal: 16,
-    borderRadius: 4,
+    borderRadius: 8, // Consistent radius with other elements
     alignItems: 'center',
+    elevation: 2, // Add subtle shadow
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   logoutButtonText: {
     ...typography.button,
     color: colors.onPrimary,
+    fontWeight: '600',
   },
 });
 
