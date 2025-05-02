@@ -6,6 +6,10 @@ import { persistQueryClient } from '@tanstack/react-query-persist-client';
 import { AuthProvider } from './hooks/use-auth';
 import { ToastProvider } from './hooks/use-toast';
 import { queryClient, queryPersister } from './lib/queryClient';
+import { ModeProvider } from './context/ModeContext';
+
+// Import global CSS for hover effects and animations
+import './styles/global.css';
 
 // Set up persistence for offline support
 persistQueryClient({
@@ -41,7 +45,9 @@ function Root() {
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
           <AuthProvider>
-            <App />
+            <ModeProvider>
+              <App />
+            </ModeProvider>
           </AuthProvider>
         </ToastProvider>
       </QueryClientProvider>
