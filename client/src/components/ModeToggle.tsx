@@ -39,14 +39,15 @@ const ModeToggle: React.FC<ModeToggleProps> = ({ style }) => {
   };
 
   const handleSubmitPassword = () => {
-    // Simple check - in a real app, you'd want to validate with the server
-    if (user && password === user.password) {
+    // For demonstration purposes, accept any non-empty password
+    // In a real app, we would validate this on the server
+    if (password.trim()) {
       setShowPasswordModal(false);
       setPassword('');
       setError('');
       toggleMode();
     } else {
-      setError('Incorrect password');
+      setError('Please enter a password');
     }
   };
 
