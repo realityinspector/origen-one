@@ -114,10 +114,19 @@ export const apiRequest = async (
       console.log(`Sending ${method} to ${url}`, { username: data?.username });
     }
     
+    // For registration, add an explicit header to avoid potential buffering issues
+    const headers = {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    };
+    
     const response = await axiosInstance({
       method,
       url,
       data,
+      headers,
+      // Force response as JSON to prevent potential response type issues
+      responseType: 'json',
     });
     
     // Log auth response structures for debugging
@@ -126,6 +135,10 @@ export const apiRequest = async (
         hasToken: !!response?.data?.token,
         hasUser: !!response?.data?.user,
         hasUserData: !!response?.data?.userData,
+        responseStatus: response.status,
+        responseContentType: response.headers?.['content-type'],
+        responseDataType: typeof response.data,
+        responseDataKeys: response.data ? Object.keys(response.data) : null,
         userFieldsIfPresent: response?.data?.user ? Object.keys(response.data.user) : null
       });
     }
@@ -137,6 +150,7 @@ export const apiRequest = async (
     }
     
     if (error.response) {
+      console.error('Response error data:', error.response.data);
       throw new Error(error.response.data?.error || "Request failed");
     }
     throw error;

@@ -38,7 +38,16 @@ const AuthPage = () => {
   const [, setLocation] = useLocation();
   useEffect(() => {
     if (user) {
-      setLocation('/dashboard');
+      try {
+        console.log('User authenticated, redirecting to dashboard');
+        setLocation('/dashboard');
+      } catch (error) {
+        console.error('Navigation error:', error);
+        // Fallback to direct location change if navigation fails
+        if (typeof window !== 'undefined') {
+          window.location.href = '/dashboard';
+        }
+      }
     }
   }, [user, setLocation]);
   

@@ -61,36 +61,58 @@ export function setupAuth(app: Express) {
       });
     }
 
-    // Generate JWT token
-    const token = generateToken(user);
+    // Generate JWT token with additional safeguards
+    let token;
+    try {
+      token = generateToken(user);
+      if (!token) {
+        throw new Error('Token generation failed');
+      }
+    } catch (tokenError) {
+      console.error('Token generation error:', tokenError);
+      return res.status(500).json({ error: 'Authentication token generation failed' });
+    }
     
     // Additional logging for production debugging
     console.log('Registration completed for:', username);
-    console.log('Token generation successful:', !!token);
+    console.log('Token generation successful, token length:', token.length);
     
     // Return the token and user data (excluding password)
     const { password: _, ...userWithoutPassword } = user;
     
-    // Log the response structure
+    // Prepare response object with explicit field checking
+    if (!userWithoutPassword || !userWithoutPassword.id) {
+      console.error('User data is incomplete:', userWithoutPassword);
+      return res.status(500).json({ error: 'User data is incomplete' });
+    }
+    
+    // Create a standardized response object
     const responseObj = {
-      token,
-      user: userWithoutPassword,
-      wasPromotedToAdmin: isFirstUser && role !== "ADMIN" // Flag to notify frontend if role was changed
-    };
-    
-    console.log('Registration response structure:', {
-      hasToken: !!responseObj.token,
-      hasUser: !!responseObj.user,
-      userFieldsIfPresent: responseObj.user ? Object.keys(responseObj.user) : null
-    });
-    
-    // Use both user and userData fields for maximum compatibility
-    res.status(201).json({
       token,
       user: userWithoutPassword,
       userData: userWithoutPassword, // Add userData as an alternative
       wasPromotedToAdmin: isFirstUser && role !== "ADMIN" // Flag to notify frontend if role was changed
+    };
+    
+    // Log the final response structure
+    console.log('Registration response structure:', {
+      hasToken: !!responseObj.token,
+      tokenLength: responseObj.token ? responseObj.token.length : 0,
+      hasUser: !!responseObj.user,
+      userFields: responseObj.user ? Object.keys(responseObj.user) : null,
+      userId: responseObj.user ? responseObj.user.id : null,
+      responseType: typeof responseObj
     });
+    
+    // Set explicit content type and status
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Use direct stringification as an additional safeguard
+    const jsonResponse = JSON.stringify(responseObj);
+    console.log('Response JSON length:', jsonResponse.length);
+    
+    // Send the response
+    res.status(201).send(jsonResponse);
   }));
 
   // Login and return a JWT token
@@ -107,29 +129,57 @@ export function setupAuth(app: Express) {
       return res.status(401).json({ error: "Invalid username or password" });
     }
     
-    // Generate JWT token
-    const token = generateToken(user);
+    // Generate JWT token with additional safeguards
+    let token;
+    try {
+      token = generateToken(user);
+      if (!token) {
+        throw new Error('Token generation failed');
+      }
+    } catch (tokenError) {
+      console.error('Token generation error:', tokenError);
+      return res.status(500).json({ error: 'Authentication token generation failed' });
+    }
     
     // Additional logging for production debugging
     console.log('Login successful for:', username);
-    console.log('Token generation successful:', !!token);
+    console.log('Token generation successful, token length:', token.length);
     
     // Return the token and user data (excluding password)
     const { password: _, ...userWithoutPassword } = user;
     
-    // Log the response structure
-    console.log('Login response structure:', {
-      hasToken: !!token,
-      hasUser: !!userWithoutPassword,
-      userFieldsIfPresent: userWithoutPassword ? Object.keys(userWithoutPassword) : null
-    });
+    // Prepare response object with explicit field checking
+    if (!userWithoutPassword || !userWithoutPassword.id) {
+      console.error('User data is incomplete:', userWithoutPassword);
+      return res.status(500).json({ error: 'User data is incomplete' });
+    }
     
-    // Use both user and userData fields for maximum compatibility
-    res.status(200).json({
+    // Create a standardized response object
+    const responseObj = {
       token,
       user: userWithoutPassword,
       userData: userWithoutPassword // Add userData as an alternative
+    };
+    
+    // Log the final response structure
+    console.log('Login response structure:', {
+      hasToken: !!responseObj.token,
+      tokenLength: responseObj.token ? responseObj.token.length : 0,
+      hasUser: !!responseObj.user,
+      userFields: responseObj.user ? Object.keys(responseObj.user) : null,
+      userId: responseObj.user ? responseObj.user.id : null,
+      responseType: typeof responseObj
     });
+    
+    // Set explicit content type and status
+    res.setHeader('Content-Type', 'application/json');
+    
+    // Use direct stringification as an additional safeguard
+    const jsonResponse = JSON.stringify(responseObj);
+    console.log('Response JSON length:', jsonResponse.length);
+    
+    // Send the response
+    res.status(200).send(jsonResponse);
   }));
 
   // Get current user info

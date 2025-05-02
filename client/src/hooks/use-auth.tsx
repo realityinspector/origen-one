@@ -40,8 +40,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Initialize auth from storage when the app loads
   useEffect(() => {
     const init = async () => {
-      await initializeAuthFromStorage();
-      // After initializing the token, the user query below will automatically run
+      try {
+        await initializeAuthFromStorage();
+        console.log('Auth initialized from storage');
+        // After initializing the token, the user query below will automatically run
+      } catch (error) {
+        console.error('Failed to initialize auth from storage:', error);
+      }
     };
     init();
   }, []);
