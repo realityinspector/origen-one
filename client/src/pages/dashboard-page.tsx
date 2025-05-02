@@ -6,12 +6,15 @@ import { Link, useLocation } from 'wouter';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../lib/queryClient';
 import KnowledgeGraph from '../components/KnowledgeGraph';
-import { BookOpen, Target, Award, BarChart2, Plus, ArrowRight } from 'react-feather';
+import { BookOpen, Target, Award, BarChart2, Plus, ArrowRight, User } from 'react-feather';
+import { useMode } from '../context/ModeContext';
+import ModeToggle from '../components/ModeToggle';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
+  const { toggleMode, isLearnerMode } = useMode();
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'create', 'progress', 'active'
   const learnerId = user?.role === 'LEARNER' ? user.id : null;
 
@@ -193,15 +196,40 @@ const DashboardPage: React.FC = () => {
             )}
             
             {(user?.role === 'PARENT' || user?.role === 'ADMIN') && (
-              <View style={styles.contentSection}>
-                <Text style={styles.sectionTitle}>Learner Management</Text>
-                <Link href="/learners">
-                  <Text style={styles.linkText}>Manage Learners</Text>
-                </Link>
-                <Link href="/reports">
-                  <Text style={styles.linkText}>View Reports</Text>
-                </Link>
-              </View>
+              <>
+                <View style={styles.contentSection}>
+                  <Text style={styles.sectionTitle}>Learner Management</Text>
+                  <Link href="/learners">
+                    <Text style={styles.linkText}>Manage Learners</Text>
+                  </Link>
+                  <Link href="/reports">
+                    <Text style={styles.linkText}>View Reports</Text>
+                  </Link>
+                </View>
+                
+                <View style={styles.modeToggleSection}>
+                  <View style={styles.modeToggleContent}>
+                    <View style={styles.modeToggleHeader}>
+                      <Text style={styles.sectionTitle}>Switch to Learner Mode</Text>
+                      <View style={styles.modeToggleIcon}>
+                        <ModeToggle />
+                      </View>
+                    </View>
+                    
+                    <Text style={styles.modeToggleDescription}>
+                      Click the toggle button in the top-right corner to switch to Learner Mode and see the app from a learner's perspective.
+                    </Text>
+                    
+                    <TouchableOpacity 
+                      style={styles.modeToggleButton}
+                      onPress={toggleMode}
+                    >
+                      <User size={16} color={colors.onPrimary} />
+                      <Text style={styles.modeToggleButtonText}>Go to Learner Mode</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </>
             )}
           </View>
         )}
@@ -488,6 +516,46 @@ const styles = StyleSheet.create({
     ...typography.button,
     color: colors.primary,
     marginRight: 8,
+  },
+  modeToggleSection: {
+    backgroundColor: colors.surfaceColor,
+    borderRadius: 12,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.05)',
+    overflow: 'hidden',
+  },
+  modeToggleContent: {
+    padding: 16,
+  },
+  modeToggleHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  modeToggleIcon: {
+    marginRight: 8,
+  },
+  modeToggleDescription: {
+    ...typography.body2,
+    color: colors.textSecondary,
+    marginBottom: 16,
+  },
+  modeToggleButton: {
+    backgroundColor: colors.secondary,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 4,
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+  },
+  modeToggleButtonText: {
+    ...typography.button,
+    color: colors.onPrimary,
+    marginLeft: 8,
   },
 });
 
