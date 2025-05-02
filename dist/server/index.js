@@ -17,15 +17,27 @@ app.use((0, cors_1.default)({
 }));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
-// Serve static files from client/dist in all environments
-const clientDistPath = path_1.default.join(__dirname, "../client/dist");
+// Determine the correct client dist path based on environment
+let clientDistPath;
+// In production (after TypeScript compilation), we're running from dist/server/
+if (process.env.NODE_ENV === 'production') {
+    clientDistPath = path_1.default.join(process.cwd(), "client/dist");
+}
+else {
+    // In development, we're running from the project root
+    clientDistPath = path_1.default.join(__dirname, "../client/dist");
+}
+console.log(`Client dist path: ${clientDistPath}`);
+// Serve static files from the client dist folder
 app.use(express_1.default.static(clientDistPath));
 // Register API routes first
 const server = (0, routes_1.registerRoutes)(app);
 // Serve React app for all other routes - this must come after API routes
 app.use((req, res) => {
     // Send all non-API requests to the React app
-    res.sendFile(path_1.default.join(__dirname, "../client/dist/index.html"));
+    const indexPath = path_1.default.join(clientDistPath, "index.html");
+    console.log(`Serving index from: ${indexPath}`);
+    res.sendFile(indexPath);
 });
 // Start API server on port 5000
 server.listen(PORT, "0.0.0.0", () => {
@@ -36,7 +48,8 @@ const httpApp = (0, express_1.default)();
 httpApp.use(express_1.default.static(clientDistPath));
 // Forward all requests to index.html for React Router
 httpApp.use((req, res) => {
-    res.sendFile(path_1.default.join(__dirname, "../client/dist/index.html"));
+    const indexPath = path_1.default.join(clientDistPath, "index.html");
+    res.sendFile(indexPath);
 });
 httpApp.listen(HTTP_PORT, "0.0.0.0", () => {
     console.log(`HTTP server running on http://0.0.0.0:${HTTP_PORT}`);
