@@ -84,7 +84,7 @@ const DashboardPage: React.FC = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>AI Learning Dashboard</Text>
+        <Text style={styles.headerTitle}>ORIGEN™ Learning Dashboard</Text>
         <Text style={styles.welcomeText}>Welcome, {user?.name || 'User'}!</Text>
       </View>
       
@@ -210,14 +210,14 @@ const DashboardPage: React.FC = () => {
                 <View style={styles.modeToggleSection}>
                   <View style={styles.modeToggleContent}>
                     <View style={styles.modeToggleHeader}>
-                      <Text style={styles.sectionTitle}>Switch to Learner Mode</Text>
+                      <Text style={styles.sectionTitle}>Switch to ORIGEN™ Learner Mode</Text>
                       <View style={styles.modeToggleIcon}>
                         <ModeToggle />
                       </View>
                     </View>
                     
                     <Text style={styles.modeToggleDescription}>
-                      Click the toggle button in the top-right corner to switch to Learner Mode and see the app from a learner's perspective.
+                      Click the toggle button in the top-right corner to switch to ORIGEN™ Learner Mode and see the app from a learner's perspective.
                     </Text>
                     
                     <TouchableOpacity 
@@ -225,7 +225,7 @@ const DashboardPage: React.FC = () => {
                       onPress={toggleMode}
                     >
                       <User size={16} color={colors.onPrimary} />
-                      <Text style={styles.modeToggleButtonText}>Go to Learner Mode</Text>
+                      <Text style={styles.modeToggleButtonText}>Go to ORIGEN™ Learner Mode</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -301,7 +301,10 @@ const DashboardPage: React.FC = () => {
       {/* Footer with Logout Button */}
       <View style={styles.footer}>
         <View style={styles.footerContent}>
-          <Text style={styles.footerTitle}>ORIGEN AI TUTOR</Text>
+          <View>
+            <Text style={styles.footerTitle}>ORIGEN™ AI TUTOR</Text>
+            <Text style={styles.footerCopyright}>All materials copyright Sean McDonald 2025</Text>
+          </View>
           <TouchableOpacity 
             style={styles.logoutButton}
             onPress={() => logoutMutation.mutate()}
@@ -588,6 +591,12 @@ const styles = StyleSheet.create({
     ...typography.subtitle2,
     color: colors.onPrimary,
     fontWeight: 'bold',
+  },
+  footerCopyright: {
+    ...typography.caption,
+    color: colors.onPrimary,
+    opacity: 0.8,
+    marginTop: 4,
   },
   logoutButton: {
     backgroundColor: colors.error,
