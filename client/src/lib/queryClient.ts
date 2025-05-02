@@ -108,18 +108,32 @@ export const apiRequest = async (
   url: string,
   data?: any
 ) => {
+  // Create a unique request ID for tracing this request through logs
+  const requestId = Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+  const isAuthRequest = (url.includes('/login') || url.includes('/register')) && method === 'POST';
+  
   try {
+    console.log(`[REQ:${requestId}] Starting ${method} request to ${url}`);
+    
     // Log auth requests for debugging
-    if ((url.includes('/login') || url.includes('/register')) && method === 'POST') {
-      console.log(`Sending ${method} to ${url}`, { username: data?.username });
+    if (isAuthRequest) {
+      console.log(`[REQ:${requestId}] Auth request details:`, { 
+        username: data?.username,
+        hasPassword: !!data?.password,
+        passwordLength: data?.password ? data.password.length : 0,
+        url,
+        method
+      });
     }
     
-    // For registration, add an explicit header to avoid potential buffering issues
+    // Add explicit headers to avoid potential content-type and parsing issues
     const headers = {
       'Accept': 'application/json',
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-Request-ID': requestId
     };
     
+    // Start the request with timeout and validation
     const response = await axiosInstance({
       method,
       url,
@@ -127,32 +141,101 @@ export const apiRequest = async (
       headers,
       // Force response as JSON to prevent potential response type issues
       responseType: 'json',
+      // Add timeout to prevent hanging requests
+      timeout: 30000, // 30 second timeout
+      // Add explicit validation
+      validateStatus: (status) => {
+        return status >= 200 && status < 500; // Don't throw for 4xx to handle them explicitly
+      }
     });
     
-    // Log auth response structures for debugging
-    if ((url.includes('/login') || url.includes('/register')) && method === 'POST') {
-      console.log(`Success response for ${url}:`, {
+    // Check for 4xx errors that weren't automatically rejected
+    if (response.status >= 400 && response.status < 500) {
+      console.error(`[REQ:${requestId}] Server returned ${response.status} error:`, {
+        status: response.status,
+        statusText: response.statusText,
+        data: response.data,
+        headers: response.headers,
+      });
+      
+      // Handle 4xx explicitly
+      throw new Error(response.data?.error || `Server returned error ${response.status}`);
+    }
+    
+    // Log success responses with detailed information
+    console.log(`[REQ:${requestId}] Response received (${response.status}):`, {
+      url,
+      method,
+      status: response.status,
+      contentType: response.headers?.['content-type'],
+      dataSize: JSON.stringify(response.data).length
+    });
+    
+    // Special logging for auth endpoints
+    if (isAuthRequest) {
+      console.log(`[REQ:${requestId}] Auth response details:`, {
         hasToken: !!response?.data?.token,
+        tokenType: typeof response?.data?.token,
+        tokenLength: response?.data?.token ? response.data.token.length : 0,
         hasUser: !!response?.data?.user,
         hasUserData: !!response?.data?.userData,
         responseStatus: response.status,
         responseContentType: response.headers?.['content-type'],
         responseDataType: typeof response.data,
         responseDataKeys: response.data ? Object.keys(response.data) : null,
-        userFieldsIfPresent: response?.data?.user ? Object.keys(response.data.user) : null
+        userFieldsIfPresent: response?.data?.user ? Object.keys(response.data.user) : null,
+        userDataFieldsIfPresent: response?.data?.userData ? Object.keys(response.data.userData) : null
       });
     }
     
     return response;
   } catch (error: any) {
-    if ((url.includes('/login') || url.includes('/register')) && method === 'POST') {
-      logAuthError(method, url, error);
+    console.error(`[REQ:${requestId}] Request failed:`, {
+      url,
+      method,
+      errorName: error.name,
+      errorMessage: error.message,
+      errorType: error.constructor.name,
+      hasResponse: !!error.response,
+      hasRequest: !!error.request,
+      isAxiosError: error.isAxiosError,
+      stack: error.stack?.split('\n').slice(0, 3).join('\n') // First 3 lines of stack
+    });
+    
+    // Detailed logging for auth requests
+    if (isAuthRequest) {
+      console.error(`[REQ:${requestId}] Auth request failed details:`, {
+        url,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        responseData: error.response?.data,
+        responseHeaders: error.response?.headers,
+        message: error.message
+      });
     }
     
+    // Specific error handling based on error types
     if (error.response) {
-      console.error('Response error data:', error.response.data);
-      throw new Error(error.response.data?.error || "Request failed");
+      // Server responded with error status code
+      console.error(`[REQ:${requestId}] Server error response:`, {
+        status: error.response.status,
+        statusText: error.response.statusText,
+        data: error.response.data
+      });
+      
+      // Format error message with more details
+      const errorText = error.response.data?.error || error.response.statusText || "Request failed";
+      throw new Error(`${errorText} (${error.response.status})`);
+    } else if (error.request) {
+      // Request was made but no response received (network errors)
+      console.error(`[REQ:${requestId}] No response received:`, { 
+        request: error.request._currentUrl || error.request.responseURL || url 
+      });
+      throw new Error("Network error: No response received from server");
+    } else {
+      // Request setup error
+      console.error(`[REQ:${requestId}] Request configuration error:`, { message: error.message });
+      throw new Error(`Request error: ${error.message}`);
     }
-    throw error;
   }
 };

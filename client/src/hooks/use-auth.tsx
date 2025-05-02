@@ -68,35 +68,98 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginData) => {
-      const res = await apiRequest("POST", "/api/login", credentials);
-      return res.data as LoginResponse;
+      try {
+        console.log('Sending login request to server:', {
+          url: '/api/login',
+          username: credentials.username,
+          passwordLength: credentials.password ? credentials.password.length : 0
+        });
+        
+        const res = await apiRequest("POST", "/api/login", credentials);
+        
+        console.log('Login response received:', {
+          status: res.status,
+          hasData: !!res.data,
+          dataType: typeof res.data,
+          responseKeys: res.data ? Object.keys(res.data) : [],
+          hasToken: res.data?.token ? 'Yes' : 'No',
+          tokenLength: res.data?.token ? res.data.token.length : 0,
+          hasUser: res.data?.user ? 'Yes' : 'No',
+          hasUserData: res.data?.userData ? 'Yes' : 'No',
+        });
+        
+        return res.data as LoginResponse;
+      } catch (err: any) {
+        console.error('Login request failed:', {
+          error: err.message,
+          response: err.response?.data,
+          status: err.response?.status
+        });
+        throw err;
+      }
     },
     onSuccess: async (response: LoginResponse) => {
-      // Store the token in AsyncStorage and set it in axios headers
-      if (!response.token) {
-        throw new Error("No authentication token received");
+      try {
+        // Store the token in AsyncStorage and set it in axios headers
+        console.log('Processing login success:', {
+          hasToken: !!response.token,
+          tokenLength: response.token ? response.token.length : 0,
+          hasUser: !!response.user,
+          hasUserData: !!response.userData,
+          userFields: response.user ? Object.keys(response.user) : [],
+          userDataFields: response.userData ? Object.keys(response.userData) : [],
+        });
+        
+        if (!response.token) {
+          const detailedError = `No authentication token received. Response keys: ${Object.keys(response).join(', ')}`;
+          console.error(detailedError, { response });
+          throw new Error(detailedError);
+        }
+        
+        await setAuthToken(response.token);
+        console.log('Auth token set successfully:', { tokenLength: response.token.length });
+        
+        // Handle different response formats - some endpoints might return userData vs user
+        const userData = response.user || response.userData;
+        if (!userData) {
+          const detailedError = `No user data received. Response keys: ${Object.keys(response).join(', ')}`;
+          console.error(detailedError, { response });
+          throw new Error(detailedError);
+        }
+        
+        console.log('User data received:', {
+          id: userData.id,
+          name: userData.name,
+          role: userData.role,
+          fields: Object.keys(userData)
+        });
+        
+        // Update the user data in the query cache
+        queryClient.setQueryData(["/api/user"], userData);
+        
+        toast({
+          title: "Login successful",
+          description: `Welcome back, ${userData?.name || 'user'}!`,
+        });
+      } catch (err: any) {
+        console.error('Error in login success handler:', err);
+        toast({
+          title: "Login partially failed",
+          description: err.message,
+          variant: "destructive",
+        });
       }
-      
-      await setAuthToken(response.token);
-      
-      // Handle different response formats - some endpoints might return userData vs user
-      const userData = response.user || response.userData;
-      if (!userData) {
-        throw new Error("No user data received");
-      }
-      
-      // Update the user data in the query cache
-      queryClient.setQueryData(["/api/user"], userData);
-      
-      toast({
-        title: "Login successful",
-        description: `Welcome back, ${userData?.name || 'user'}!`,
-      });
     },
     onError: (error: Error) => {
+      console.error('Login mutation error:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      
       toast({
         title: "Login failed",
-        description: error.message,
+        description: `Error: ${error.message}\nCheck console for details`,
         variant: "destructive",
       });
     },
@@ -111,43 +174,105 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const registerMutation = useMutation({
     mutationFn: async (userData: RegisterData) => {
-      const res = await apiRequest("POST", "/api/register", userData);
-      return res.data as RegisterResponse;
+      try {
+        console.log('Sending registration request to server:', {
+          url: '/api/register',
+          userData: { ...userData, password: '***REDACTED***' } // Log without password
+        });
+        
+        const res = await apiRequest("POST", "/api/register", userData);
+        
+        console.log('Registration response received:', {
+          status: res.status,
+          hasData: !!res.data,
+          dataType: typeof res.data,
+          responseKeys: res.data ? Object.keys(res.data) : [],
+          hasToken: res.data?.token ? 'Yes' : 'No',
+          tokenLength: res.data?.token ? res.data.token.length : 0,
+          hasUser: res.data?.user ? 'Yes' : 'No',
+          hasUserData: res.data?.userData ? 'Yes' : 'No',
+        });
+        
+        return res.data as RegisterResponse;
+      } catch (err: any) {
+        console.error('Registration request failed:', {
+          error: err.message,
+          response: err.response?.data,
+          status: err.response?.status
+        });
+        throw err;
+      }
     },
     onSuccess: async (response: RegisterResponse) => {
-      // Store the token in AsyncStorage and set it in axios headers
-      if (!response.token) {
-        throw new Error("No authentication token received");
-      }
-      
-      await setAuthToken(response.token);
-      
-      // Handle different response formats - some endpoints might return userData vs user
-      const userData = response.user || response.userData;
-      if (!userData) {
-        throw new Error("No user data received");
-      }
-      
-      // Update the user data in the query cache
-      queryClient.setQueryData(["/api/user"], userData);
-      
-      // Check if user was automatically promoted to admin
-      if (response.wasPromotedToAdmin) {
-        toast({
-          title: "You are the first user!",
-          description: `Welcome, ${userData?.name || 'user'}! As the first user, you've been automatically granted administrator privileges.`,
+      try {
+        // Store the token in AsyncStorage and set it in axios headers
+        console.log('Processing registration success:', {
+          hasToken: !!response.token,
+          tokenLength: response.token ? response.token.length : 0,
+          hasUser: !!response.user,
+          hasUserData: !!response.userData,
+          userFields: response.user ? Object.keys(response.user) : [],
+          userDataFields: response.userData ? Object.keys(response.userData) : [],
         });
-      } else {
+        
+        if (!response.token) {
+          const detailedError = `No authentication token received. Response keys: ${Object.keys(response).join(', ')}`;
+          console.error(detailedError, { response });
+          throw new Error(detailedError);
+        }
+        
+        await setAuthToken(response.token);
+        console.log('Auth token set successfully:', { tokenLength: response.token.length });
+        
+        // Handle different response formats - some endpoints might return userData vs user
+        const userData = response.user || response.userData;
+        if (!userData) {
+          const detailedError = `No user data received. Response keys: ${Object.keys(response).join(', ')}`;
+          console.error(detailedError, { response });
+          throw new Error(detailedError);
+        }
+        
+        console.log('User data received:', {
+          id: userData.id,
+          name: userData.name,
+          role: userData.role,
+          fields: Object.keys(userData)
+        });
+        
+        // Update the user data in the query cache
+        queryClient.setQueryData(["/api/user"], userData);
+        
+        // Check if user was automatically promoted to admin
+        if (response.wasPromotedToAdmin) {
+          toast({
+            title: "You are the first user!",
+            description: `Welcome, ${userData?.name || 'user'}! As the first user, you've been automatically granted administrator privileges.`,
+          });
+        } else {
+          toast({
+            title: "Registration successful",
+            description: `Welcome, ${userData?.name || 'user'}!`,
+          });
+        }
+      } catch (err: any) {
+        console.error('Error in registration success handler:', err);
         toast({
-          title: "Registration successful",
-          description: `Welcome, ${userData?.name || 'user'}!`,
+          title: "Registration partially failed",
+          description: err.message,
+          variant: "destructive",
         });
       }
     },
     onError: (error: Error) => {
+      console.error('Registration mutation error:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name
+      });
+      
       toast({
         title: "Registration failed",
-        description: error.message,
+        description: `Error: ${error.message}\nCheck console for details`,
         variant: "destructive",
       });
     },
