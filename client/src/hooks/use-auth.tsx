@@ -57,6 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   interface LoginResponse {
     user: SelectUser;
+    userData?: SelectUser; // Fallback for compatibility
     token: string;
   }
 
@@ -67,14 +68,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: async (response: LoginResponse) => {
       // Store the token in AsyncStorage and set it in axios headers
+      if (!response.token) {
+        throw new Error("No authentication token received");
+      }
+      
       await setAuthToken(response.token);
       
+      // Handle different response formats - some endpoints might return userData vs user
+      const userData = response.user || response.userData;
+      if (!userData) {
+        throw new Error("No user data received");
+      }
+      
       // Update the user data in the query cache
-      queryClient.setQueryData(["/api/user"], response.user);
+      queryClient.setQueryData(["/api/user"], userData);
       
       toast({
         title: "Login successful",
-        description: `Welcome back, ${response.user.name}!`,
+        description: `Welcome back, ${userData?.name || 'user'}!`,
       });
     },
     onError: (error: Error) => {
@@ -88,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   interface RegisterResponse {
     user: SelectUser;
+    userData?: SelectUser; // Fallback for compatibility
     token: string;
     wasPromotedToAdmin?: boolean;
   }
@@ -99,21 +111,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: async (response: RegisterResponse) => {
       // Store the token in AsyncStorage and set it in axios headers
+      if (!response.token) {
+        throw new Error("No authentication token received");
+      }
+      
       await setAuthToken(response.token);
       
+      // Handle different response formats - some endpoints might return userData vs user
+      const userData = response.user || response.userData;
+      if (!userData) {
+        throw new Error("No user data received");
+      }
+      
       // Update the user data in the query cache
-      queryClient.setQueryData(["/api/user"], response.user);
+      queryClient.setQueryData(["/api/user"], userData);
       
       // Check if user was automatically promoted to admin
       if (response.wasPromotedToAdmin) {
         toast({
           title: "You are the first user!",
-          description: `Welcome, ${response.user.name}! As the first user, you've been automatically granted administrator privileges.`,
+          description: `Welcome, ${userData?.name || 'user'}! As the first user, you've been automatically granted administrator privileges.`,
         });
       } else {
         toast({
           title: "Registration successful",
-          description: `Welcome, ${response.user.name}!`,
+          description: `Welcome, ${userData?.name || 'user'}!`,
         });
       }
     },

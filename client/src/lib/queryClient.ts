@@ -94,19 +94,48 @@ export const getQueryFn = (options: QueryFnOptions = { on401: "throw" }) => {
   };
 };
 
+// Add error logging function
+const logAuthError = (method: string, url: string, error: any) => {
+  console.error(`Auth ${method} Error for ${url}:`, error);
+  if (error.response) {
+    console.error('Response data:', error.response.data);
+    console.error('Status code:', error.response.status);
+  }
+};
+
 export const apiRequest = async (
   method: "GET" | "POST" | "PUT" | "DELETE",
   url: string,
   data?: any
 ) => {
   try {
+    // Log auth requests for debugging
+    if ((url.includes('/login') || url.includes('/register')) && method === 'POST') {
+      console.log(`Sending ${method} to ${url}`, { username: data?.username });
+    }
+    
     const response = await axiosInstance({
       method,
       url,
       data,
     });
+    
+    // Log auth response structures for debugging
+    if ((url.includes('/login') || url.includes('/register')) && method === 'POST') {
+      console.log(`Success response for ${url}:`, {
+        hasToken: !!response?.data?.token,
+        hasUser: !!response?.data?.user,
+        hasUserData: !!response?.data?.userData,
+        userFieldsIfPresent: response?.data?.user ? Object.keys(response.data.user) : null
+      });
+    }
+    
     return response;
   } catch (error: any) {
+    if ((url.includes('/login') || url.includes('/register')) && method === 'POST') {
+      logAuthError(method, url, error);
+    }
+    
     if (error.response) {
       throw new Error(error.response.data?.error || "Request failed");
     }
