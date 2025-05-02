@@ -30,10 +30,11 @@ const ModeToggle: React.FC<ModeToggleProps> = ({ style }) => {
     console.log('Manual toggle pressed');
     
     // If in learner mode and trying to switch to grown-up mode, show password prompt
-    if (isLearnerMode) {
+    // Only prompt for password if user role is LEARNER
+    if (isLearnerMode && user?.role === 'LEARNER') {
       setShowPasswordModal(true);
     } else {
-      // If in grown-up mode, switch to learner mode without password
+      // If in grown-up mode, or if a parent/admin is switching to grown-up mode, no password needed
       toggleMode();
     }
   };
