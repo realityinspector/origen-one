@@ -9,7 +9,26 @@ export function asyncHandler(fn: (req: Request, res: Response, next: NextFunctio
   return function(req: Request, res: Response, next: NextFunction) {
     return Promise
       .resolve(fn(req, res, next))
-      .catch(next);
+      .catch((error) => {
+        console.error('Unhandled API error:', error);
+        
+        // If headers have already been sent, just forward the error
+        if (res.headersSent) {
+          return next(error);
+        }
+        
+        // For auth endpoints, provide more specific error handling
+        if (req.path.includes('/api/login') || req.path.includes('/api/register')) {
+          console.error('Authentication endpoint error:', req.path, error.message);
+          return res.status(500).json({
+            error: 'Authentication service error',
+            message: error.message || 'An unexpected error occurred'
+          });
+        }
+        
+        // Forward to default error handler
+        next(error);
+      });
   };
 }
 
