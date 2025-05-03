@@ -143,9 +143,14 @@ export const apiRequest = async (
       responseType: 'json',
       // Add timeout to prevent hanging requests
       timeout: 30000, // 30 second timeout
-      // Add explicit validation
+      // Only accept 2xx status codes for auth endpoints to ensure token presence
       validateStatus: (status) => {
-        return status >= 200 && status < 500; // Don't throw for 4xx to handle them explicitly
+        if (isAuthRequest) {
+          // For auth requests, only accept 2xx responses to ensure token is present
+          return status >= 200 && status < 300;
+        }
+        // For other endpoints, handle 4xx errors explicitly below
+        return status >= 200 && status < 500;
       }
     });
     
