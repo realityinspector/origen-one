@@ -1,4 +1,5 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import axios from "axios";
 import {
   useQuery,
   useMutation,
@@ -185,20 +186,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           userData: { ...userData, password: '***REDACTED***' } // Log without password
         });
         
-        const res = await apiRequest("POST", "/api/register", userData);
-        
-        console.log('Registration response received:', {
-          status: res.status,
-          hasData: !!res.data,
-          dataType: typeof res.data,
-          responseKeys: res.data ? Object.keys(res.data) : [],
-          hasToken: res.data?.token ? 'Yes' : 'No',
-          tokenLength: res.data?.token ? res.data.token.length : 0,
-          hasUser: res.data?.user ? 'Yes' : 'No',
-          hasUserData: res.data?.userData ? 'Yes' : 'No',
+        // Use a more direct axios request for registration to avoid any middleware issues
+        const directResponse = await axios.post('/api/register', userData, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
         });
         
-        return res.data as RegisterResponse;
+        console.log('Registration direct response received:', {
+          status: directResponse.status,
+          hasData: !!directResponse.data,
+          dataType: typeof directResponse.data,
+          responseKeys: directResponse.data ? Object.keys(directResponse.data) : [],
+          hasToken: directResponse.data?.token ? 'Yes' : 'No',
+          tokenLength: directResponse.data?.token ? directResponse.data.token.length : 0,
+          hasUser: directResponse.data?.user ? 'Yes' : 'No',
+          hasUserData: directResponse.data?.userData ? 'Yes' : 'No',
+        });
+        
+        // Make sure we have a token in the response, or throw an error
+        if (!directResponse.data?.token) {
+          console.error('No token in registration response:', directResponse.data);
+          throw new Error('No authentication token received in registration response');
+        }
+        
+        return directResponse.data as RegisterResponse;
       } catch (err: any) {
         console.error('Registration request failed:', {
           error: err.message,

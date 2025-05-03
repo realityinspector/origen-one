@@ -104,15 +104,11 @@ export function setupAuth(app: Express) {
       responseType: typeof responseObj
     });
     
-    // Set explicit content type and status
-    res.setHeader('Content-Type', 'application/json');
+    // Log the final response object to help with debugging
+    console.log('Sending registration response with token length:', token.length);
     
-    // Use direct stringification as an additional safeguard
-    const jsonResponse = JSON.stringify(responseObj);
-    console.log('Response JSON length:', jsonResponse.length);
-    
-    // Send the response
-    res.status(201).send(jsonResponse);
+    // Use Express's built-in json method which handles Content-Type automatically
+    res.status(201).json(responseObj);
   }));
 
   // Login and return a JWT token
@@ -171,15 +167,11 @@ export function setupAuth(app: Express) {
       responseType: typeof responseObj
     });
     
-    // Set explicit content type and status
-    res.setHeader('Content-Type', 'application/json');
+    // Log the final response object to help with debugging
+    console.log('Sending login response with token length:', token.length);
     
-    // Use direct stringification as an additional safeguard
-    const jsonResponse = JSON.stringify(responseObj);
-    console.log('Response JSON length:', jsonResponse.length);
-    
-    // Send the response
-    res.status(200).send(jsonResponse);
+    // Use Express's built-in json method which handles Content-Type automatically
+    res.status(200).json(responseObj);
   }));
 
   // Get current user info
