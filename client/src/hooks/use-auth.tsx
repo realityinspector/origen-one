@@ -81,7 +81,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           passwordLength: credentials.password ? credentials.password.length : 0
         });
         
-        const res = await apiRequest("POST", "/api/login", credentials);
+        // Use absolute URL to ensure correct endpoint
+        const baseUrl = window.location.origin;
+        console.log('Using base URL for login:', baseUrl);
+        
+        const res = await axios.post(`${baseUrl}/api/login`, credentials, {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
         
         console.log('Login response received:', {
           status: res.status,
@@ -187,7 +196,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
         
         // Use a more direct axios request for registration to avoid any middleware issues
-        const directResponse = await axios.post('/api/register', userData, {
+        // Make sure to use the absolute URL or relative URL correctly
+        const baseUrl = window.location.origin;
+        console.log('Using base URL for registration:', baseUrl);
+        
+        const directResponse = await axios.post(`${baseUrl}/api/register`, userData, {
           headers: {
             'Content-Type': 'application/json',
             'Accept': 'application/json'

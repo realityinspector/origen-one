@@ -1,4 +1,17 @@
-<!DOCTYPE html>
+use-auth.tsx:48 Auth initialized from storage
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+queryClient.ts:116 [REQ:ma7hen0xwta5y] Starting POST request to /api/logout
+ModeToggle.tsx:27 ModeToggle rendering Object
+queryClient.ts:171 [REQ:ma7hen0xwta5y] Response received (200): Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+use-auth.tsx:184 Sending registration request to server: Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+use-auth.tsx:197 Registration direct response received: Object
+use-auth.tsx:210 No token in registration response: <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -38,7 +51,7 @@
       100% { transform: rotate(360deg); }
     }
   </style>
-  <script type="module" crossorigin src="/assets/index-Dibtm_xg.js"></script>
+  <script type="module" crossorigin src="/assets/index-C7f1SXrw.js"></script>
 </head>
 <body>
   <div id="root">
@@ -50,3 +63,7 @@
   </div>
 </body>
 </html>
+mutationFn @ use-auth.tsx:210Understand this errorAI
+use-auth.tsx:216 Registration request failed: Object
+mutationFn @ use-auth.tsx:216Understand this errorAI
+use-auth.tsx:361 Registration mutation error: Object
