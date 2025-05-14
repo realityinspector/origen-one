@@ -76,7 +76,7 @@ async function setupTestEnvironment() {
       learnerId = existingLearner.id;
     } else {
       // Create learner associated with parent
-      const hashedPassword = await hash(TEST_LEARNER.password, 10);
+      const hashedPassword = await hashPassword(TEST_LEARNER.password);
       const [learner] = await db.insert(schema.users).values({
         ...TEST_LEARNER,
         password: hashedPassword,
@@ -102,38 +102,46 @@ async function setupTestEnvironment() {
     // Create a test lesson for the learner
     const existingLesson = await db.query.lessons.findFirst({
       where: and(
-        eq(schema.lessons.userId, learnerId),
-        eq(schema.lessons.title, 'Test Lesson')
+        eq(schema.lessons.learnerId, learnerId),
+        eq(schema.lessons.moduleId, 'test-module')
       )
     });
     
     if (!existingLesson) {
       const [lesson] = await db.insert(schema.lessons).values({
         id: generateId(6),
-        userId: learnerId,
-        title: 'Test Lesson',
+        learnerId: learnerId,
+        moduleId: 'test-module',
         status: 'DONE',
-        content: 'This is a test lesson content',
-        createdAt: new Date(),
-        gradingResults: null,
         spec: {
           title: 'Test Lesson',
-          grade: TEST_LEARNER.gradeLevel,
-          topic: 'Testing',
-          content: 'This is a test lesson content',
-          quiz: [
+          content: 'This is a test lesson content for database sync testing',
+          questions: [
             {
-              question: 'What is this lesson for?',
+              text: 'What is this lesson for?',
               options: [
                 'Learning math',
                 'Reading practice',
                 'Testing the application',
                 'Science experiment'
               ],
-              correctOptionIndex: 2
+              correctIndex: 2,
+              explanation: 'This lesson is created to test the database synchronization feature.'
             }
-          ]
-        }
+          ],
+          graph: {
+            nodes: [
+              { id: 'n1', label: 'Database' },
+              { id: 'n2', label: 'Synchronization' }
+            ],
+            edges: [
+              { source: 'n1', target: 'n2' }
+            ]
+          }
+        },
+        score: 100,
+        createdAt: new Date(),
+        completedAt: new Date()
       }).returning();
       
       console.log(`Created test lesson for learner ID ${learnerId}`);
@@ -144,19 +152,21 @@ async function setupTestEnvironment() {
     // Create a test achievement
     const existingAchievement = await db.query.achievements.findFirst({
       where: and(
-        eq(schema.achievements.userId, learnerId),
-        eq(schema.achievements.name, 'Test Achievement')
+        eq(schema.achievements.learnerId, learnerId),
+        eq(schema.achievements.type, 'LESSON_COMPLETED')
       )
     });
     
     if (!existingAchievement) {
       await db.insert(schema.achievements).values({
-        userId: learnerId,
-        name: 'Test Achievement',
-        description: 'Achievement for testing database sync',
-        imageUrl: null,
-        earnedAt: new Date(),
-        type: 'LESSON_COMPLETED'
+        learnerId: learnerId,
+        type: 'LESSON_COMPLETED',
+        payload: {
+          title: 'Test Achievement',
+          description: 'Achievement for testing database sync',
+          icon: 'trophy'
+        },
+        awardedAt: new Date()
       });
       
       console.log(`Created test achievement for learner ID ${learnerId}`);
@@ -326,7 +336,7 @@ async function verifyExternalData(learnerId: number) {
     // Check if lesson was synchronized
     const lessonResult = await client.query(`
       SELECT COUNT(*) as count FROM lessons 
-      WHERE user_id IN (SELECT id FROM users WHERE email = $1)
+      WHERE learner_id IN (SELECT id FROM users WHERE email = $1)
     `, [TEST_LEARNER.email]);
     
     const lessonCount = parseInt(lessonResult.rows[0].count);
@@ -335,11 +345,38 @@ async function verifyExternalData(learnerId: number) {
     // Check if achievement was synchronized
     const achievementResult = await client.query(`
       SELECT COUNT(*) as count FROM achievements 
-      WHERE user_id IN (SELECT id FROM users WHERE email = $1)
+      WHERE learner_id IN (SELECT id FROM users WHERE email = $1)
     `, [TEST_LEARNER.email]);
     
     const achievementCount = parseInt(achievementResult.rows[0].count);
     console.log(`Found ${achievementCount} achievement in external database (expected at least 1)`);
+    
+    // Print sample data
+    console.log('\nSample data from external database:');
+    
+    // Print parent user
+    const parentUserResult = await client.query(`
+      SELECT id, email, name, role FROM users 
+      WHERE email = $1
+    `, [TEST_PARENT.email]);
+    
+    if (parentUserResult.rows.length > 0) {
+      const parentUser = parentUserResult.rows[0];
+      console.log(`Parent user: ID=${parentUser.id}, Email=${parentUser.email}, Name=${parentUser.name}, Role=${parentUser.role}`);
+    }
+    
+    // Print learner user and profile
+    const learnerUserResult = await client.query(`
+      SELECT u.id, u.email, u.name, u.role, lp.grade_level 
+      FROM users u
+      LEFT JOIN learner_profiles lp ON u.id = lp.user_id
+      WHERE u.email = $1
+    `, [TEST_LEARNER.email]);
+    
+    if (learnerUserResult.rows.length > 0) {
+      const learnerUser = learnerUserResult.rows[0];
+      console.log(`Learner user: ID=${learnerUser.id}, Email=${learnerUser.email}, Name=${learnerUser.name}, Grade=${learnerUser.grade_level}`);
+    }
     
     await client.end();
     
