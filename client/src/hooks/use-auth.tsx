@@ -189,47 +189,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           passwordLength: credentials.password ? credentials.password.length : 0
         });
         
-        // Use relative URL for reliability
-        console.log('Using relative URL for login - more reliable across environments');
+        // Always use the current domain for auth requests - critical for both dev and production
+        const baseUrl = window.location.origin;
+        console.log('Using current domain for auth:', baseUrl);
         
-        // First attempt with direct API call - no redirects, strict validation
-        const response = await apiRequest("POST", "/api/login", credentials);
+        // Create a fetch request directly to handle all environments consistently
+        const response = await fetch(`${baseUrl}/api/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(credentials),
+          credentials: 'include' // Important for cookies
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Login failed with status: ${response.status} ${response.statusText}`);
+        }
+        
+        // Parse the JSON response
+        const data = await response.json();
         
         // Validate response data
-        if (!response?.data) {
+        if (!data) {
           throw new Error('No response data received from login request');
         }
         
         // Log detailed response info
         console.log('Login response received:', {
           status: response.status,
-          hasData: !!response.data,
-          dataType: typeof response.data,
-          responseKeys: response.data ? Object.keys(response.data) : [],
-          hasToken: response.data?.token ? 'Yes' : 'No',
-          tokenLength: response.data?.token ? response.data.token.length : 0,
-          hasUser: response.data?.user ? 'Yes (object)' : (typeof response.data === 'object' ? 'Yes (raw)' : 'No'),
+          hasData: !!data,
+          dataType: typeof data,
+          responseKeys: data ? Object.keys(data) : [],
+          hasToken: data?.token ? 'Yes' : 'No',
+          tokenLength: data?.token ? data.token.length : 0,
+          hasUser: data?.user ? 'Yes (object)' : (typeof data === 'object' ? 'Yes (raw)' : 'No'),
         });
         
         // We need to handle both the exact format expected (token + user) and also the case
         // where just the user object itself is returned
         let processedResponse: LoginResponse;
         
-        if (response.data.token && (response.data.user || response.data.userData)) {
+        if (data.token && (data.user || data.userData)) {
           // Standard expected response format
-          processedResponse = response.data as LoginResponse;
+          processedResponse = data as LoginResponse;
           console.log('Login response is in standard format with token + user');
-        } else if (typeof response.data === 'object' && 'id' in response.data && 'role' in response.data) {
+        } else if (typeof data === 'object' && 'id' in data && 'role' in data) {
           // The server returned just the user object directly
           console.log('Login response contains just the user object, creating standard format');
           processedResponse = {
-            token: response.headers?.['authorization']?.replace('Bearer ', '') || '',
-            user: response.data,
-            userData: response.data
+            token: response.headers?.get('authorization')?.replace('Bearer ', '') || '',
+            user: data,
+            userData: data
           };
         } else {
           // Unexpected format
-          console.error('Unexpected login response format:', response.data);
+          console.error('Unexpected login response format:', data);
           throw new Error('Unexpected response format from login endpoint');
         }
         
@@ -349,36 +364,60 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           userData: { ...userData, password: '***REDACTED***' } // Log without password
         });
         
-        // Use a more direct axios request for registration to avoid any middleware issues
-        // Make sure to use the absolute URL or relative URL correctly
+        // Always use the current domain for auth requests - critical for both dev and production
         const baseUrl = window.location.origin;
-        console.log('Using base URL for registration:', baseUrl);
+        console.log('Using current domain for registration:', baseUrl);
         
-        const directResponse = await axios.post(`${baseUrl}/api/register`, userData, {
+        // Create a fetch request directly to handle all environments consistently
+        const response = await fetch(`${baseUrl}/api/register`, {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
+          },
+          body: JSON.stringify(userData),
+          credentials: 'include' // Important for cookies
         });
         
-        console.log('Registration direct response received:', {
-          status: directResponse.status,
-          hasData: !!directResponse.data,
-          dataType: typeof directResponse.data,
-          responseKeys: directResponse.data ? Object.keys(directResponse.data) : [],
-          hasToken: directResponse.data?.token ? 'Yes' : 'No',
-          tokenLength: directResponse.data?.token ? directResponse.data.token.length : 0,
-          hasUser: directResponse.data?.user ? 'Yes' : 'No',
-          hasUserData: directResponse.data?.userData ? 'Yes' : 'No',
-        });
-        
-        // Make sure we have a token in the response, or throw an error
-        if (!directResponse.data?.token) {
-          console.error('No token in registration response:', directResponse.data);
-          throw new Error('No authentication token received in registration response');
+        if (!response.ok) {
+          throw new Error(`Registration failed with status: ${response.status} ${response.statusText}`);
         }
         
-        return directResponse.data as RegisterResponse;
+        // Parse the JSON response
+        const data = await response.json();
+        
+        console.log('Registration response received:', {
+          status: response.status,
+          hasData: !!data,
+          dataType: typeof data,
+          responseKeys: data ? Object.keys(data) : [],
+          hasToken: data?.token ? 'Yes' : 'No',
+          tokenLength: data?.token ? data.token.length : 0,
+          hasUser: data?.user ? 'Yes (object)' : (typeof data === 'object' ? 'Yes (raw)' : 'No'),
+        });
+        
+        // We need to handle both the exact format expected (token + user) and also the case
+        // where just the user object itself is returned
+        let processedResponse: RegisterResponse;
+        
+        if (data.token && (data.user || data.userData)) {
+          // Standard expected response format
+          processedResponse = data as RegisterResponse;
+          console.log('Registration response is in standard format with token + user');
+        } else if (typeof data === 'object' && 'id' in data && 'role' in data) {
+          // The server returned just the user object directly
+          console.log('Registration response contains just the user object, creating standard format');
+          processedResponse = {
+            token: response.headers?.get('authorization')?.replace('Bearer ', '') || '',
+            user: data,
+            userData: data
+          };
+        } else {
+          // Unexpected format
+          console.error('Unexpected registration response format:', data);
+          throw new Error('Unexpected response format from registration endpoint');
+        }
+        
+        return processedResponse;
       } catch (err: any) {
         console.error('Registration request failed:', {
           error: err.message,
