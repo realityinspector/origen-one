@@ -23,9 +23,10 @@ export function ProtectedRoute({
   }
 
   if (!user) {
+    console.log(`ProtectedRoute: User not authenticated, redirecting to auth from ${path}`);
     return (
       <Route path={path}>
-        <Redirect to="/welcome" />
+        <Redirect to="/auth" />
       </Route>
     );
   }
