@@ -612,6 +612,36 @@ const styles = StyleSheet.create({
   gradeLevelButtonTextActive: {
     color: colors.onPrimary,
   },
+  gradeBadge: {
+    marginTop: 4,
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  gradeBadgeText: {
+    fontSize: 12,
+    color: colors.primary,
+    fontWeight: '500',
+  },
+  editButton: {
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  editLearnerName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+    marginBottom: 15,
+    textAlign: 'center',
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
