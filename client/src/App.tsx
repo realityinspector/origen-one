@@ -28,24 +28,34 @@ import AppLayout from './components/AppLayout';
 const HomeRedirect = () => {
   const { user, isLoading } = useAuth();
   
+  console.log("HomeRedirect: User authentication status", { 
+    isAuthenticated: !!user, 
+    isLoading,
+    userId: user?.id,
+    userRole: user?.role
+  });
+  
   if (isLoading) {
     return (
       <div className="loading-screen">
         <div className="spinner"></div>
-        <p>Loading...</p>
+        <p>Loading authentication status...</p>
       </div>
     );
   }
   
-  if (user) {
-    // Redirect based on user role
-    if (user.role === 'LEARNER') {
-      return <Redirect to="/learner" />;
-    } else {
-      return <Redirect to="/dashboard" />;
-    }
-  } else {
+  // Force redirect to welcome page for unauthenticated users
+  if (!user) {
+    console.log("HomeRedirect: User is not authenticated, redirecting to /welcome");
     return <Redirect to="/welcome" />;
+  }
+  
+  // Only proceed with role-based redirects if user is authenticated
+  console.log("HomeRedirect: User is authenticated with role:", user.role);
+  if (user.role === 'LEARNER') {
+    return <Redirect to="/learner" />;
+  } else {
+    return <Redirect to="/dashboard" />;
   }
 };
 
@@ -71,25 +81,33 @@ export default function App() {
         )}
         <AppLayout>
           <Switch>
+            {/* Public routes (no auth required) */}
             <Route path="/welcome" component={WelcomePage} />
             <Route path="/auth" component={AuthPage} />
-            <ProtectedRoute path="/dashboard" component={DashboardPage} />
-            <ProtectedRoute path="/learners" component={LearnersPage} />
-            <ProtectedRoute path="/reports" component={ReportsPage} />
+            
+            {/* Protected admin routes */}
             <AdminRoute path="/admin" component={AdminPage} />
             <AdminRoute path="/admin/users" component={AdminUsersPage} />
             <AdminRoute path="/admin/lessons" component={AdminLessonsPage} />
             <AdminRoute path="/admin/settings" component={AdminSettingsPage} />
             
-            {/* Learner Routes */}
+            {/* Protected parent/admin routes */}
+            <ProtectedRoute path="/dashboard" component={DashboardPage} />
+            <ProtectedRoute path="/learners" component={LearnersPage} />
+            <ProtectedRoute path="/reports" component={ReportsPage} />
+            
+            {/* Learner specific routes */}
             <LearnerRoute path="/learner" component={LearnerHome} />
             <LearnerRoute path="/lesson" component={ActiveLessonPage} />
             <LearnerRoute path="/quiz/:lessonId" component={QuizPage} />
             <LearnerRoute path="/progress" component={ProgressPage} />
             
-            <Route path="/">
-              <HomeRedirect />
+            {/* Root path - explicit redirect based on auth status */}
+            <Route exact path="/">
+              <WelcomePage />
             </Route>
+            
+            {/* Catch-all for 404 */}
             <Route>
               <div className="not-found">
                 <h1>404: Page Not Found</h1>
