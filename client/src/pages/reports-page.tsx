@@ -24,9 +24,13 @@ const ReportsPage: React.FC = () => {
     isLoading: learnersLoading,
     error: learnersError,
   } = useQuery({
-    queryKey: ["/api/learners"],
-    queryFn: () => apiRequest('GET', "/api/learners").then(res => res.data),
-    enabled: user?.role === 'PARENT' || user?.role === 'ADMIN',
+    queryKey: ["/api/learners", user?.id],
+    queryFn: () => {
+      // As a parent, we don't need to provide parentId since the API uses the authenticated user's ID
+      // As an admin, it would be better to provide a parentId, but for now we'll leave it as is
+      return apiRequest('GET', "/api/learners").then(res => res.data)
+    },
+    enabled: (user?.role === 'PARENT' || user?.role === 'ADMIN') && !!user?.id,
   });
 
   // Fetch selected learner data
