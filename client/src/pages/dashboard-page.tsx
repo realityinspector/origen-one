@@ -83,14 +83,8 @@ const DashboardPage: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.headerContent}>
-          <View>
-            <Text style={styles.headerTitle}>ORIGEN™ Learning Dashboard</Text>
-            <Text style={styles.welcomeText}>Welcome, {user?.name || 'User'}!</Text>
-          </View>
-          <Text style={styles.trademark}>™</Text>
-        </View>
+      <View style={styles.pageTitle}>
+        <Text style={styles.welcomeText}>Welcome, {user?.name || 'User'}!</Text>
       </View>
       
       <View style={styles.tabs}>
@@ -367,34 +361,6 @@ const DashboardPage: React.FC = () => {
           </View>
         )}
       </ScrollView>
-
-      {/* Footer with Logout Button */}
-      <View style={styles.footer}>
-        <View style={styles.footerContent}>
-          <View style={styles.footerLeft}>
-            <View>
-              <Text style={styles.footerTitle}>ORIGEN™ AI TUTOR</Text>
-              <Text style={styles.footerCopyright}>All materials copyright Sean McDonald 2025</Text>
-            </View>
-            <TouchableOpacity 
-              onPress={() => Linking.openURL('https://allonething.xyz')}
-              style={styles.footerLogoContainer}
-            >
-              <Image 
-                source={{ uri: '/aot-labs-logo.png' }} 
-                style={styles.footerLogo}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
-          </View>
-          <TouchableOpacity 
-            style={styles.logoutButton}
-            onPress={() => logoutMutation.mutate()}
-          >
-            <Text style={styles.logoutButtonText}>Logout</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
     </View>
   );
 };
@@ -404,16 +370,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.background,
   },
-  header: {
-    backgroundColor: colors.primary,
-    paddingTop: 24,
-    paddingBottom: 24,
+  pageTitle: {
+    paddingTop: 16,
+    paddingBottom: 16,
     paddingHorizontal: 24,
-  },
-  headerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
   },
   trademark: {
     ...typography.h4,
