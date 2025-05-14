@@ -94,12 +94,12 @@ const ParentDashboard = ({ navigation }: any) => {
       return;
     }
     
-    // Validate grade level (1-5)
+    // Validate grade level (1-12)
     const gradeLevelNum = parseInt(gradeLevel);
-    if (isNaN(gradeLevelNum) || gradeLevelNum < 1 || gradeLevelNum > 5) {
+    if (isNaN(gradeLevelNum) || gradeLevelNum < 1 || gradeLevelNum > 12) {
       toast({
         title: 'Error',
-        description: 'Grade level must be between 1 and 5',
+        description: 'Grade level must be between 1 and 12',
         variant: 'destructive',
       });
       return;
@@ -319,15 +319,46 @@ const ParentDashboard = ({ navigation }: any) => {
               </View>
               
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Grade Level (1-5)</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Enter grade level (1-5)"
-                  keyboardType="number-pad"
-                  value={gradeLevel}
-                  onChangeText={setGradeLevel}
-                  maxLength={1}
-                />
+                <Text style={styles.label}>Grade Level</Text>
+                <View style={styles.gradeLevelPickerContainer}>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.gradeLevelPicker}
+                  >
+                    {[
+                      { value: 'K', label: 'Kindergarten' },
+                      { value: '1', label: 'Grade 1' },
+                      { value: '2', label: 'Grade 2' },
+                      { value: '3', label: 'Grade 3' },
+                      { value: '4', label: 'Grade 4' },
+                      { value: '5', label: 'Grade 5' },
+                      { value: '6', label: 'Grade 6' },
+                      { value: '7', label: 'Grade 7' },
+                      { value: '8', label: 'Grade 8' },
+                      { value: '9', label: 'Grade 9' },
+                      { value: '10', label: 'Grade 10' },
+                      { value: '11', label: 'Grade 11' },
+                      { value: '12', label: 'Grade 12' },
+                    ].map((grade) => (
+                      <TouchableOpacity
+                        key={grade.value}
+                        style={[
+                          styles.gradeLevelButton,
+                          gradeLevel === grade.value && styles.gradeLevelButtonActive,
+                        ]}
+                        onPress={() => setGradeLevel(grade.value)}
+                      >
+                        <Text style={[
+                          styles.gradeLevelButtonText,
+                          gradeLevel === grade.value && styles.gradeLevelButtonTextActive,
+                        ]}>
+                          {grade.value === 'K' ? 'K' : grade.value}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
               </View>
             </ScrollView>
             
