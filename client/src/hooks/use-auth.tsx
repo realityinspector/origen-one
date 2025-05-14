@@ -1,12 +1,21 @@
 import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   useQuery,
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
 import type { User as SelectUser, InsertUser } from "../../../shared/schema";
-import { getQueryFn, apiRequest, queryClient, setAuthToken, initializeAuthFromStorage, axiosInstance } from "../lib/queryClient";
+import { 
+  getQueryFn, 
+  apiRequest, 
+  queryClient, 
+  setAuthToken, 
+  initializeAuthFromStorage, 
+  axiosInstance,
+  queryPersister 
+} from "../lib/queryClient";
 import { useToast } from "./use-toast";
 
 type AuthContextType = {
@@ -40,17 +49,50 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [initializationComplete, setInitializationComplete] = useState(false);
   const [initError, setInitError] = useState<Error | null>(null);
   
-  // Initialize auth from storage when the app loads
+  // Initialize auth from storage and validate the token
   useEffect(() => {
     const init = async () => {
       try {
-        await initializeAuthFromStorage();
-        console.log('Auth initialized from storage');
-        // After initializing the token, the user query below will automatically run
+        // Check if we have a token in storage
+        const hasToken = await initializeAuthFromStorage();
+        console.log('Auth initialization check:', { hasToken });
+        
+        if (hasToken) {
+          // Test if the token is valid by making a request to check the current user
+          try {
+            // Make a request to validate token and check user status
+            const response = await axiosInstance.get('/api/user');
+            console.log('Auth validation successful:', { 
+              status: response.status,
+              hasUser: !!response.data
+            });
+          } catch (validationError) {
+            // If this fails, the token is invalid so we should clear it
+            console.error('Token validation failed, clearing auth state:', validationError);
+            await setAuthToken(null); // Clear the invalid token
+            queryClient.setQueryData(["/api/user"], null); // Clear any cached user data
+            
+            // Reset all auth data
+            await AsyncStorage.removeItem('AUTH_TOKEN');
+            await queryPersister.removeClient();
+          }
+        }
+        
+        // Complete initialization regardless of outcome
         setInitializationComplete(true);
       } catch (error) {
         console.error('Failed to initialize auth from storage:', error);
         setInitError(error instanceof Error ? error : new Error('Unknown error during auth initialization'));
+        
+        // Clear any potentially corrupted state
+        try {
+          await setAuthToken(null);
+          await AsyncStorage.removeItem('AUTH_TOKEN');
+          await queryPersister.removeClient();
+        } catch (clearError) {
+          console.error('Failed to clear corrupted auth state:', clearError);
+        }
+        
         setInitializationComplete(true); // Still mark as complete even on error
       }
     };
@@ -411,26 +453,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      await apiRequest("POST", "/api/logout");
+      try {
+        console.log('Starting logout process...');
+        
+        // First try to call the server logout endpoint 
+        const res = await apiRequest("POST", "/api/logout");
+        console.log('Server logout response:', { status: res.status });
+      } catch (error) {
+        console.warn('Server logout failed, but continuing with client-side logout:', error);
+        // We still continue with client-side logout even if server logout fails
+      }
+      
+      // Thorough cleanup of all authentication state
+      try {
+        console.log('Clearing all auth tokens and persisted data...');
+        // Clear auth token from axios headers
+        await setAuthToken(null);
+        
+        // Clear persisted token
+        await AsyncStorage.removeItem('AUTH_TOKEN');
+        
+        // Clear persisted query cache
+        await queryPersister.removeClient();
+        
+        // Clear any other auth-related storage items
+        await AsyncStorage.removeItem('LEARNER_APP_CACHE');
+        
+        console.log('All auth data cleared successfully');
+      } catch (cleanupError) {
+        console.error('Error during auth cleanup:', cleanupError);
+        throw cleanupError; // Re-throw to trigger the error handler
+      }
     },
     onSuccess: async () => {
-      // Clear the auth token
-      await setAuthToken(null);
-      
-      // Clear the user data from the query cache
+      // Immediately clear in-memory user data
       queryClient.setQueryData(["/api/user"], null);
+      
+      // Clear all queries to prevent any auth-dependent data from persisting
+      queryClient.clear();
       
       toast({
         title: "Logged out",
-        description: "You have been logged out successfully.",
+        description: "You have been logged out successfully",
       });
+      
+      console.log('Logout complete, user state cleared');
+      
+      // Force page reload to ensure clean state if needed
+      if (typeof window !== 'undefined') {
+        window.location.href = '/auth';
+      }
     },
     onError: (error: Error) => {
+      console.error("Logout error:", error);
       toast({
-        title: "Logout failed",
+        title: "Logout Failed",
         description: error.message,
         variant: "destructive",
       });
+      
+      // Even on error, try to clear client-side state
+      queryClient.setQueryData(["/api/user"], null);
+      
+      // Try to force reload to auth page as last resort
+      if (typeof window !== 'undefined') {
+        window.location.href = '/auth';
+      }
     },
   });
 
