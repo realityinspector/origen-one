@@ -102,9 +102,12 @@ export default function App() {
             <LearnerRoute path="/quiz/:lessonId" component={QuizPage} />
             <LearnerRoute path="/progress" component={ProgressPage} />
             
-            {/* Root path - explicit redirect based on auth status */}
+            {/* Root path - will show welcome page but with auth-aware handling */}
             <Route path="/">
-              <WelcomePage />
+              {() => {
+                console.log("App.tsx: Rendering root path (/), showing welcome page");
+                return <WelcomePage />;
+              }}
             </Route>
             
             {/* Catch-all for 404 */}
