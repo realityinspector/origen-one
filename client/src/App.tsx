@@ -96,6 +96,7 @@ export default function App() {
             <ProtectedRoute path="/dashboard" component={DashboardPage} />
             <ProtectedRoute path="/learners" component={LearnersPage} />
             <ProtectedRoute path="/reports" component={ReportsPage} />
+            <ProtectedRoute path="/database-sync" component={DatabaseSyncPage} />
             
             {/* Learner specific routes */}
             <LearnerRoute path="/learner" component={LearnerHome} />
