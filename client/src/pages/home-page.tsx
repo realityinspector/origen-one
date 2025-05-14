@@ -10,30 +10,34 @@ import {
 import { useAuth } from '../hooks/use-auth';
 import { colors, typography, commonStyles } from '../styles/theme';
 import { Book, Award, BarChart2 } from 'react-feather';
+import { useLocation } from 'wouter';
 
-const HomePage = ({ navigation }: any) => {
+const HomePage = () => {
   const { user, logoutMutation } = useAuth();
+  const [, setLocation] = useLocation();
 
   const navigateBasedOnRole = () => {
     if (!user) return;
     
     switch (user.role) {
       case 'ADMIN':
-        navigation.navigate('AdminDashboard');
+        setLocation('/admin');
         break;
       case 'PARENT':
-        navigation.navigate('ParentDashboard');
+        setLocation('/dashboard');
         break;
       case 'LEARNER':
-        navigation.navigate('LearnerDashboard');
+        setLocation('/learner');
         break;
       default:
-        navigation.navigate('Auth');
+        setLocation('/auth');
     }
   };
 
   React.useEffect(() => {
-    navigateBasedOnRole();
+    if (user) {
+      navigateBasedOnRole();
+    }
   }, [user]);
 
   if (!user) return null;
@@ -52,7 +56,7 @@ const HomePage = ({ navigation }: any) => {
         <View style={styles.cardContainer}>
           <TouchableOpacity 
             style={styles.card}
-            onPress={navigateBasedOnRole}
+            onPress={() => navigateBasedOnRole()}
           >
             <View style={styles.cardIconContainer}>
               <Book size={24} color={colors.primary} />
@@ -71,7 +75,7 @@ const HomePage = ({ navigation }: any) => {
             <>
               <TouchableOpacity 
                 style={styles.card}
-                onPress={() => navigation.navigate('ProgressPage')}
+                onPress={() => setLocation('/progress')}
               >
                 <View style={styles.cardIconContainer}>
                   <BarChart2 size={24} color={colors.primary} />
@@ -84,7 +88,7 @@ const HomePage = ({ navigation }: any) => {
 
               <TouchableOpacity 
                 style={styles.card}
-                onPress={() => navigation.navigate('LearnerDashboard')}
+                onPress={() => setLocation('/learner')}
               >
                 <View style={styles.cardIconContainer}>
                   <Award size={24} color={colors.primary} />
