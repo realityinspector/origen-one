@@ -119,15 +119,38 @@ export function setupAuth(app: Express) {
       return res.status(400).json({ error: "Username and password are required" });
     }
     
-    // Find the user
-    const user = await storage.getUserByUsername(username);
-    if (!user || !(await comparePasswords(password, user.password))) {
-      return res.status(401).json({ error: "Invalid username or password" });
-    }
-    
-    // Generate JWT token with additional safeguards
-    let token;
     try {
+      // Check database connection first
+      const { checkDatabaseConnection } = require('./db');
+      const isConnected = await checkDatabaseConnection();
+      
+      if (!isConnected) {
+        console.error('Database connection error during login attempt');
+        return res.status(503).json({ 
+          error: "Database connection error. Please try again in a moment.",
+          isTransient: true
+        });
+      }
+      
+      // Find the user
+      const user = await storage.getUserByUsername(username);
+      
+      // Don't reveal whether the username exists or not for security reasons
+      if (!user) {
+        console.log(`Login failed: User ${username} not found`);
+        return res.status(401).json({ error: "Invalid username or password" });
+      }
+      
+      // Check password
+      const passwordMatches = await comparePasswords(password, user.password);
+      if (!passwordMatches) {
+        console.log(`Login failed: Incorrect password for ${username}`);
+        return res.status(401).json({ error: "Invalid username or password" });
+      }
+    
+      // Generate JWT token with additional safeguards
+      let token;
+      try {
       token = generateToken(user);
       if (!token) {
         throw new Error('Token generation failed');
@@ -137,41 +160,48 @@ export function setupAuth(app: Express) {
       return res.status(500).json({ error: 'Authentication token generation failed' });
     }
     
-    // Additional logging for production debugging
-    console.log('Login successful for:', username);
-    console.log('Token generation successful, token length:', token.length);
-    
-    // Return the token and user data (excluding password)
-    const { password: _, ...userWithoutPassword } = user;
-    
-    // Prepare response object with explicit field checking
-    if (!userWithoutPassword || !userWithoutPassword.id) {
-      console.error('User data is incomplete:', userWithoutPassword);
-      return res.status(500).json({ error: 'User data is incomplete' });
+      // Additional logging for production debugging
+      console.log('Login successful for:', username);
+      console.log('Token generation successful, token length:', token.length);
+      
+      // Return the token and user data (excluding password)
+      const { password: _, ...userWithoutPassword } = user;
+      
+      // Prepare response object with explicit field checking
+      if (!userWithoutPassword || !userWithoutPassword.id) {
+        console.error('User data is incomplete:', userWithoutPassword);
+        return res.status(500).json({ error: 'User data is incomplete' });
+      }
+      
+      // Create a standardized response object
+      const responseObj = {
+        token,
+        user: userWithoutPassword,
+        userData: userWithoutPassword // Add userData as an alternative
+      };
+      
+      // Log the final response structure
+      console.log('Login response structure:', {
+        hasToken: !!responseObj.token,
+        tokenLength: responseObj.token ? responseObj.token.length : 0,
+        hasUser: !!responseObj.user,
+        userFields: responseObj.user ? Object.keys(responseObj.user) : null,
+        userId: responseObj.user ? responseObj.user.id : null,
+        responseType: typeof responseObj
+      });
+      
+      // Log the final response object to help with debugging
+      console.log('Sending login response with token length:', token.length);
+      
+      // Use Express's built-in json method which handles Content-Type automatically
+      res.status(200).json(responseObj);
+    } catch (error) {
+      console.error('Authentication endpoint error:', error);
+      res.status(500).json({ 
+        error: 'An error occurred during authentication. Please try again.',
+        isTransient: true
+      });
     }
-    
-    // Create a standardized response object
-    const responseObj = {
-      token,
-      user: userWithoutPassword,
-      userData: userWithoutPassword // Add userData as an alternative
-    };
-    
-    // Log the final response structure
-    console.log('Login response structure:', {
-      hasToken: !!responseObj.token,
-      tokenLength: responseObj.token ? responseObj.token.length : 0,
-      hasUser: !!responseObj.user,
-      userFields: responseObj.user ? Object.keys(responseObj.user) : null,
-      userId: responseObj.user ? responseObj.user.id : null,
-      responseType: typeof responseObj
-    });
-    
-    // Log the final response object to help with debugging
-    console.log('Sending login response with token length:', token.length);
-    
-    // Use Express's built-in json method which handles Content-Type automatically
-    res.status(200).json(responseObj);
   }));
 
   // Get current user info

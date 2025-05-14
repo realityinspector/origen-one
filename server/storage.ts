@@ -1,6 +1,6 @@
 import { users, lessons, learnerProfiles, achievements } from "../shared/schema";
 import type { User, InsertUser, Lesson, InsertLesson, LearnerProfile, InsertLearnerProfile, Achievement, InsertAchievement } from "../shared/schema";
-import { db } from "./db";
+import { db, withRetry, checkDatabaseConnection } from "./db";
 import { eq, and, desc } from "drizzle-orm";
 import { pool } from "./db";
 
@@ -42,9 +42,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.username, username));
-    const users_found = Array.isArray(result) ? result : [result];
-    return users_found.length > 0 ? users_found[0] as User : undefined;
+    try {
+      return await withRetry(async () => {
+        const result = await db.select().from(users).where(eq(users.username, username));
+        const users_found = Array.isArray(result) ? result : [result];
+        return users_found.length > 0 ? users_found[0] as User : undefined;
+      });
+    } catch (error) {
+      console.error(`Error in getUserByUsername for username "${username}":`, error);
+      
+      // Check database connection when an error occurs
+      await checkDatabaseConnection();
+      
+      // Return undefined on error after logging it
+      return undefined;
+    }
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
