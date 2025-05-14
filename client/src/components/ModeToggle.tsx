@@ -11,6 +11,7 @@ import { colors, typography } from '../styles/theme';
 import { User, BookOpen, X } from 'react-feather';
 import { useMode } from '../context/ModeContext';
 import { useAuth } from '../hooks/use-auth';
+import { LearnerSelector } from './LearnerSelector';
 
 interface ModeToggleProps {
   style?: any;
@@ -54,6 +55,11 @@ const ModeToggle: React.FC<ModeToggleProps> = ({ style }) => {
 
   return (
     <View style={[styles.container, style]}>
+      {/* Show LearnerSelector for parents and admins when not in learner mode */}
+      {!isLearnerMode && (user?.role === 'PARENT' || user?.role === 'ADMIN') && (
+        <LearnerSelector />
+      )}
+      
       <TouchableOpacity 
         onPress={handleToggleMode}
         style={styles.iconButton}
@@ -113,6 +119,7 @@ const ModeToggle: React.FC<ModeToggleProps> = ({ style }) => {
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
