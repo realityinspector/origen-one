@@ -50,9 +50,44 @@ server.listen(PORT, "0.0.0.0", () => {
 
 // Start HTTP server on port 8000 for web traffic
 const httpApp = express();
+
+// Add middleware
+httpApp.use(cors({
+  origin: true,
+  credentials: true
+}));
+httpApp.use(express.json());
+httpApp.use(express.urlencoded({ extended: true }));
+
+// Simple direct routes for auth endpoints
+httpApp.post("/login", (req, res) => {
+  console.log("Forwarding /login to /api/login");
+  req.url = "/api/login";
+  app._router.handle(req, res);
+});
+
+httpApp.post("/register", (req, res) => {
+  console.log("Forwarding /register to /api/register");
+  req.url = "/api/register";
+  app._router.handle(req, res);
+});
+
+httpApp.post("/logout", (req, res) => {
+  console.log("Forwarding /logout to /api/logout");
+  req.url = "/api/logout";
+  app._router.handle(req, res);
+});
+
+httpApp.get("/user", (req, res) => {
+  console.log("Forwarding /user to /api/user");
+  req.url = "/api/user";
+  app._router.handle(req, res);
+});
+
+// Serve static files after API routes are defined
 httpApp.use(express.static(clientDistPath));
 
-// Forward all requests to index.html for React Router
+// Forward all remaining requests to index.html for React Router
 httpApp.use((req, res) => {
   const indexPath = path.join(clientDistPath, "index.html");
   res.sendFile(indexPath);
