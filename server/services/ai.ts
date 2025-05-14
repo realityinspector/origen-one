@@ -153,15 +153,29 @@ export async function generateLessonContent(gradeLevel: number, topic: string): 
   }
 
   try {
-    const gradeSpecificGuidance = getGradeSpecificGuidance(gradeLevel);
+    // Ensure grade level is within valid range
+    const safeGradeLevel = Math.max(1, Math.min(12, gradeLevel));
+    const gradeSpecificGuidance = getGradeSpecificGuidance(safeGradeLevel);
     
-    const systemPrompt = `You are an educational assistant creating a lesson for grade ${gradeLevel} students on the topic of "${topic}".
+    const systemPrompt = `You are an educational assistant creating a lesson for grade ${safeGradeLevel} students on the topic of "${topic}".
       Create a comprehensive, age-appropriate lesson with clear explanations, examples, and engaging content.
       Format the lesson with markdown headings, bullet points, and emphasis where appropriate.
       
       ${gradeSpecificGuidance}
       
-      Always adapt your language, examples, and explanations to be appropriate for grade ${gradeLevel} students.`;
+      For grade ${safeGradeLevel} students:
+      - Keep paragraphs ${safeGradeLevel <= 2 ? 'very short (2-3 sentences)' : 
+                         safeGradeLevel <= 5 ? 'brief (3-5 sentences)' : 
+                         'appropriately sized for their reading level'}
+      - Use ${safeGradeLevel <= 3 ? 'simple vocabulary with definitions for new terms' : 
+             safeGradeLevel <= 6 ? 'grade-appropriate vocabulary with context' : 
+             'appropriate academic language with clear explanations'}
+      - Include ${safeGradeLevel <= 3 ? 'many concrete examples and visual descriptions' : 
+                safeGradeLevel <= 6 ? 'relatable examples and real-world applications' : 
+                'diverse examples and cross-curricular connections'}
+      - Structure with ${safeGradeLevel <= 2 ? 'clear sections and visual elements' : 
+                        safeGradeLevel <= 6 ? 'organized sections with headings' : 
+                        'logical progression of ideas and supporting details'}`;
     
     const userPrompt = `Please create a lesson about ${topic} suitable for grade ${gradeLevel} students.`;
     
@@ -186,15 +200,27 @@ export async function generateQuizQuestions(gradeLevel: number, topic: string, q
   }
 
   try {
-    const gradeSpecificGuidance = getGradeSpecificGuidance(gradeLevel);
+    // Ensure grade level is within valid range
+    const safeGradeLevel = Math.max(1, Math.min(12, gradeLevel));
+    const gradeSpecificGuidance = getGradeSpecificGuidance(safeGradeLevel);
     
-    const systemPrompt = `You are an educational quiz creator making questions for grade ${gradeLevel} students on "${topic}".
+    const systemPrompt = `You are an educational quiz creator making questions for grade ${safeGradeLevel} students on "${topic}".
       Create ${questionCount} multiple-choice questions with 4 options each. Each question should have one correct answer.
       Return the questions as a JSON array where each question has: text, options (array of strings), correctIndex (0-3), and explanation.
       
       ${gradeSpecificGuidance}
       
-      Ensure the difficulty level, language, and concepts are appropriate for grade ${gradeLevel} students.`;
+      For grade ${safeGradeLevel} students:
+      - Create questions at the appropriate ${safeGradeLevel <= 2 ? 'early elementary' : 
+                                           safeGradeLevel <= 5 ? 'elementary' : 
+                                           safeGradeLevel <= 8 ? 'middle school' : 'high school'} difficulty level
+      - Use ${safeGradeLevel <= 3 ? 'simple vocabulary and short sentences' : 
+              safeGradeLevel <= 6 ? 'grade-appropriate vocabulary' : 
+              'appropriate academic terminology'} 
+      - ${safeGradeLevel <= 2 ? 'Focus on recall and basic understanding' : 
+          safeGradeLevel <= 5 ? 'Include some application questions' : 
+          safeGradeLevel <= 8 ? 'Incorporate analysis questions' : 
+          'Include evaluation and analysis questions'}`;
     
     const userPrompt = `Create ${questionCount} quiz questions about ${topic} suitable for grade ${gradeLevel} students.`;
     
