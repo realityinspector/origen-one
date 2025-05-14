@@ -21,6 +21,8 @@ const ParentDashboard = ({ navigation }: any) => {
   const { user, logoutMutation } = useAuth();
   const { toast } = useToast();
   const [modalVisible, setModalVisible] = useState(false);
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [currentEditLearner, setCurrentEditLearner] = useState<any>(null);
   
   // Form state
   const [childName, setChildName] = useState('');
@@ -78,6 +80,7 @@ const ParentDashboard = ({ navigation }: any) => {
       }).then(res => res.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/learners'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/learner-profiles'] });
       setModalVisible(false);
       clearForm();
       toast({
@@ -89,6 +92,30 @@ const ParentDashboard = ({ navigation }: any) => {
       toast({
         title: 'Error',
         description: error.message,
+        variant: 'destructive',
+      });
+    },
+  });
+  
+  // Update learner grade level mutation
+  const updateGradeLevelMutation = useMutation({
+    mutationFn: ({ userId, gradeLevel }: { userId: number, gradeLevel: string }) =>
+      apiRequest('PUT', `/api/learner-profile/${userId}`, {
+        gradeLevel
+      }).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/learner-profiles'] });
+      setEditModalVisible(false);
+      setCurrentEditLearner(null);
+      toast({
+        title: 'Success',
+        description: 'Grade level updated successfully',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update grade level',
         variant: 'destructive',
       });
     },
@@ -149,39 +176,68 @@ const ParentDashboard = ({ navigation }: any) => {
     });
   };
   
-  const renderLearnerItem = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      style={styles.learnerCard}
-      onPress={() => navigation.navigate('ProgressPage', { learnerId: item.id })}
-    >
-      <View style={styles.avatarContainer}>
-        <User size={24} color={colors.primary} />
-      </View>
-      <View style={styles.learnerInfo}>
-        <Text style={styles.learnerName}>{item.name}</Text>
-        <Text style={styles.learnerEmail}>{item.email}</Text>
-      </View>
-      <View style={styles.actionButtons}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.progressButton]}
-          onPress={() => navigation.navigate('ProgressPage', { learnerId: item.id })}
-        >
-          <BarChart2 size={16} color={colors.onPrimary} />
-          <Text style={styles.actionButtonText}>Progress</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.exportButton]}
-          onPress={() => {
-            // Open export endpoint in new window for download
-            window.open(`/api/export?learnerId=${item.id}`, '_blank');
-          }}
-        >
-          <Download size={16} color={colors.onPrimary} />
-          <Text style={styles.actionButtonText}>Export</Text>
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
-  );
+  const getGradeDisplayText = (gradeLevel: number) => {
+    if (gradeLevel === 0) return 'Kindergarten';
+    return `Grade ${gradeLevel}`;
+  };
+  
+  const renderLearnerItem = ({ item }: { item: any }) => {
+    // Get learner profile if available
+    const profile = learnerProfiles?.[item.id];
+    const gradeLevel = profile?.gradeLevel !== undefined ? profile.gradeLevel : null;
+    
+    return (
+      <TouchableOpacity
+        style={styles.learnerCard}
+        onPress={() => navigation.navigate('ProgressPage', { learnerId: item.id })}
+      >
+        <View style={styles.avatarContainer}>
+          <User size={24} color={colors.primary} />
+        </View>
+        <View style={styles.learnerInfo}>
+          <Text style={styles.learnerName}>{item.name}</Text>
+          <Text style={styles.learnerEmail}>{item.email}</Text>
+          {gradeLevel !== null && (
+            <View style={styles.gradeBadge}>
+              <Text style={styles.gradeBadgeText}>
+                {getGradeDisplayText(gradeLevel)}
+              </Text>
+            </View>
+          )}
+        </View>
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.editButton]}
+            onPress={() => {
+              setCurrentEditLearner(item);
+              // Set initial grade level for edit
+              setGradeLevel(gradeLevel === 0 ? 'K' : gradeLevel?.toString() || '5');
+              setEditModalVisible(true);
+            }}
+          >
+            <Text style={styles.actionButtonText}>Edit Grade</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.progressButton]}
+            onPress={() => navigation.navigate('ProgressPage', { learnerId: item.id })}
+          >
+            <BarChart2 size={16} color={colors.onPrimary} />
+            <Text style={styles.actionButtonText}>Progress</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.exportButton]}
+            onPress={() => {
+              // Open export endpoint in new window for download
+              window.open(`/api/export?learnerId=${item.id}`, '_blank');
+            }}
+          >
+            <Download size={16} color={colors.onPrimary} />
+            <Text style={styles.actionButtonText}>Export</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    );
+  };
   
   if (error) {
     return (
@@ -415,6 +471,110 @@ const ParentDashboard = ({ navigation }: any) => {
               >
                 <Text style={styles.createButtonText}>
                   {createChildMutation.isPending ? 'Creating...' : 'Create Account'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+      
+      {/* Edit Grade Level Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={editModalVisible}
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>
+                Update Grade Level
+              </Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setEditModalVisible(false);
+                  setCurrentEditLearner(null);
+                }}
+              >
+                <X size={24} color={colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalBody}>
+              <Text style={styles.editLearnerName}>
+                {currentEditLearner?.name}
+              </Text>
+              
+              <View style={styles.inputGroup}>
+                <Text style={styles.label}>Grade Level</Text>
+                <View style={styles.gradeLevelPickerContainer}>
+                  <ScrollView 
+                    horizontal 
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.gradeLevelPicker}
+                  >
+                    {[
+                      { value: 'K', label: 'Kindergarten' },
+                      { value: '1', label: 'Grade 1' },
+                      { value: '2', label: 'Grade 2' },
+                      { value: '3', label: 'Grade 3' },
+                      { value: '4', label: 'Grade 4' },
+                      { value: '5', label: 'Grade 5' },
+                      { value: '6', label: 'Grade 6' },
+                      { value: '7', label: 'Grade 7' },
+                      { value: '8', label: 'Grade 8' },
+                      { value: '9', label: 'Grade 9' },
+                      { value: '10', label: 'Grade 10' },
+                      { value: '11', label: 'Grade 11' },
+                      { value: '12', label: 'Grade 12' },
+                    ].map((grade) => (
+                      <TouchableOpacity
+                        key={grade.value}
+                        style={[
+                          styles.gradeLevelButton,
+                          gradeLevel === grade.value && styles.gradeLevelButtonActive,
+                        ]}
+                        onPress={() => setGradeLevel(grade.value)}
+                      >
+                        <Text style={[
+                          styles.gradeLevelButtonText,
+                          gradeLevel === grade.value && styles.gradeLevelButtonTextActive,
+                        ]}>
+                          {grade.value === 'K' ? 'K' : grade.value}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              </View>
+            </ScrollView>
+            
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => {
+                  setEditModalVisible(false);
+                  setCurrentEditLearner(null);
+                }}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.createButton}
+                onPress={() => {
+                  if (currentEditLearner?.id) {
+                    updateGradeLevelMutation.mutate({
+                      userId: currentEditLearner.id,
+                      gradeLevel
+                    });
+                  }
+                }}
+                disabled={updateGradeLevelMutation.isPending}
+              >
+                <Text style={styles.createButtonText}>
+                  {updateGradeLevelMutation.isPending ? 'Updating...' : 'Update Grade'}
                 </Text>
               </TouchableOpacity>
             </View>
