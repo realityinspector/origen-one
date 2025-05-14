@@ -27,10 +27,6 @@ import AppLayout from './components/AppLayout';
 // Home redirect component to handle auth status
 const HomeRedirect = () => {
   const { user, isLoading } = useAuth();
-  const [location] = useLocation();
-  
-  // Only redirect if we're on the homepage
-  if (location !== '/') return null;
   
   if (isLoading) {
     return (
@@ -63,7 +59,6 @@ export default function App() {
         enabled={process.env.NODE_ENV === 'production' && process.env.ENABLE_STATS !== 'false'} 
       />
       <ModeProvider>
-        <HomeRedirect />
         {user && (
           <div style={{ 
             position: 'fixed', 
@@ -92,7 +87,9 @@ export default function App() {
             <LearnerRoute path="/quiz/:lessonId" component={QuizPage} />
             <LearnerRoute path="/progress" component={ProgressPage} />
             
-            <ProtectedRoute path="/" component={HomePage} />
+            <Route path="/">
+              <HomeRedirect />
+            </Route>
             <Route>
               <div className="not-found">
                 <h1>404: Page Not Found</h1>
