@@ -3,6 +3,7 @@ import { generateLessonContent, generateQuizQuestions as aiGenerateQuizQuestions
 
 // Grade level topics for lesson generation
 const gradeTopics: Record<number, string[]> = {
+  0: ["Alphabet", "Counting", "Colors", "Shapes", "Animals"],
   1: ["Numbers", "Letters", "Colors", "Shapes"],
   2: ["Addition", "Subtraction", "Reading", "Time"],
   3: ["Multiplication", "Division", "Geography", "Science"],
@@ -11,6 +12,10 @@ const gradeTopics: Record<number, string[]> = {
   6: ["Algebra", "Literature", "Ancient Civilizations", "Ecosystems"],
   7: ["Geometry", "Poetry", "World Geography", "Chemistry"],
   8: ["Statistics", "Essay Writing", "American History", "Biology"],
+  9: ["Algebra II", "World Literature", "World History", "Biology II"],
+  10: ["Trigonometry", "American Literature", "European History", "Chemistry"],
+  11: ["Pre-Calculus", "British Literature", "Economics", "Physics"],
+  12: ["Calculus", "Advanced Literature", "Government", "Advanced Science"]
 };
 
 import { USE_AI } from './config/flags';
