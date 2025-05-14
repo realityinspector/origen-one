@@ -59,30 +59,72 @@ httpApp.use(cors({
 httpApp.use(express.json());
 httpApp.use(express.urlencoded({ extended: true }));
 
-// Simple direct routes for auth endpoints
-httpApp.post("/login", (req, res) => {
-  console.log("Forwarding /login to /api/login");
-  req.url = "/api/login";
-  app._router.handle(req, res);
-});
+// Create a simple proxy middleware that forwards requests from the HTTP server to the API server
+function createProxyMiddleware(targetPath: string) {
+  return function(req: any, res: any) {
+    console.log(`HTTP proxy: Forwarding ${req.method} request to ${targetPath}`);
+    
+    // Create a simple http request to the API server
+    const options = {
+      hostname: 'localhost',
+      port: PORT, 
+      path: targetPath,
+      method: req.method,
+      headers: {
+        'Content-Type': 'application/json',
+        // Forward cookies for authentication
+        'Cookie': req.headers.cookie || ''
+      }
+    };
+    
+    const apiReq = require('http').request(options, (apiRes: any) => {
+      // Copy status code 
+      res.statusCode = apiRes.statusCode;
+      
+      // Copy headers (including cookies)
+      Object.keys(apiRes.headers).forEach(key => {
+        res.setHeader(key, apiRes.headers[key]);
+      });
+      
+      // Collect data chunks
+      let data = '';
+      apiRes.on('data', (chunk: any) => {
+        data += chunk;
+      });
+      
+      // When the response is complete, send it back
+      apiRes.on('end', () => {
+        try {
+          // Try to parse as JSON
+          const json = JSON.parse(data);
+          res.json(json);
+        } catch (e) {
+          // If not valid JSON, just send the raw data
+          res.send(data);
+        }
+      });
+    });
+    
+    // Handle errors
+    apiReq.on('error', (error: any) => {
+      console.error('Error forwarding request:', error);
+      res.status(500).json({ error: 'Failed to forward request' });
+    });
+    
+    // If this is a POST request, forward the body
+    if (req.method === 'POST' && req.body) {
+      apiReq.write(JSON.stringify(req.body));
+    }
+    
+    apiReq.end();
+  };
+}
 
-httpApp.post("/register", (req, res) => {
-  console.log("Forwarding /register to /api/register");
-  req.url = "/api/register";
-  app._router.handle(req, res);
-});
-
-httpApp.post("/logout", (req, res) => {
-  console.log("Forwarding /logout to /api/logout");
-  req.url = "/api/logout";
-  app._router.handle(req, res);
-});
-
-httpApp.get("/user", (req, res) => {
-  console.log("Forwarding /user to /api/user");
-  req.url = "/api/user";
-  app._router.handle(req, res);
-});
+// Configure the routes with our proxy middleware
+httpApp.post("/login", createProxyMiddleware("/api/login"));
+httpApp.post("/register", createProxyMiddleware("/api/register"));
+httpApp.post("/logout", createProxyMiddleware("/api/logout"));
+httpApp.get("/user", createProxyMiddleware("/api/user"));
 
 // Serve static files after API routes are defined
 httpApp.use(express.static(clientDistPath));
