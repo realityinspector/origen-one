@@ -20,8 +20,23 @@ NEW_PASSWORD="$3"
 if [ "$ACTION" = "reset-password" ]; then
   echo "Resetting password for user: $USERNAME"
   
-  # Execute the password reset script
-  npx ts-node -r dotenv/config scripts/reset-password.ts "$USERNAME" "$NEW_PASSWORD"
+  # Escape potential special characters in the password
+  # Create a temporary JSON file to properly handle special characters 
+  TEMP_FILE=$(mktemp)
+  echo "{\"username\":\"$USERNAME\",\"password\":\"$NEW_PASSWORD\"}" > "$TEMP_FILE"
+  
+  # Execute the password reset script with proper escaping
+  node -e "
+    const fs = require('fs');
+    const data = JSON.parse(fs.readFileSync('$TEMP_FILE', 'utf8'));
+    require('child_process').execSync(
+      'npx ts-node -r dotenv/config scripts/reset-password.ts \"' + data.username + '\" \"' + data.password + '\"',
+      {stdio: 'inherit'}
+    );
+  "
+  
+  # Remove the temporary file
+  rm "$TEMP_FILE"
   
   if [ $? -eq 0 ]; then
     echo "Password reset successful for $USERNAME"
