@@ -26,6 +26,7 @@
 - [User Roles and Permissions](#user-roles-and-permissions)
 - [API Endpoints](#api-endpoints)
 - [AI Integration](#ai-integration)
+- [Cross-Environment Compatibility and Error Handling](#cross-environment-compatibility-and-error-handling)
 - [Development](#development)
 - [Contributing](#contributing)
 - [License](#license)
@@ -91,6 +92,8 @@ Origen follows a modern, scalable architecture:
 - **State Management**: React Query for server state, React Context for UI state
 - **Database Schema**: Normalized PostgreSQL schema for efficient data storage
 - **Service-Oriented Design**: Modular services for authentication, lessons, achievements, etc.
+- **Error Handling**: Comprehensive error handling throughout the application
+- **Environment Agnostic**: Works seamlessly in both development and production environments
 
 ## Installation
 
@@ -248,9 +251,9 @@ Origen AI Tutor has three main user roles:
 Below are the key API endpoints available in the application:
 
 ### Authentication
-- `POST /api/auth/login` - User login
-- `POST /api/auth/register` - User registration
-- `GET /api/user` - Get current user details
+- `POST /api/login` - User login (also available at `/login`)
+- `POST /api/register` - User registration (also available at `/register`) 
+- `GET /api/user` - Get current user details (also available at `/user`)
 
 ### User Management
 - `GET /api/parents` - List all parents (ADMIN only)
@@ -293,6 +296,30 @@ AI features can be enabled or disabled through environment variables:
 To use the AI features, you'll need to set the following environment variables:
 - `OPENROUTER_API_KEY` - For lesson generation
 - `PERPLEXITY_API_KEY` - For enhanced knowledge context
+
+## Cross-Environment Compatibility and Error Handling
+
+Origen is designed to work seamlessly across different environments including development, testing, and production deployments.
+
+### Multi-Environment Authentication
+
+- **Flexible Endpoints**: All authentication endpoints are available with and without the `/api` prefix
+- **Robust Token Handling**: JWT tokens are safely managed and validated 
+- **Content-Type Verification**: All API responses are validated for proper format and content type
+
+### Error Handling Strategy
+
+- **Comprehensive Validation**: Input and output validation at all levels of the application
+- **Graceful Degradation**: The application continues to function even when parts of it encounter errors
+- **Detailed Logging**: Enhanced logging for troubleshooting authentication and data issues
+- **Safe Type Handling**: Extensive null checking and type validation to prevent runtime errors
+
+### Development Tips
+
+- Always check both traditional (`/api/login`) and direct (`/login`) endpoint patterns when troubleshooting
+- Use the browser's developer tools to inspect network requests and responses
+- Enable detailed logging in development by setting `NODE_ENV=development`
+- Check for proper Content-Type headers in API responses (should be `application/json`)
 
 ## Development
 
