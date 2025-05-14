@@ -111,13 +111,13 @@ const LearnersPage: React.FC = () => {
       <View style={styles.contentContainer}>
         <View style={styles.listHeader}>
           <Text style={styles.listTitle}>{user?.role === 'PARENT' ? 'Your Children' : 'Learners'}</Text>
-          {user?.role === 'PARENT' && (
+          {(user?.role === 'PARENT' || user?.role === 'ADMIN') && (
             <TouchableOpacity
               style={styles.addButton}
               onPress={() => setModalVisible(true)}
             >
               <Plus size={20} color={colors.onPrimary} />
-              <Text style={styles.addButtonText}>Add Child</Text>
+              <Text style={styles.addButtonText}>{user?.role === 'ADMIN' ? 'Add Learner' : 'Add Child'}</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -147,14 +147,16 @@ const LearnersPage: React.FC = () => {
                 <Text style={styles.emptyText}>
                   {user?.role === 'PARENT'
                     ? "You haven't added any children yet. Create an account for your child to get started!"
-                    : "No learners found."}
+                    : "No learners found. Add a learner to get started."}
                 </Text>
-                {user?.role === 'PARENT' && (
+                {(user?.role === 'PARENT' || user?.role === 'ADMIN') && (
                   <TouchableOpacity
                     style={styles.emptyAddButton}
                     onPress={() => setModalVisible(true)}
                   >
-                    <Text style={styles.emptyAddButtonText}>Add Child Account</Text>
+                    <Text style={styles.emptyAddButtonText}>
+                      {user?.role === 'ADMIN' ? 'Add Learner Account' : 'Add Child Account'}
+                    </Text>
                   </TouchableOpacity>
                 )}
               </View>
@@ -172,15 +174,19 @@ const LearnersPage: React.FC = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            <Text style={styles.modalTitle}>Add Child Account</Text>
+            <Text style={styles.modalTitle}>
+              {user?.role === 'ADMIN' ? 'Add Learner Account' : 'Add Child Account'}
+            </Text>
 
             <ScrollView style={styles.modalContent}>
-              <Text style={styles.inputLabel}>Child's Name</Text>
+              <Text style={styles.inputLabel}>
+                {user?.role === 'ADMIN' ? 'Learner Name' : 'Child\'s Name'}
+              </Text>
               <TextInput
                 style={styles.input}
                 value={newLearner.name}
                 onChangeText={(text) => setNewLearner({ ...newLearner, name: text })}
-                placeholder="Enter child's name"
+                placeholder={user?.role === 'ADMIN' ? "Enter learner's name" : "Enter child's name"}
               />
 
               <Text style={styles.inputLabel}>Email</Text>
@@ -220,7 +226,9 @@ const LearnersPage: React.FC = () => {
                   style={styles.saveButton}
                   onPress={handleAddLearner}
                 >
-                  <Text style={styles.saveButtonText}>Add Account</Text>
+                  <Text style={styles.saveButtonText}>
+                    {user?.role === 'ADMIN' ? 'Add Learner' : 'Add Child'}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
