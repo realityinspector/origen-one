@@ -583,12 +583,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         console.log('Starting logout process...');
         
-        // First try to call the server logout endpoint 
-        const res = await apiRequest("POST", "/api/logout");
-        console.log('Server logout response:', { status: res.status });
+        // Always use the current domain for auth requests
+        const baseUrl = window.location.origin;
+        console.log('Using current domain for logout:', baseUrl);
+        
+        // First try to call the server logout endpoint with fetch for maximum reliability
+        try {
+          const response = await fetch(`${baseUrl}/api/logout`, {
+            method: 'POST',
+            credentials: 'include', // Important for cookies
+          });
+          
+          console.log('Server logout response:', { 
+            status: response.status,
+            ok: response.ok,
+            statusText: response.statusText
+          });
+        } catch (serverLogoutError) {
+          console.warn('Server logout failed, but continuing with client-side logout:', serverLogoutError);
+          // We still continue with client-side logout even if server logout fails
+        }
       } catch (error) {
-        console.warn('Server logout failed, but continuing with client-side logout:', error);
-        // We still continue with client-side logout even if server logout fails
+        console.warn('Initial logout process failed, but continuing with client-side cleanup:', error);
+        // We still continue with client-side logout even if there's an error
       }
       
       // Thorough cleanup of all authentication state
