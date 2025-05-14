@@ -105,12 +105,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         
         return res.data as LoginResponse;
       } catch (err: any) {
-        console.error('Login request failed:', {
-          error: err.message,
-          response: err.response?.data,
-          status: err.response?.status
-        });
-        throw err;
+        // Create a more descriptive error object
+        const errorInfo = {
+          message: err.message,
+          responseData: err.response?.data,
+          status: err.response?.status,
+          isTransient: err.response?.data?.isTransient === true
+        };
+        
+        console.error('Login request failed:', errorInfo);
+        
+        // Customize the error message based on response status
+        if (err.response?.status === 503) {
+          // Database connection error
+          errorInfo.message = 'The server database is temporarily unavailable. Please try again in a few moments.';
+        } else if (err.response?.status === 401) {
+          // Invalid credentials
+          errorInfo.message = 'Invalid username or password. Please check your credentials and try again.';
+        } else if (err.response?.status === 500) {
+          // Server error
+          errorInfo.message = 'The server encountered an internal error. Please try again.';
+        } else if (!navigator.onLine) {
+          // No internet connection
+          errorInfo.message = 'Please check your internet connection and try again.';
+        }
+        
+        // Add better error information
+        const enhancedError = new Error(errorInfo.message);
+        (enhancedError as any).details = errorInfo;
+        
+        throw enhancedError;
       }
     },
     onSuccess: async (response: LoginResponse) => {
