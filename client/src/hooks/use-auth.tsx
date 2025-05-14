@@ -189,32 +189,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           passwordLength: credentials.password ? credentials.password.length : 0
         });
         
-        // Determine if we're in production (deployed) or development environment
-        const isProduction = window.location.origin.includes('replit.app');
+        // Simplify our approach to just use the current domain
         const baseUrl = window.location.origin;
-        console.log('Current environment:', { isProduction, baseUrl });
+        console.log('Using current domain for authentication:', baseUrl);
         
-        // Specify API endpoints differently based on environment
-        // For production, we need to use a specific API URL
-        let apiEndpoints: string[] = [];
-        
-        if (isProduction) {
-          // Production (deployed) environment endpoints
-          // 1. Try using a different path structure that might work in production
-          apiEndpoints = [
-            '/api/login',                                   // Standard path
-            '/login',                                       // Direct path without /api
-            'https://origen-api.replit.app/api/login',     // External API service
-            'https://origen-api.replit.app/login'           // External API service direct path
-          ];
-        } else {
-          // Development environment endpoints
-          apiEndpoints = [
-            '/api/login',                                   // Standard path
-            `${baseUrl}/api/login`,                         // Full URL path
-            baseUrl.replace(/:(\d+)$/, ':5000') + '/api/login'  // Direct Node server port
-          ];
-        }
+        // We'll try both with and without the /api prefix since our server supports both
+        const apiEndpoints: string[] = [
+          '/login',          // Direct path (added for production compatibility)
+          '/api/login'       // API path (traditional)
+        ];
         
         // Try multiple endpoint patterns to handle both deployed and development environments
         let response: Response | null = null;
@@ -434,27 +417,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Determine if we're in production (deployed) or development environment
         const isProduction = window.location.origin.includes('replit.app');
         const baseUrl = window.location.origin;
-        console.log('Current environment for registration:', { isProduction, baseUrl });
+        console.log('Using current domain for registration:', baseUrl);
         
-        // Specify API endpoints differently based on environment
-        let apiEndpoints: string[] = [];
-        
-        if (isProduction) {
-          // Production (deployed) environment endpoints
-          apiEndpoints = [
-            '/api/register',                               // Standard path
-            '/register',                                   // Direct path without /api
-            'https://origen-api.replit.app/api/register', // External API service
-            'https://origen-api.replit.app/register'       // External API service direct path
-          ];
-        } else {
-          // Development environment endpoints
-          apiEndpoints = [
-            '/api/register',                              // Standard path
-            `${baseUrl}/api/register`,                    // Full URL path
-            baseUrl.replace(/:(\d+)$/, ':5000') + '/api/register'  // Direct Node server port
-          ];
-        }
+        // We'll try both with and without the /api prefix since our server supports both
+        const apiEndpoints: string[] = [
+          '/register',          // Direct path (added for production compatibility)
+          '/api/register'       // API path (traditional)
+        ];
         
         // Try multiple endpoint patterns to handle both deployed and development environments
         let response: Response | null = null;
