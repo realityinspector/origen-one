@@ -41,16 +41,29 @@ const AuthPage = () => {
   const [, setLocation] = useLocation();
   useEffect(() => {
     if (user) {
+      console.log('Auth page: User is already authenticated', { 
+        userId: user.id,
+        userRole: user.role
+      });
+      
       try {
-        console.log('User authenticated, redirecting to dashboard');
-        setLocation('/dashboard');
+        if (user.role === 'LEARNER') {
+          console.log('Auth page: Redirecting authenticated learner to /learner');
+          setLocation('/learner');
+        } else {
+          console.log('Auth page: Redirecting authenticated user to dashboard');
+          setLocation('/dashboard');
+        }
       } catch (error) {
         console.error('Navigation error:', error);
         // Fallback to direct location change if navigation fails
         if (typeof window !== 'undefined') {
-          window.location.href = '/dashboard';
+          const path = user.role === 'LEARNER' ? '/learner' : '/dashboard';
+          window.location.href = path;
         }
       }
+    } else {
+      console.log('Auth page: User is not authenticated, showing login/register form');
     }
   }, [user, setLocation]);
   
