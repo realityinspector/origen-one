@@ -113,12 +113,22 @@ export const ModeProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [availableLearners]);
   
-  // Function to select a learner
+  // Function to select a learner with added safety checks
   const selectLearner = (learner: LearnerUser) => {
+    // Validate learner object
+    if (!learner || typeof learner !== 'object') {
+      console.error('Invalid learner object provided to selectLearner:', learner);
+      return;
+    }
+    
     setSelectedLearner(learner);
     
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem('selectedLearnerId', learner.id.toString());
+    if (typeof window !== 'undefined' && learner.id !== undefined) {
+      // Use String() which safely handles undefined/null better than toString()
+      window.localStorage.setItem('selectedLearnerId', String(learner.id));
+      console.log('Saved learner ID to localStorage:', learner.id);
+    } else {
+      console.warn('Could not save learner ID to localStorage - invalid ID or not in browser');
     }
     
     // If in learner mode, refresh to show the selected learner's content
