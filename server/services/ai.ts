@@ -55,6 +55,65 @@ const HEADERS = (key: string) => ({
 });
 
 /**
+ * Returns grade-specific guidance for AI content generation
+ * based on educational standards and cognitive development
+ */
+function getGradeSpecificGuidance(gradeLevel: number): string {
+  // Ensure grade level is within 1-12 range
+  const grade = Math.max(1, Math.min(12, gradeLevel));
+  
+  // Grade bands with appropriate guidance
+  if (grade <= 2) {
+    return `
+      For grades K-2 (ages 5-8):
+      - Use very simple language and short sentences
+      - Focus on concrete concepts rather than abstract ideas
+      - Include visual learning cues ([picture of X])
+      - Limit text blocks to 2-3 sentences
+      - Use basic vocabulary with definitions for new words
+      - Include interactive elements like counting or identifying
+      - Celebrate small achievements with encouraging language
+    `;
+  } 
+  else if (grade <= 5) {
+    return `
+      For grades 3-5 (ages 8-11):
+      - Use clear, straightforward language
+      - Begin introducing some abstract concepts with concrete examples
+      - Keep explanations brief with supporting examples
+      - Introduce subject-specific vocabulary with simple definitions
+      - Use analogies related to everyday experiences
+      - Include opportunities for critical thinking through "why" questions
+      - Maintain an encouraging, positive tone
+    `;
+  }
+  else if (grade <= 8) {
+    return `
+      For grades 6-8 (ages 11-14):
+      - Use more complex sentence structures
+      - Introduce abstract concepts with real-world applications
+      - Connect new knowledge to existing concepts
+      - Use discipline-specific vocabulary with context
+      - Encourage analytical thinking through comparisons
+      - Present multiple perspectives on topics where appropriate
+      - Challenge students with deeper "how" and "why" questions
+    `;
+  }
+  else {
+    return `
+      For grades 9-12 (ages 14-18):
+      - Use academic language appropriate for high school level
+      - Address complex, abstract concepts
+      - Make connections across different subject areas
+      - Introduce specialized vocabulary and terminology
+      - Encourage critical analysis and evaluation
+      - Present multiple theories or interpretations where relevant
+      - Promote higher-order thinking through synthesis and evaluation questions
+    `;
+  }
+}
+
+/**
  * Makes a request to the OpenRouter API
  */
 export async function chat(
@@ -94,9 +153,15 @@ export async function generateLessonContent(gradeLevel: number, topic: string): 
   }
 
   try {
+    const gradeSpecificGuidance = getGradeSpecificGuidance(gradeLevel);
+    
     const systemPrompt = `You are an educational assistant creating a lesson for grade ${gradeLevel} students on the topic of "${topic}".
       Create a comprehensive, age-appropriate lesson with clear explanations, examples, and engaging content.
-      Format the lesson with markdown headings, bullet points, and emphasis where appropriate.`;
+      Format the lesson with markdown headings, bullet points, and emphasis where appropriate.
+      
+      ${gradeSpecificGuidance}
+      
+      Always adapt your language, examples, and explanations to be appropriate for grade ${gradeLevel} students.`;
     
     const userPrompt = `Please create a lesson about ${topic} suitable for grade ${gradeLevel} students.`;
     
@@ -121,9 +186,15 @@ export async function generateQuizQuestions(gradeLevel: number, topic: string, q
   }
 
   try {
+    const gradeSpecificGuidance = getGradeSpecificGuidance(gradeLevel);
+    
     const systemPrompt = `You are an educational quiz creator making questions for grade ${gradeLevel} students on "${topic}".
       Create ${questionCount} multiple-choice questions with 4 options each. Each question should have one correct answer.
-      Return the questions as a JSON array where each question has: text, options (array of strings), correctIndex (0-3), and explanation.`;
+      Return the questions as a JSON array where each question has: text, options (array of strings), correctIndex (0-3), and explanation.
+      
+      ${gradeSpecificGuidance}
+      
+      Ensure the difficulty level, language, and concepts are appropriate for grade ${gradeLevel} students.`;
     
     const userPrompt = `Create ${questionCount} quiz questions about ${topic} suitable for grade ${gradeLevel} students.`;
     
@@ -167,9 +238,26 @@ export async function generateFeedback(quizQuestions: any[], userAnswers: number
   }
 
   try {
-    const systemPrompt = `You are an educational assistant providing feedback on a student's quiz performance.
+    // Get grade information from the questions
+    let gradeLevel = 0;
+    // Try to extract grade level from the first question's content or fallback to grade 3
+    const questionText = quizQuestions[0]?.text || '';
+    const gradeMatch = questionText.match(/grade\s*(\d+)/i);
+    if (gradeMatch && gradeMatch[1]) {
+      gradeLevel = parseInt(gradeMatch[1], 10);
+    } else {
+      gradeLevel = 3; // Default grade level
+    }
+    
+    const gradeSpecificGuidance = getGradeSpecificGuidance(gradeLevel);
+    
+    const systemPrompt = `You are an educational assistant providing feedback on a grade ${gradeLevel} student's quiz performance.
       The student scored ${score}% on a quiz. Analyze their answers and provide constructive, supportive feedback.
-      Focus on areas of improvement while celebrating correct answers. Format using markdown with headings and bullet points.`;
+      Focus on areas of improvement while celebrating correct answers. Format using markdown with headings and bullet points.
+      
+      ${gradeSpecificGuidance}
+      
+      Adapt your feedback to be encouraging, understandable, and appropriate for a grade ${gradeLevel} student.`;
     
     // Construct a detailed prompt with the questions and answers
     let userPrompt = `Please provide personalized feedback on this quiz result:\n\n`;
@@ -202,9 +290,22 @@ export async function generateKnowledgeGraph(topic: string, gradeLevel: number):
   }
 
   try {
-    const systemPrompt = `You are an educational knowledge graph creator for grade ${gradeLevel} students.
+    // Ensure grade level is within a valid range
+    const safeGradeLevel = Math.max(1, Math.min(12, gradeLevel));
+    const gradeSpecificGuidance = getGradeSpecificGuidance(safeGradeLevel);
+    
+    const systemPrompt = `You are an educational knowledge graph creator for grade ${safeGradeLevel} students.
       Create a simple knowledge graph about "${topic}" with key concepts as nodes and their relationships as edges.
-      Return a JSON object with two arrays: 'nodes' (each with id and label) and 'edges' (each with source and target node ids).`;
+      Return a JSON object with two arrays: 'nodes' (each with id and label) and 'edges' (each with source and target node ids).
+      
+      ${gradeSpecificGuidance}
+      
+      Ensure the concepts and their relationships are appropriate for the cognitive development and curriculum level of grade ${safeGradeLevel} students.
+      
+      For grade ${safeGradeLevel}:
+      - Include ${safeGradeLevel <= 2 ? '3-5' : safeGradeLevel <= 5 ? '5-8' : '8-12'} main concepts
+      - Use ${safeGradeLevel <= 5 ? 'simple, concrete terminology' : 'appropriate academic terminology'}
+      - Make relationships ${safeGradeLevel <= 3 ? 'very clear and direct' : 'appropriately complex'}`;
     
     const userPrompt = `Create a knowledge graph about ${topic} suitable for grade ${gradeLevel} students.`;
     
