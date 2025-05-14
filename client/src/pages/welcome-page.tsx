@@ -1,16 +1,28 @@
 import React from 'react';
 import { View, Text, StyleSheet, ImageBackground, ScrollView, Linking, Image, TouchableOpacity } from 'react-native';
-import { Link } from 'wouter';
+import { Link, useLocation, Redirect } from 'wouter';
 import { useAuth } from '../hooks/use-auth';
-import { Redirect } from 'wouter';
 import { colors, typography, commonStyles } from '../styles/theme';
 import { GitHub, BookOpen, Eye, Shield, Users, Award, ExternalLink } from 'react-feather';
 
 const WelcomePage: React.FC = () => {
   const { user, isLoading } = useAuth();
 
-  // If user is already logged in, redirect to dashboard
-  if (user && !isLoading) {
+  // Only redirect authenticated users who explicitly navigate to /welcome, 
+  // but not when this component is rendered at the root path (/)
+  const [location] = useLocation();
+  
+  // Add debug output to help understand why we might be redirecting
+  console.log("WelcomePage: Checking auth status", { 
+    path: location, 
+    isAuthenticated: !!user, 
+    isLoading: isLoading, 
+    userRole: user?.role
+  });
+  
+  // Only redirect if explicitly on /welcome path AND authenticated (not on root path)
+  if (user && !isLoading && location === '/welcome') {
+    console.log("WelcomePage: Redirecting authenticated user to dashboard");
     return <Redirect to="/dashboard" />;
   }
 
