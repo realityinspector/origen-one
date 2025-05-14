@@ -28,8 +28,9 @@ const ProgressPage = () => {
     isLoading: isLessonsLoading,
     error: lessonsError,
   } = useQuery({
-    queryKey: ['/api/lessons'],
-    queryFn: () => apiRequest('GET', '/api/lessons').then(res => res.data),
+    queryKey: [`/api/lessons?learnerId=${user?.id}`],
+    queryFn: () => apiRequest('GET', `/api/lessons?learnerId=${user?.id}`).then(res => res.data),
+    enabled: !!user?.id,
   });
 
   // Fetch achievements
@@ -38,18 +39,19 @@ const ProgressPage = () => {
     isLoading: isAchievementsLoading,
     error: achievementsError,
   } = useQuery({
-    queryKey: ['/api/achievements'],
-    queryFn: () => apiRequest('GET', '/api/achievements').then(res => res.data),
+    queryKey: [`/api/achievements?learnerId=${user?.id}`],
+    queryFn: () => apiRequest('GET', `/api/achievements?learnerId=${user?.id}`).then(res => res.data),
+    enabled: !!user?.id,
   });
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['/api/lessons'] }),
-      queryClient.invalidateQueries({ queryKey: ['/api/achievements'] }),
+      queryClient.invalidateQueries({ queryKey: [`/api/lessons?learnerId=${user?.id}`] }),
+      queryClient.invalidateQueries({ queryKey: [`/api/achievements?learnerId=${user?.id}`] }),
     ]);
     setRefreshing(false);
-  }, []);
+  }, [user?.id]);
 
   const isLoading = isLessonsLoading || isAchievementsLoading;
   const hasError = lessonsError || achievementsError;
