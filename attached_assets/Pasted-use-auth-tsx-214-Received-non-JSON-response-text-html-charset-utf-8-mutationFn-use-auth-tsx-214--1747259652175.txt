@@ -1,0 +1,59 @@
+use-auth.tsx:214 Received non-JSON response: text/html; charset=utf-8
+mutationFn @ use-auth.tsx:214
+await in mutationFn
+fn @ mutation.js:67
+T @ retryer.js:80
+start @ retryer.js:121
+execute @ mutation.js:102
+await in execute
+mutate @ mutationObserver.js:61
+(anonymous) @ useMutation.js:29
+xe @ auth-page.tsx:89
+onClick @ PressResponder.js:314
+Pb @ react-dom-client.production.js:11858
+(anonymous) @ react-dom-client.production.js:12410
+Vl @ react-dom-client.production.js:1470
+xh @ react-dom-client.production.js:11996
+Mh @ react-dom-client.production.js:14699
+Rw @ react-dom-client.production.js:14667Understand this errorAI
+use-auth.tsx:216 Response text preview: <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="wi
+mutationFn @ use-auth.tsx:216
+await in mutationFn
+fn @ mutation.js:67
+T @ retryer.js:80
+start @ retryer.js:121
+execute @ mutation.js:102
+await in execute
+mutate @ mutationObserver.js:61
+(anonymous) @ useMutation.js:29
+xe @ auth-page.tsx:89
+onClick @ PressResponder.js:314
+Pb @ react-dom-client.production.js:11858
+(anonymous) @ react-dom-client.production.js:12410
+Vl @ react-dom-client.production.js:1470
+xh @ react-dom-client.production.js:11996
+Mh @ react-dom-client.production.js:14699
+Rw @ react-dom-client.production.js:14667Understand this errorAI
+use-auth.tsx:271 Login request failed: {message: `Unexpected token '<', "<!DOCTYPE "... is not valid JSON Check console for details`, responseData: undefined, status: undefined, isTransient: false}
+mutationFn @ use-auth.tsx:271
+await in mutationFn
+fn @ mutation.js:67
+T @ retryer.js:80
+start @ retryer.js:121
+execute @ mutation.js:102
+await in execute
+mutate @ mutationObserver.js:61
+(anonymous) @ useMutation.js:29
+xe @ auth-page.tsx:89
+onClick @ PressResponder.js:314
+Pb @ react-dom-client.production.js:11858
+(anonymous) @ react-dom-client.production.js:12410
+Vl @ react-dom-client.production.js:1470
+xh @ react-dom-client.production.js:11996
+Mh @ react-dom-client.production.js:14699
+Rw @ react-dom-client.production.js:14667Understand this errorAI
+use-auth.tsx:348 Login mutation error: {message: `Unexpected token '<', "<!DOCTYPE "... is not valid JSON Check console for details`, stack: `Error: Unexpected token '<', "<!DOCTYPE "... is no…labs.replit.app/assets/index-BGqq8rgo.js:56:5896)`, name: 'Error'}
