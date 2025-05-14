@@ -16,7 +16,72 @@ import { apiRequest, queryClient } from '../lib/queryClient';
 import { colors, typography, commonStyles } from '../styles/theme';
 import LessonCard from '../components/LessonCard';
 import KnowledgeGraph from '../components/KnowledgeGraph';
-import { Book, Award, BarChart2, User, Compass, Zap } from 'react-feather';
+import { Book, Award, BarChart2, User, Compass, Zap, ChevronDown, Plus } from 'react-feather';
+import { useMode } from '../context/ModeContext';
+
+const LearnerSwitcher = () => {
+  const { selectedLearner, selectLearner, availableLearners, isLoadingLearners } = useMode();
+  const { user } = useAuth();
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+  
+  if (isLoadingLearners) {
+    return (
+      <View style={styles.learnerSwitcherContainer}>
+        <View style={styles.learnerSwitcherLoading}>
+          <ActivityIndicator size="small" color={colors.primary} />
+          <Text style={styles.learnerSwitcherLoadingText}>Loading...</Text>
+        </View>
+      </View>
+    );
+  }
+  
+  if (!availableLearners || availableLearners.length === 0) {
+    return null; // Don't show anything if no learners
+  }
+  
+  return (
+    <View style={styles.learnerSwitcherContainer}>
+      <TouchableOpacity 
+        style={styles.learnerSwitcher}
+        onPress={() => setDropdownVisible(!dropdownVisible)}
+      >
+        <View style={styles.learnerSwitcherAvatar}>
+          <User size={16} color={colors.primary} />
+        </View>
+        <Text style={styles.learnerSwitcherName} numberOfLines={1}>
+          {selectedLearner?.name || 'Select Learner'}
+        </Text>
+        <ChevronDown size={14} color={colors.textSecondary} />
+      </TouchableOpacity>
+      
+      {/* Dropdown menu */}
+      {dropdownVisible && (
+        <View style={styles.learnerSwitcherDropdown}>
+          {availableLearners.map((learner) => (
+            <TouchableOpacity
+              key={learner.id}
+              style={[
+                styles.learnerSwitcherDropdownItem,
+                selectedLearner?.id === learner.id && styles.learnerSwitcherDropdownItemActive
+              ]}
+              onPress={() => {
+                selectLearner(learner);
+                setDropdownVisible(false);
+              }}
+            >
+              <View style={styles.learnerSwitcherItemAvatar}>
+                <User size={14} color={colors.primary} />
+              </View>
+              <Text style={styles.learnerSwitcherItemName}>
+                {learner.name}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+};
 
 const LearnerHome = () => {
   const { user } = useAuth();
@@ -127,6 +192,11 @@ const LearnerHome = () => {
               </Text>
             </View>
           </View>
+          
+          {/* Add the LearnerSwitcher if user is PARENT or ADMIN */}
+          {(user?.role === 'PARENT' || user?.role === 'ADMIN') && (
+            <LearnerSwitcher />
+          )}
         </View>
 
         {isLoading ? (
@@ -224,6 +294,84 @@ const LearnerHome = () => {
 };
 
 const styles = StyleSheet.create({
+  // Learner Switcher Styles
+  learnerSwitcherContainer: {
+    position: 'relative',
+  },
+  learnerSwitcher: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceColor,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+  },
+  learnerSwitcherAvatar: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 6,
+  },
+  learnerSwitcherName: {
+    fontSize: 12,
+    color: colors.textPrimary,
+    marginRight: 4,
+    maxWidth: 120,
+  },
+  learnerSwitcherLoading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  learnerSwitcherLoadingText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginLeft: 6,
+  },
+  learnerSwitcherDropdown: {
+    position: 'absolute',
+    top: 36,
+    right: 0,
+    width: 180,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    zIndex: 1000,
+  },
+  learnerSwitcherDropdownItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+  },
+  learnerSwitcherDropdownItemActive: {
+    backgroundColor: colors.primaryLight,
+  },
+  learnerSwitcherItemAvatar: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  learnerSwitcherItemName: {
+    fontSize: 14,
+    color: colors.textPrimary,
+  },
+  
+  // Original Styles
   scrollContent: {
     flexGrow: 1,
     padding: 16,
