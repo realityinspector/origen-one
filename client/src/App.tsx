@@ -22,6 +22,7 @@ import { PlausibleAnalytics } from './components/PlausibleAnalytics';
 import { useAuth } from './hooks/use-auth';
 import { ModeProvider } from './context/ModeContext';
 import ModeToggle from './components/ModeToggle';
+import AppLayout from './components/AppLayout';
 
 // Home redirect component to handle auth status
 const HomeRedirect = () => {
@@ -53,6 +54,8 @@ const HomeRedirect = () => {
 };
 
 export default function App() {
+  const { user } = useAuth();
+
   return (
     <div className="app-container">
       <PlausibleAnalytics 
@@ -61,39 +64,43 @@ export default function App() {
       />
       <ModeProvider>
         <HomeRedirect />
-        <div style={{ 
-          position: 'fixed', 
-          top: 20, 
-          right: 20, 
-          zIndex: 9999,
-        }}>
-          <ModeToggle />
-        </div>
-        <Switch>
-          <Route path="/welcome" component={WelcomePage} />
-          <Route path="/auth" component={AuthPage} />
-          <ProtectedRoute path="/dashboard" component={DashboardPage} />
-          <ProtectedRoute path="/learners" component={LearnersPage} />
-          <ProtectedRoute path="/reports" component={ReportsPage} />
-          <AdminRoute path="/admin" component={AdminPage} />
-          <AdminRoute path="/admin/users" component={AdminUsersPage} />
-          <AdminRoute path="/admin/lessons" component={AdminLessonsPage} />
-          <AdminRoute path="/admin/settings" component={AdminSettingsPage} />
-          
-          {/* Learner Routes */}
-          <LearnerRoute path="/learner" component={LearnerHome} />
-          <LearnerRoute path="/lesson" component={ActiveLessonPage} />
-          <LearnerRoute path="/quiz/:lessonId" component={QuizPage} />
-          <LearnerRoute path="/progress" component={ProgressPage} />
-          
-          <ProtectedRoute path="/" component={HomePage} />
-          <Route>
-            <div className="not-found">
-              <h1>404: Page Not Found</h1>
-              <p>The page you're looking for doesn't exist.</p>
-            </div>
-          </Route>
-        </Switch>
+        {user && (
+          <div style={{ 
+            position: 'fixed', 
+            top: 20, 
+            right: 20, 
+            zIndex: 9999,
+          }}>
+            <ModeToggle />
+          </div>
+        )}
+        <AppLayout>
+          <Switch>
+            <Route path="/welcome" component={WelcomePage} />
+            <Route path="/auth" component={AuthPage} />
+            <ProtectedRoute path="/dashboard" component={DashboardPage} />
+            <ProtectedRoute path="/learners" component={LearnersPage} />
+            <ProtectedRoute path="/reports" component={ReportsPage} />
+            <AdminRoute path="/admin" component={AdminPage} />
+            <AdminRoute path="/admin/users" component={AdminUsersPage} />
+            <AdminRoute path="/admin/lessons" component={AdminLessonsPage} />
+            <AdminRoute path="/admin/settings" component={AdminSettingsPage} />
+            
+            {/* Learner Routes */}
+            <LearnerRoute path="/learner" component={LearnerHome} />
+            <LearnerRoute path="/lesson" component={ActiveLessonPage} />
+            <LearnerRoute path="/quiz/:lessonId" component={QuizPage} />
+            <LearnerRoute path="/progress" component={ProgressPage} />
+            
+            <ProtectedRoute path="/" component={HomePage} />
+            <Route>
+              <div className="not-found">
+                <h1>404: Page Not Found</h1>
+                <p>The page you're looking for doesn't exist.</p>
+              </div>
+            </Route>
+          </Switch>
+        </AppLayout>
         <Toaster />
       </ModeProvider>
     </div>
