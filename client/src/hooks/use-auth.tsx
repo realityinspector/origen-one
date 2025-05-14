@@ -189,108 +189,72 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           passwordLength: credentials.password ? credentials.password.length : 0
         });
         
-        // Always use the current domain for auth requests - critical for both dev and production
+        // Determine if we're in production (deployed) or development environment
+        const isProduction = window.location.origin.includes('replit.app');
         const baseUrl = window.location.origin;
-        console.log('Using current domain for auth:', baseUrl);
+        console.log('Current environment:', { isProduction, baseUrl });
         
-        // Use different API paths based on the environment
-        let apiEndpoint = '/api/login';
+        // Specify API endpoints differently based on environment
+        // For production, we need to use a specific API URL
+        let apiEndpoints: string[] = [];
+        
+        if (isProduction) {
+          // Production (deployed) environment endpoints
+          // 1. Try using a different path structure that might work in production
+          apiEndpoints = [
+            '/api/login',                                   // Standard path
+            '/login',                                       // Direct path without /api
+            'https://origen-api.replit.app/api/login',     // External API service
+            'https://origen-api.replit.app/login'           // External API service direct path
+          ];
+        } else {
+          // Development environment endpoints
+          apiEndpoints = [
+            '/api/login',                                   // Standard path
+            `${baseUrl}/api/login`,                         // Full URL path
+            baseUrl.replace(/:(\d+)$/, ':5000') + '/api/login'  // Direct Node server port
+          ];
+        }
         
         // Try multiple endpoint patterns to handle both deployed and development environments
         let response: Response | null = null;
         let jsonResponse = false;
         let errorMessages: string[] = [];
         
-        // First try: Standard API endpoint
-        try {
-          console.log(`Attempting login via standard API endpoint: ${apiEndpoint}`);
-          response = await fetch(`${baseUrl}${apiEndpoint}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            },
-            body: JSON.stringify(credentials),
-            credentials: 'include' // Important for cookies
-          });
+        // Try each endpoint until we get a valid JSON response
+        for (const endpoint of apiEndpoints) {
+          if (jsonResponse) break; // Stop if we already got a successful response
           
-          // If we got a JSON response, we're good
-          const contentType = response.headers.get('content-type');
-          if (contentType && contentType.includes('application/json')) {
-            console.log('Successfully received JSON response from standard API endpoint');
-            jsonResponse = true;
-          } else {
-            // If we got here, the response wasn't JSON - capture the error
-            const textPreview = await response.text();
-            errorMessages.push(`Standard API endpoint returned non-JSON: ${textPreview.substring(0, 50)}`);
+          try {
+            const fullUrl = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`;
+            console.log(`Attempting login via endpoint: ${fullUrl}`);
+            
+            response = await fetch(fullUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify(credentials),
+              credentials: 'include' // Important for cookies
+            });
+            
+            // If we got a JSON response, we're good
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              console.log(`Successfully received JSON response from endpoint: ${endpoint}`);
+              jsonResponse = true;
+              break; // Found a working endpoint!
+            } else {
+              // If we got here, the response wasn't JSON - capture the error
+              const textPreview = await response.text();
+              errorMessages.push(`Endpoint ${endpoint} returned non-JSON: ${textPreview.substring(0, 50)}`);
+              response = null; // Reset to try the next endpoint
+            }
+          } catch (err) {
+            console.error(`Error with endpoint ${endpoint}:`, err);
+            errorMessages.push(`Endpoint ${endpoint} error: ${err instanceof Error ? err.message : String(err)}`);
             response = null; // Reset to try the next endpoint
-          }
-        } catch (err) {
-          console.error('Error with standard API endpoint:', err);
-          errorMessages.push(`Standard API error: ${err instanceof Error ? err.message : String(err)}`);
-        }
-        
-        // If we don't have a JSON response yet, try a direct API endpoint
-        if (!jsonResponse) {
-          try {
-            const directApiEndpoint = `${baseUrl}/api/login`;
-            console.log(`Attempting login via direct API endpoint: ${directApiEndpoint}`);
-            response = await fetch(directApiEndpoint, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
-              body: JSON.stringify(credentials),
-              credentials: 'include'
-            });
-            
-            // Check if we got a JSON response
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-              console.log('Successfully received JSON response from direct API endpoint');
-              jsonResponse = true;
-            } else {
-              // If we got here, the response wasn't JSON - capture the error
-              const textPreview = await response.text();
-              errorMessages.push(`Direct API endpoint returned non-JSON: ${textPreview.substring(0, 50)}`);
-              response = null; // Reset to try the next endpoint
-            }
-          } catch (err) {
-            console.error('Error with direct API endpoint:', err);
-            errorMessages.push(`Direct API error: ${err instanceof Error ? err.message : String(err)}`);
-          }
-        }
-        
-        // If we still don't have a JSON response, try with the Node server port (5000)
-        if (!jsonResponse) {
-          try {
-            const nodeEndpoint = baseUrl.replace(/:(\d+)$/, ':5000') + '/api/login';
-            console.log(`Attempting login via Node server directly: ${nodeEndpoint}`);
-            response = await fetch(nodeEndpoint, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
-              body: JSON.stringify(credentials),
-              credentials: 'include'
-            });
-            
-            // Check if we got a JSON response
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-              console.log('Successfully received JSON response from Node server endpoint');
-              jsonResponse = true;
-            } else {
-              // If we got here, the response wasn't JSON - capture the error
-              const textPreview = await response.text();
-              errorMessages.push(`Node server endpoint returned non-JSON: ${textPreview.substring(0, 50)}`);
-              response = null; // Reset to try the next endpoint
-            }
-          } catch (err) {
-            console.error('Error with Node server endpoint:', err);
-            errorMessages.push(`Node server error: ${err instanceof Error ? err.message : String(err)}`);
           }
         }
         
@@ -467,108 +431,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           userData: { ...userData, password: '***REDACTED***' } // Log without password
         });
         
-        // Always use the current domain for auth requests - critical for both dev and production
+        // Determine if we're in production (deployed) or development environment
+        const isProduction = window.location.origin.includes('replit.app');
         const baseUrl = window.location.origin;
-        console.log('Using current domain for registration:', baseUrl);
+        console.log('Current environment for registration:', { isProduction, baseUrl });
         
-        // Use different API paths based on the environment
-        let apiEndpoint = '/api/register';
+        // Specify API endpoints differently based on environment
+        let apiEndpoints: string[] = [];
+        
+        if (isProduction) {
+          // Production (deployed) environment endpoints
+          apiEndpoints = [
+            '/api/register',                               // Standard path
+            '/register',                                   // Direct path without /api
+            'https://origen-api.replit.app/api/register', // External API service
+            'https://origen-api.replit.app/register'       // External API service direct path
+          ];
+        } else {
+          // Development environment endpoints
+          apiEndpoints = [
+            '/api/register',                              // Standard path
+            `${baseUrl}/api/register`,                    // Full URL path
+            baseUrl.replace(/:(\d+)$/, ':5000') + '/api/register'  // Direct Node server port
+          ];
+        }
         
         // Try multiple endpoint patterns to handle both deployed and development environments
         let response: Response | null = null;
         let jsonResponse = false;
         let errorMessages: string[] = [];
         
-        // First try: Standard API endpoint
-        try {
-          console.log(`Attempting registration via standard API endpoint: ${apiEndpoint}`);
-          response = await fetch(`${baseUrl}${apiEndpoint}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json'
-            },
-            body: JSON.stringify(userData),
-            credentials: 'include' // Important for cookies
-          });
+        // Try each endpoint until we get a valid JSON response
+        for (const endpoint of apiEndpoints) {
+          if (jsonResponse) break; // Stop if we already got a successful response
           
-          // If we got a JSON response, we're good
-          const contentType = response.headers.get('content-type');
-          if (contentType && contentType.includes('application/json')) {
-            console.log('Successfully received JSON response from standard registration endpoint');
-            jsonResponse = true;
-          } else {
-            // If we got here, the response wasn't JSON - capture the error
-            const textPreview = await response.text();
-            errorMessages.push(`Standard API endpoint returned non-JSON: ${textPreview.substring(0, 50)}`);
+          try {
+            const fullUrl = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`;
+            console.log(`Attempting registration via endpoint: ${fullUrl}`);
+            
+            response = await fetch(fullUrl, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify(userData),
+              credentials: 'include' // Important for cookies
+            });
+            
+            // If we got a JSON response, we're good
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              console.log(`Successfully received JSON response from endpoint: ${endpoint}`);
+              jsonResponse = true;
+              break; // Found a working endpoint!
+            } else {
+              // If we got here, the response wasn't JSON - capture the error
+              const textPreview = await response.text();
+              errorMessages.push(`Endpoint ${endpoint} returned non-JSON: ${textPreview.substring(0, 50)}`);
+              response = null; // Reset to try the next endpoint
+            }
+          } catch (err) {
+            console.error(`Error with endpoint ${endpoint}:`, err);
+            errorMessages.push(`Endpoint ${endpoint} error: ${err instanceof Error ? err.message : String(err)}`);
             response = null; // Reset to try the next endpoint
-          }
-        } catch (err) {
-          console.error('Error with standard registration endpoint:', err);
-          errorMessages.push(`Standard API error: ${err instanceof Error ? err.message : String(err)}`);
-        }
-        
-        // If we don't have a JSON response yet, try a direct API endpoint
-        if (!jsonResponse) {
-          try {
-            const directApiEndpoint = `${baseUrl}/api/register`;
-            console.log(`Attempting registration via direct API endpoint: ${directApiEndpoint}`);
-            response = await fetch(directApiEndpoint, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
-              body: JSON.stringify(userData),
-              credentials: 'include'
-            });
-            
-            // Check if we got a JSON response
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-              console.log('Successfully received JSON response from direct registration endpoint');
-              jsonResponse = true;
-            } else {
-              // If we got here, the response wasn't JSON - capture the error
-              const textPreview = await response.text();
-              errorMessages.push(`Direct API endpoint returned non-JSON: ${textPreview.substring(0, 50)}`);
-              response = null; // Reset to try the next endpoint
-            }
-          } catch (err) {
-            console.error('Error with direct registration endpoint:', err);
-            errorMessages.push(`Direct API error: ${err instanceof Error ? err.message : String(err)}`);
-          }
-        }
-        
-        // If we still don't have a JSON response, try with the Node server port (5000)
-        if (!jsonResponse) {
-          try {
-            const nodeEndpoint = baseUrl.replace(/:(\d+)$/, ':5000') + '/api/register';
-            console.log(`Attempting registration via Node server directly: ${nodeEndpoint}`);
-            response = await fetch(nodeEndpoint, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
-              body: JSON.stringify(userData),
-              credentials: 'include'
-            });
-            
-            // Check if we got a JSON response
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-              console.log('Successfully received JSON response from Node server registration endpoint');
-              jsonResponse = true;
-            } else {
-              // If we got here, the response wasn't JSON - capture the error
-              const textPreview = await response.text();
-              errorMessages.push(`Node server endpoint returned non-JSON: ${textPreview.substring(0, 50)}`);
-              response = null; // Reset to try the next endpoint
-            }
-          } catch (err) {
-            console.error('Error with Node server registration endpoint:', err);
-            errorMessages.push(`Node server error: ${err instanceof Error ? err.message : String(err)}`);
           }
         }
         
@@ -784,25 +710,70 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         console.log('Starting logout process...');
         
-        // Always use the current domain for auth requests
+        // Determine if we're in production (deployed) or development environment
+        const isProduction = window.location.origin.includes('replit.app');
         const baseUrl = window.location.origin;
-        console.log('Using current domain for logout:', baseUrl);
+        console.log('Current environment for logout:', { isProduction, baseUrl });
         
-        // First try to call the server logout endpoint with fetch for maximum reliability
-        try {
-          const response = await fetch(`${baseUrl}/api/logout`, {
-            method: 'POST',
-            credentials: 'include', // Important for cookies
-          });
+        // Specify API endpoints differently based on environment
+        let apiEndpoints: string[] = [];
+        
+        if (isProduction) {
+          // Production (deployed) environment endpoints
+          apiEndpoints = [
+            '/api/logout',                               // Standard path
+            '/logout',                                   // Direct path without /api
+            'https://origen-api.replit.app/api/logout', // External API service
+            'https://origen-api.replit.app/logout'       // External API service direct path
+          ];
+        } else {
+          // Development environment endpoints
+          apiEndpoints = [
+            '/api/logout',                               // Standard path
+            `${baseUrl}/api/logout`,                     // Full URL path
+            baseUrl.replace(/:(\d+)$/, ':5000') + '/api/logout'  // Direct Node server port
+          ];
+        }
+        
+        // First try to call the server logout endpoints with fetch for maximum reliability
+        let logoutSuccessful = false;
+        let errorMessages: string[] = [];
+        
+        // Try each endpoint until we get a successful response
+        for (const endpoint of apiEndpoints) {
+          if (logoutSuccessful) break; // Stop if we already got a successful logout
           
-          console.log('Server logout response:', { 
-            status: response.status,
-            ok: response.ok,
-            statusText: response.statusText
-          });
-        } catch (serverLogoutError) {
-          console.warn('Server logout failed, but continuing with client-side logout:', serverLogoutError);
-          // We still continue with client-side logout even if server logout fails
+          try {
+            const fullUrl = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`;
+            console.log(`Attempting logout via endpoint: ${fullUrl}`);
+            
+            const response = await fetch(fullUrl, {
+              method: 'POST',
+              credentials: 'include', // Important for cookies
+            });
+            
+            console.log(`Logout response from ${endpoint}:`, { 
+              status: response.status,
+              ok: response.ok,
+              statusText: response.statusText
+            });
+            
+            if (response.ok) {
+              logoutSuccessful = true;
+              console.log(`Successfully logged out via endpoint: ${endpoint}`);
+              break;
+            } else {
+              errorMessages.push(`${endpoint} failed: ${response.status} ${response.statusText}`);
+            }
+          } catch (err) {
+            console.error(`Error with endpoint ${endpoint}:`, err);
+            errorMessages.push(`${endpoint} error: ${err instanceof Error ? err.message : String(err)}`);
+          }
+        }
+        
+        if (!logoutSuccessful) {
+          console.warn('Server logout failed on all endpoints:', errorMessages);
+          console.warn('Continuing with client-side logout anyway');
         }
       } catch (error) {
         console.warn('Initial logout process failed, but continuing with client-side cleanup:', error);
