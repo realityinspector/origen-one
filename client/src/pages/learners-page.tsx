@@ -11,11 +11,11 @@ import {
   ScrollView,
 } from 'react-native';
 import { useAuth } from '../hooks/use-auth';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { apiRequest } from '../lib/queryClient';
 import { colors, typography, commonStyles } from '../styles/theme';
 import { useLocation } from 'wouter';
-import { Plus, BarChart2, Download } from 'react-feather';
+import { Plus, BarChart2, Download, Edit } from 'react-feather';
 
 const LearnersPage: React.FC = () => {
   const { user } = useAuth();
@@ -77,12 +77,70 @@ const LearnersPage: React.FC = () => {
     enabled: !!learners && learners.length > 0,
   });
 
+  // Update grade level mutation
+  const updateGradeLevelMutation = useMutation({
+    mutationFn: ({ userId, gradeLevel }: { userId: number, gradeLevel: string }) =>
+      apiRequest('PUT', `/api/learner-profile/${userId}`, {
+        gradeLevel
+      }).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/learner-profiles', learners] });
+      setEditModalVisible(false);
+      setCurrentEditLearner(null);
+      setError('');
+    },
+    onError: (err: any) => {
+      // Try to extract a meaningful error message
+      let errorMessage = 'Failed to update grade level. Please try again.';
+      
+      if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+    },
+  });
+  
+  const handleUpdateGradeLevel = () => {
+    if (!currentEditLearner) {
+      setError('No learner selected for editing');
+      return;
+    }
+    
+    // Convert 'K' to 0 for Kindergarten, or parse the grade level number
+    let gradeLevelNum: number;
+    if (newLearner.gradeLevel === 'K') {
+      gradeLevelNum = 0; // Kindergarten
+    } else {
+      gradeLevelNum = parseInt(newLearner.gradeLevel);
+      if (isNaN(gradeLevelNum) || gradeLevelNum < 0 || gradeLevelNum > 12) {
+        setError('Grade level must be between K and 12');
+        return;
+      }
+    }
+    
+    updateGradeLevelMutation.mutate({
+      userId: currentEditLearner.id,
+      gradeLevel: newLearner.gradeLevel
+    });
+  };
+
   const handleAddLearner = async () => {
     try {
       setError('');
       if (!newLearner.name || !newLearner.email || !newLearner.password) {
         setError('All fields are required');
         return;
+      }
+
+      // Convert grade level for API
+      let gradeLevelNum: number;
+      if (newLearner.gradeLevel === 'K') {
+        gradeLevelNum = 0; // Kindergarten
+      } else {
+        gradeLevelNum = parseInt(newLearner.gradeLevel);
       }
 
       // For admin users, we need to set a parent ID
@@ -94,14 +152,16 @@ const LearnersPage: React.FC = () => {
         password: newLearner.password,
         role: 'LEARNER',
         parentId: user?.id, // Use the current user's ID as the parent ID
+        gradeLevel: gradeLevelNum, // Add grade level
       });
 
       // Reset form and close modal
       setNewLearner({ name: '', email: '', password: '', gradeLevel: '5' });
       setModalVisible(false);
 
-      // Refresh learners list
+      // Refresh learners list and profiles
       queryClient.invalidateQueries({ queryKey: ["/api/learners", user?.id, user?.role] });
+      queryClient.invalidateQueries({ queryKey: ['/api/learner-profiles', learners] });
     } catch (err: any) {
       // Try to extract a meaningful error message
       let errorMessage = 'Failed to add learner. Please try again.';
@@ -119,33 +179,58 @@ const LearnersPage: React.FC = () => {
     }
   };
 
-  const renderLearnerItem = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.learnerCard}>
-      <View style={styles.learnerInfo}>
-        <Text style={styles.learnerName}>{item.name}</Text>
-        <Text style={styles.learnerEmail}>{item.email}</Text>
-      </View>
-      <View style={styles.actionButtons}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.progressButton]}
-          onPress={() => navigate(`/progress?learnerId=${item.id}`)}
-        >
-          <BarChart2 size={16} color={colors.onPrimary} />
-          <Text style={styles.actionButtonText}>Progress</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.exportButton]}
-          onPress={() => {
-            // Open export endpoint in new window for download
-            window.open(`/api/export?learnerId=${item.id}`, '_blank');
-          }}
-        >
-          <Download size={16} color={colors.onPrimary} />
-          <Text style={styles.actionButtonText}>Export</Text>
-        </TouchableOpacity>
-      </View>
-    </TouchableOpacity>
-  );
+  const renderLearnerItem = ({ item }: { item: any }) => {
+    // Get the learner profile to display grade level
+    const profile = learnerProfiles?.[item.id];
+    const gradeLevel = profile?.gradeLevel !== undefined ? profile.gradeLevel : null;
+    
+    return (
+      <TouchableOpacity style={styles.learnerCard}>
+        <View style={styles.learnerInfo}>
+          <Text style={styles.learnerName}>{item.name}</Text>
+          <Text style={styles.learnerEmail}>{item.email}</Text>
+          {gradeLevel !== null && (
+            <View style={styles.gradeBadge}>
+              <Text style={styles.gradeBadgeText}>
+                {getGradeDisplayText(gradeLevel)}
+              </Text>
+            </View>
+          )}
+        </View>
+        <View style={styles.actionButtons}>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.editButton]}
+            onPress={() => {
+              setCurrentEditLearner(item);
+              // Set initial grade level for edit
+              const gradeLevelValue = gradeLevel === 0 ? 'K' : String(gradeLevel || 5);
+              setNewLearner({...newLearner, gradeLevel: gradeLevelValue});
+              setEditModalVisible(true);
+            }}
+          >
+            <Text style={styles.actionButtonText}>Edit Grade</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.progressButton]}
+            onPress={() => navigate(`/progress?learnerId=${item.id}`)}
+          >
+            <BarChart2 size={16} color={colors.onPrimary} />
+            <Text style={styles.actionButtonText}>Progress</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.exportButton]}
+            onPress={() => {
+              // Open export endpoint in new window for download
+              window.open(`/api/export?learnerId=${item.id}`, '_blank');
+            }}
+          >
+            <Download size={16} color={colors.onPrimary} />
+            <Text style={styles.actionButtonText}>Export</Text>
+          </TouchableOpacity>
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -315,6 +400,94 @@ const LearnersPage: React.FC = () => {
                 >
                   <Text style={styles.saveButtonText}>
                     {user?.role === 'ADMIN' ? 'Add Learner' : 'Add Child'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Edit Grade Level Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={editModalVisible}
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>
+              Update Grade Level
+            </Text>
+
+            <ScrollView style={styles.modalContent}>
+              <Text style={styles.editLearnerName}>
+                {currentEditLearner?.name}
+              </Text>
+              
+              <Text style={styles.inputLabel}>Grade Level</Text>
+              <View style={styles.gradeLevelContainer}>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.gradeLevelPicker}
+                >
+                  {[
+                    { value: 'K', label: 'Kindergarten' },
+                    { value: '1', label: 'Grade 1' },
+                    { value: '2', label: 'Grade 2' },
+                    { value: '3', label: 'Grade 3' },
+                    { value: '4', label: 'Grade 4' },
+                    { value: '5', label: 'Grade 5' },
+                    { value: '6', label: 'Grade 6' },
+                    { value: '7', label: 'Grade 7' },
+                    { value: '8', label: 'Grade 8' },
+                    { value: '9', label: 'Grade 9' },
+                    { value: '10', label: 'Grade 10' },
+                    { value: '11', label: 'Grade 11' },
+                    { value: '12', label: 'Grade 12' },
+                  ].map((grade) => (
+                    <TouchableOpacity
+                      key={grade.value}
+                      style={[
+                        styles.gradeLevelButton,
+                        newLearner.gradeLevel === grade.value && styles.gradeLevelButtonActive,
+                      ]}
+                      onPress={() => setNewLearner({ ...newLearner, gradeLevel: grade.value })}
+                    >
+                      <Text style={[
+                        styles.gradeLevelButtonText,
+                        newLearner.gradeLevel === grade.value && styles.gradeLevelButtonTextActive,
+                      ]}>
+                        {grade.value === 'K' ? 'K' : grade.value}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => {
+                    setEditModalVisible(false);
+                    setCurrentEditLearner(null);
+                    setError('');
+                  }}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={handleUpdateGradeLevel}
+                  disabled={updateGradeLevelMutation.isPending}
+                >
+                  <Text style={styles.saveButtonText}>
+                    {updateGradeLevelMutation.isPending ? 'Updating...' : 'Update Grade'}
                   </Text>
                 </TouchableOpacity>
               </View>
