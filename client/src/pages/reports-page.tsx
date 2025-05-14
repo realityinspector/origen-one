@@ -24,11 +24,17 @@ const ReportsPage: React.FC = () => {
     isLoading: learnersLoading,
     error: learnersError,
   } = useQuery({
-    queryKey: ["/api/learners", user?.id],
+    queryKey: ["/api/learners", user?.id, user?.role],
     queryFn: () => {
-      // As a parent, we don't need to provide parentId since the API uses the authenticated user's ID
-      // As an admin, it would be better to provide a parentId, but for now we'll leave it as is
-      return apiRequest('GET', "/api/learners").then(res => res.data)
+      if (user?.role === 'ADMIN') {
+        // For admin users, we need to provide a parentId
+        // As this is just for testing, we'll use the admin's own ID to avoid the 400 error
+        return apiRequest('GET', `/api/learners?parentId=${user.id}`).then(res => res.data);
+      } else if (user?.role === 'PARENT') {
+        // Parent users automatically use their own ID
+        return apiRequest('GET', "/api/learners").then(res => res.data);
+      }
+      return Promise.resolve([]);
     },
     enabled: (user?.role === 'PARENT' || user?.role === 'ADMIN') && !!user?.id,
   });
