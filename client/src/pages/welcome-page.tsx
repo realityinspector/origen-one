@@ -8,21 +8,27 @@ import { GitHub, BookOpen, Eye, Shield, Users, Award, ExternalLink } from 'react
 const WelcomePage: React.FC = () => {
   const { user, isLoading } = useAuth();
 
-  // Only redirect authenticated users who explicitly navigate to /welcome, 
-  // but not when this component is rendered at the root path (/)
+  // Get current location and check if we need to redirect
   const [location] = useLocation();
+  const currentPath = typeof window !== 'undefined' ? window.location.pathname : location;
   
   // Add debug output to help understand why we might be redirecting
   console.log("WelcomePage: Checking auth status", { 
-    path: location, 
+    wouterPath: location,
+    windowPath: typeof window !== 'undefined' ? window.location.pathname : 'not available', 
     isAuthenticated: !!user, 
     isLoading: isLoading, 
     userRole: user?.role
   });
   
   // Only redirect if explicitly on /welcome path AND authenticated (not on root path)
-  if (user && !isLoading && location === '/welcome') {
+  if (user && !isLoading && (location === '/welcome' || currentPath === '/welcome')) {
     console.log("WelcomePage: Redirecting authenticated user to dashboard");
+    
+    // Use both redirection methods for consistency
+    if (typeof window !== 'undefined') {
+      window.location.href = '/dashboard';
+    }
     return <Redirect to="/dashboard" />;
   }
 
@@ -42,11 +48,18 @@ const WelcomePage: React.FC = () => {
                 <Text style={styles.heroSubtitle}>Personalized learning powered by artificial intelligence</Text>
                 <Text style={styles.heroOpenSource}>100% Open Source Educational Platform</Text>
                 <View style={styles.heroCta}>
-                  <Link href="/auth">
-                    <View style={[styles.ctaButton, {marginRight: 16}]}>
-                      <Text style={styles.ctaButtonText}>GET STARTED</Text>
-                    </View>
-                  </Link>
+                  <TouchableOpacity 
+                    style={[styles.ctaButton, {marginRight: 16}]} 
+                    onPress={() => {
+                      console.log("GET STARTED button clicked, navigating to /auth");
+                      // Use both methods for navigation to ensure it works in all environments
+                      if (typeof window !== 'undefined') {
+                        window.location.href = '/auth';
+                      }
+                    }}
+                  >
+                    <Text style={styles.ctaButtonText}>GET STARTED</Text>
+                  </TouchableOpacity>
                   <TouchableOpacity style={styles.githubButton} onPress={openGitHub}>
                     <GitHub size={20} color={colors.onPrimary} />
                     <Text style={styles.githubButtonText}>VIEW ON GITHUB</Text>
@@ -188,11 +201,18 @@ const WelcomePage: React.FC = () => {
         <View style={styles.ctaSection}>
           <Text style={styles.ctaTitle}>Ready to Transform Learning?</Text>
           <Text style={styles.ctaSubtitle}>Join thousands of families using Origen AI Tutor</Text>
-          <Link href="/auth">
-            <View style={[styles.ctaButton, styles.ctaButtonLarge]}>
-              <Text style={styles.ctaButtonText}>Start Your Journey</Text>
-            </View>
-          </Link>
+          <TouchableOpacity 
+            style={[styles.ctaButton, styles.ctaButtonLarge]}
+            onPress={() => {
+              console.log("Start Your Journey button clicked, navigating to /auth");
+              // Use both methods for navigation to ensure it works in all environments
+              if (typeof window !== 'undefined') {
+                window.location.href = '/auth';
+              }
+            }}
+          >
+            <Text style={styles.ctaButtonText}>Start Your Journey</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Footer */}
