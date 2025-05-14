@@ -381,14 +381,10 @@ const styles = StyleSheet.create({
     marginLeft: 4,
     fontWeight: 'bold',
   },
-  headerTitle: {
-    ...typography.h2,
-    color: colors.onPrimary,
-    marginBottom: 8,
-  },
   welcomeText: {
-    ...typography.subtitle1,
-    color: colors.onPrimary,
+    ...typography.h3,
+    color: colors.textPrimary,
+    marginBottom: 16,
   },
   tabs: {
     flexDirection: 'row',
@@ -631,60 +627,7 @@ const styles = StyleSheet.create({
     color: colors.onPrimary,
     marginLeft: 8,
   },
-  footer: {
-    backgroundColor: colors.textPrimary,
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-    boxShadow: '0 -4px 10px rgba(0, 0, 0, 0.1)',
-  },
-  footerContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    maxWidth: 800,
-    marginHorizontal: 'auto',
-    width: '100%',
-  },
-  footerLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  footerTitle: {
-    ...typography.subtitle2,
-    color: colors.onPrimary,
-    fontWeight: 'bold',
-  },
-  footerCopyright: {
-    ...typography.caption,
-    color: colors.onPrimary,
-    opacity: 0.8,
-    marginTop: 4,
-  },
-  footerLogoContainer: {
-    marginLeft: 20,
-  },
-  footerLogo: {
-    width: 120, 
-    height: 36,
-  },
-  logoutButton: {
-    backgroundColor: colors.error,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 8, // Consistent radius with other elements
-    alignItems: 'center',
-    elevation: 2, // Add subtle shadow
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
-  },
-  logoutButtonText: {
-    ...typography.button,
-    color: colors.onPrimary,
-    fontWeight: '600',
-  },
+  // Removed footer styles as they are now provided by the persistent app footer
   
   // Onboarding Guide Styles
   onboardingSection: {
