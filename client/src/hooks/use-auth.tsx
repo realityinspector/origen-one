@@ -49,56 +49,110 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [initializationComplete, setInitializationComplete] = useState(false);
   const [initError, setInitError] = useState<Error | null>(null);
   
-  // Initialize auth from storage and validate the token
+  // CRITICAL FIX: Initialize auth with stricter validation and safer defaults
   useEffect(() => {
+    // Set initial state as NOT authenticated while we check
+    queryClient.setQueryData(["/api/user"], null);
+    
     const init = async () => {
       try {
-        // Check if we have a token in storage
-        const hasToken = await initializeAuthFromStorage();
-        console.log('Auth initialization check:', { hasToken });
+        console.log('Starting FRESH auth initialization with stricter validation');
         
-        if (hasToken) {
-          // Test if the token is valid by making a request to check the current user
-          try {
-            // Make a request to validate token and check user status
-            const response = await axiosInstance.get('/api/user');
-            console.log('Auth validation successful:', { 
-              status: response.status,
-              hasUser: !!response.data
-            });
-          } catch (validationError) {
-            // If this fails, the token is invalid so we should clear it
-            console.error('Token validation failed, clearing auth state:', validationError);
-            await setAuthToken(null); // Clear the invalid token
-            queryClient.setQueryData(["/api/user"], null); // Clear any cached user data
-            
-            // Reset all auth data
-            await AsyncStorage.removeItem('AUTH_TOKEN');
-            await queryPersister.removeClient();
-          }
-        }
-        
-        // Complete initialization regardless of outcome
-        setInitializationComplete(true);
-      } catch (error) {
-        console.error('Failed to initialize auth from storage:', error);
-        setInitError(error instanceof Error ? error : new Error('Unknown error during auth initialization'));
-        
-        // Clear any potentially corrupted state
+        // First, clear any potentially corrupted state to start fresh
         try {
           await setAuthToken(null);
           await AsyncStorage.removeItem('AUTH_TOKEN');
           await queryPersister.removeClient();
+          
+          // Remove any other cached data that might cause persistence issues
+          await AsyncStorage.removeItem('LEARNER_APP_CACHE');
+          
+          console.log('Cleared all potential auth data for fresh start');
         } catch (clearError) {
-          console.error('Failed to clear corrupted auth state:', clearError);
+          console.error('Initial state cleanup error (continuing):', clearError);
         }
         
-        setInitializationComplete(true); // Still mark as complete even on error
+        // Now explicitly check if we have a token in storage and validate it
+        const token = await AsyncStorage.getItem('AUTH_TOKEN');
+        const hasValidToken = !!token && token.length > 20;
+        
+        console.log('Strict token check:', { 
+          hasToken: !!token, 
+          tokenLength: token ? token.length : 0,
+          seemsValid: hasValidToken
+        });
+        
+        // Only proceed with validation if we have what appears to be a valid token
+        if (hasValidToken) {
+          try {
+            console.log('Setting auth token for validation attempt');
+            await setAuthToken(token); // Set the token in headers
+            
+            // Make a synchronous validation request that blocks initialization
+            console.log('Making validation request to /api/user');
+            const response = await axiosInstance.get('/api/user', { 
+              timeout: 5000,  // Short timeout 
+              validateStatus: (status) => status === 200 // Only 200 is valid
+            });
+            
+            // Verify that the response contains a proper user object
+            const userData = response.data;
+            if (userData && userData.id && userData.role) {
+              console.log('Valid user authentication confirmed:', { 
+                userId: userData.id,
+                role: userData.role,
+                name: userData.name
+              });
+              
+              // User is confirmed valid, update cache
+              queryClient.setQueryData(["/api/user"], userData);
+            } else {
+              console.error('User validation failed: Invalid user data in response', userData);
+              // Clear everything since data is invalid
+              await setAuthToken(null);
+              await AsyncStorage.removeItem('AUTH_TOKEN');
+              await queryPersister.removeClient();
+              queryClient.setQueryData(["/api/user"], null);
+            }
+          } catch (validationError) {
+            console.error('Token validation request failed, clearing all auth state:', validationError);
+            // Clear everything
+            await setAuthToken(null);
+            await AsyncStorage.removeItem('AUTH_TOKEN');
+            await queryPersister.removeClient();
+            queryClient.setQueryData(["/api/user"], null);
+          }
+        } else {
+          console.log('No valid token found, user is not authenticated');
+          queryClient.setQueryData(["/api/user"], null);
+        }
+        
+        // Initialization complete
+        setInitializationComplete(true);
+      } catch (error) {
+        console.error('Major error during auth initialization:', error);
+        setInitError(error instanceof Error ? error : new Error('Unknown error during auth initialization'));
+        
+        // Clear all state on major error
+        try {
+          await setAuthToken(null);
+          await AsyncStorage.removeItem('AUTH_TOKEN');
+          await queryPersister.removeClient();
+          await AsyncStorage.removeItem('LEARNER_APP_CACHE');
+          queryClient.setQueryData(["/api/user"], null);
+        } catch (clearError) {
+          console.error('Failed to clear auth state after error:', clearError);
+        }
+        
+        setInitializationComplete(true);
       }
     };
+    
+    // Run initialization
     init();
   }, []);
   
+  // Set up the user query with strict type checking and specific behaviors
   const {
     data: user,
     error,
@@ -106,6 +160,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useQuery<SelectUser | null, Error>({
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
+    // Critical settings to prevent false authentication
+    initialData: null, // Always start with null (not authenticated)
+    staleTime: 0, // Always validate freshness
+    // Only consider query successful when the data is complete
+    structuralSharing: (oldData, newData) => {
+      // If new data doesn't look like a valid user, return null
+      if (!newData || typeof newData !== 'object' || !('id' in newData) || !('role' in newData)) {
+        console.log('Auth query: Received invalid user data, treating as unauthenticated');
+        return null;
+      }
+      return newData as SelectUser;
+    }
   });
 
   interface LoginResponse {
