@@ -59,11 +59,23 @@ const HEADERS = (key: string) => ({
  * based on educational standards and cognitive development
  */
 function getGradeSpecificGuidance(gradeLevel: number): string {
-  // Ensure grade level is within 1-12 range
-  const grade = Math.max(1, Math.min(12, gradeLevel));
+  // Ensure grade level is within 0-12 range (0 = Kindergarten)
+  const grade = Math.max(0, Math.min(12, gradeLevel));
   
   // Grade bands with appropriate guidance
-  if (grade <= 2) {
+  if (grade === 0) {
+    return `
+      For Kindergarten (ages 4-6):
+      - Use extremely simple language and very short sentences
+      - Focus on basic concrete concepts only
+      - Include many visual learning cues ([picture of X])
+      - Limit text blocks to 1-2 sentences
+      - Use familiar everyday vocabulary with explanations
+      - Include interactive elements like counting, colors, shapes
+      - Use frequent praise and encouragement
+    `;
+  }
+  else if (grade <= 2) {
     return `
       For grades K-2 (ages 5-8):
       - Use very simple language and short sentences
@@ -153,8 +165,8 @@ export async function generateLessonContent(gradeLevel: number, topic: string): 
   }
 
   try {
-    // Ensure grade level is within valid range
-    const safeGradeLevel = Math.max(1, Math.min(12, gradeLevel));
+    // Ensure grade level is within valid range (0 = Kindergarten, 1-12 = grades 1-12)
+    const safeGradeLevel = Math.max(0, Math.min(12, gradeLevel));
     const gradeSpecificGuidance = getGradeSpecificGuidance(safeGradeLevel);
     
     const systemPrompt = `You are an educational assistant creating a lesson for grade ${safeGradeLevel} students on the topic of "${topic}".
@@ -200,8 +212,8 @@ export async function generateQuizQuestions(gradeLevel: number, topic: string, q
   }
 
   try {
-    // Ensure grade level is within valid range
-    const safeGradeLevel = Math.max(1, Math.min(12, gradeLevel));
+    // Ensure grade level is within valid range (0 = Kindergarten, 1-12 = grades 1-12)
+    const safeGradeLevel = Math.max(0, Math.min(12, gradeLevel));
     const gradeSpecificGuidance = getGradeSpecificGuidance(safeGradeLevel);
     
     const systemPrompt = `You are an educational quiz creator making questions for grade ${safeGradeLevel} students on "${topic}".

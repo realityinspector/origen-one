@@ -94,15 +94,21 @@ const ParentDashboard = ({ navigation }: any) => {
       return;
     }
     
-    // Validate grade level (1-12)
-    const gradeLevelNum = parseInt(gradeLevel);
-    if (isNaN(gradeLevelNum) || gradeLevelNum < 1 || gradeLevelNum > 12) {
-      toast({
-        title: 'Error',
-        description: 'Grade level must be between 1 and 12',
-        variant: 'destructive',
-      });
-      return;
+    // Handle Kindergarten (K) and validate grade level (1-12)
+    let gradeLevelNum: number;
+    
+    if (gradeLevel === 'K') {
+      gradeLevelNum = 0; // Kindergarten is grade 0
+    } else {
+      gradeLevelNum = parseInt(gradeLevel);
+      if (isNaN(gradeLevelNum) || gradeLevelNum < 1 || gradeLevelNum > 12) {
+        toast({
+          title: 'Error',
+          description: 'Grade level must be between K and 12',
+          variant: 'destructive',
+        });
+        return;
+      }
     }
     
     createChildMutation.mutate({
@@ -391,6 +397,32 @@ const ParentDashboard = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
+  gradeLevelPickerContainer: {
+    marginTop: 8,
+  },
+  gradeLevelPicker: {
+    paddingVertical: 8,
+  },
+  gradeLevelButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginRight: 8,
+    backgroundColor: colors.inputBackground,
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  gradeLevelButtonActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  gradeLevelButtonText: {
+    ...typography.button,
+    color: colors.textPrimary,
+  },
+  gradeLevelButtonTextActive: {
+    color: colors.onPrimary,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
