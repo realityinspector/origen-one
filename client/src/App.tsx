@@ -103,7 +103,7 @@ export default function App() {
             <LearnerRoute path="/progress" component={ProgressPage} />
             
             {/* Root path - explicit redirect based on auth status */}
-            <Route exact path="/">
+            <Route path="/">
               <WelcomePage />
             </Route>
             
