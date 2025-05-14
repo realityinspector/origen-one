@@ -1,0 +1,116 @@
+uth initialized from storage
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+api/user:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this errorAI
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+use-auth.tsx:78 Sending login request to server: Object
+use-auth.tsx:86 Using base URL for login: https://f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev:5000
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+index.js:24 props.pointerEvents is deprecated. Use style.pointerEvents
+Dd @ index.js:24Understand this warningAI
+use-auth.tsx:95 Login response received: Object
+use-auth.tsx:119 Processing login success: Object
+use-auth.tsx:135 Auth token set successfully: Object
+use-auth.tsx:145 User data received: Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+auth-page.tsx:42 User authenticated, redirecting to dashboard
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+queryClient.ts:116 [REQ:mao8o943s3li1] Starting GET request to /api/learners?parentId=46
+queryClient.ts:171 [REQ:mao8o943s3li1] Response received (200): Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+queryClient.ts:116 [REQ:mao8odeq08oyg] Starting GET request to /api/learners
+api/learners:1 
+            
+            
+           Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this errorAI
+queryClient.ts:159 [REQ:mao8odeq08oyg] Server returned 400 error: Object
+rn @ queryClient.ts:159Understand this errorAI
+queryClient.ts:198 [REQ:mao8odeq08oyg] Request failed: Object
+rn @ queryClient.ts:198Understand this errorAI
+queryClient.ts:242 [REQ:mao8odeq08oyg] Request configuration error: Object
+rn @ queryClient.ts:242Understand this errorAI
+queryClient.ts:116 [REQ:mao8oe9thtk5q] Starting GET request to /api/learners
+api/learners:1 
+            
+            
+           Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this errorAI
+queryClient.ts:159 [REQ:mao8oe9thtk5q] Server returned 400 error: Object
+rn @ queryClient.ts:159Understand this errorAI
+queryClient.ts:198 [REQ:mao8oe9thtk5q] Request failed: Object
+rn @ queryClient.ts:198Understand this errorAI
+queryClient.ts:242 [REQ:mao8oe9thtk5q] Request configuration error: Object
+rn @ queryClient.ts:242Understand this errorAI
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+ModeToggle.tsx:27 ModeToggle rendering Object
+queryClient.ts:116 [REQ:mao8ohixwvih3] Starting GET request to /api/learners
+api/learners:1 
+            
+            
+           Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this errorAI
+queryClient.ts:159 [REQ:mao8ohixwvih3] Server returned 400 error: Object
+rn @ queryClient.ts:159Understand this errorAI
+queryClient.ts:198 [REQ:mao8ohixwvih3] Request failed: Object
+rn @ queryClient.ts:198Understand this errorAI
+queryClient.ts:242 [REQ:mao8ohixwvih3] Request configuration error: Object
+rn @ queryClient.ts:242Understand this errorAI
+queryClient.ts:116 [REQ:mao8oigg2xmxi] Starting GET request to /api/learners
+api/learners:1 
+            
+            
+           Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this errorAI
+queryClient.ts:159 [REQ:mao8oigg2xmxi] Server returned 400 error: Object
+rn @ queryClient.ts:159Understand this errorAI
+queryClient.ts:198 [REQ:mao8oigg2xmxi] Request failed: Object
+rn @ queryClient.ts:198Understand this errorAI
+queryClient.ts:242 [REQ:mao8oigg2xmxi] Request configuration error: Object
+rn @ queryClient.ts:242Understand this errorAI
+queryClient.ts:116 [REQ:mao8ooonsuzsy] Starting GET request to /api/learners
+api/learners:1 
+            
+            
+           Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this errorAI
+queryClient.ts:159 [REQ:mao8ooonsuzsy] Server returned 400 error: Object
+rn @ queryClient.ts:159Understand this errorAI
+queryClient.ts:198 [REQ:mao8ooonsuzsy] Request failed: Object
+rn @ queryClient.ts:198Understand this errorAI
+queryClient.ts:242 [REQ:mao8ooonsuzsy] Request configuration error: Object
+rn @ queryClient.ts:242Understand this errorAI
+queryClient.ts:116 [REQ:mao8opnujreyd] Starting GET request to /api/learners
+api/learners:1 
+            
+            
+           Failed to load resource: the server responded with a status of 400 (Bad Request)Understand this errorAI
+queryClient.ts:159 [REQ:mao8opnujreyd] Server returned 400 error: Object
+rn @ queryClient.ts:159Understand this errorAI
+queryClient.ts:198 [REQ:mao8opnujreyd] Request failed: Object
+rn @ queryClient.ts:198Understand this errorAI
+queryClient.ts:242 [REQ:mao8opnujreyd] Request configuration error: Object
+rn @ queryClient.ts:242Understand this errorAI
