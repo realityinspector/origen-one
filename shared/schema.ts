@@ -4,6 +4,7 @@ import { integer, pgEnum, pgTable, serial, text, timestamp, uuid, json, boolean 
 // Enums
 export const userRoleEnum = pgEnum("user_role", ["ADMIN", "PARENT", "LEARNER"]);
 export const lessonStatusEnum = pgEnum("lesson_status", ["QUEUED", "ACTIVE", "DONE"]);
+export const syncStatusEnum = pgEnum("sync_status", ["IDLE", "IN_PROGRESS", "FAILED", "COMPLETED"]);
 
 // Users table
 export const users = pgTable("users", {
@@ -107,6 +108,26 @@ export const achievementsRelations = relations(achievements, ({ one }) => ({
   }),
 }));
 
+// Database Sync Configurations table
+export const dbSyncConfigs = pgTable("db_sync_configs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  parentId: integer("parent_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  targetDbUrl: text("target_db_url").notNull(),
+  lastSyncAt: timestamp("last_sync_at"),
+  syncStatus: syncStatusEnum("sync_status").notNull().default("IDLE"),
+  continuousSync: boolean("continuous_sync").notNull().default(false),
+  errorMessage: text("error_message"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const dbSyncConfigsRelations = relations(dbSyncConfigs, ({ one }) => ({
+  parent: one(users, {
+    fields: [dbSyncConfigs.parentId],
+    references: [users.id],
+  }),
+}));
+
 // Types
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
@@ -119,3 +140,6 @@ export type InsertLesson = typeof lessons.$inferInsert;
 
 export type Achievement = typeof achievements.$inferSelect;
 export type InsertAchievement = typeof achievements.$inferInsert;
+
+export type DbSyncConfig = typeof dbSyncConfigs.$inferSelect;
+export type InsertDbSyncConfig = typeof dbSyncConfigs.$inferInsert;
