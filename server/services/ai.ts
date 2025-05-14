@@ -169,27 +169,31 @@ export async function generateLessonContent(gradeLevel: number, topic: string): 
     const safeGradeLevel = Math.max(0, Math.min(12, gradeLevel));
     const gradeSpecificGuidance = getGradeSpecificGuidance(safeGradeLevel);
     
-    const systemPrompt = `You are an educational assistant creating a lesson for grade ${safeGradeLevel} students on the topic of "${topic}".
+    const systemPrompt = `You are an educational assistant creating a lesson for ${safeGradeLevel === 0 ? 'Kindergarten' : `grade ${safeGradeLevel}`} students on the topic of "${topic}".
       Create a comprehensive, age-appropriate lesson with clear explanations, examples, and engaging content.
       Format the lesson with markdown headings, bullet points, and emphasis where appropriate.
       
       ${gradeSpecificGuidance}
       
-      For grade ${safeGradeLevel} students:
-      - Keep paragraphs ${safeGradeLevel <= 2 ? 'very short (2-3 sentences)' : 
+      For ${safeGradeLevel === 0 ? 'Kindergarten' : `grade ${safeGradeLevel}`} students:
+      - Keep paragraphs ${safeGradeLevel === 0 ? 'extremely short (1-2 sentences maximum)' :
+                         safeGradeLevel <= 2 ? 'very short (2-3 sentences)' : 
                          safeGradeLevel <= 5 ? 'brief (3-5 sentences)' : 
                          'appropriately sized for their reading level'}
-      - Use ${safeGradeLevel <= 3 ? 'simple vocabulary with definitions for new terms' : 
+      - Use ${safeGradeLevel === 0 ? 'very basic vocabulary with simple explanations' :
+             safeGradeLevel <= 3 ? 'simple vocabulary with definitions for new terms' : 
              safeGradeLevel <= 6 ? 'grade-appropriate vocabulary with context' : 
              'appropriate academic language with clear explanations'}
-      - Include ${safeGradeLevel <= 3 ? 'many concrete examples and visual descriptions' : 
+      - Include ${safeGradeLevel === 0 ? 'many visual cues, familiar objects, and interactive elements' :
+                safeGradeLevel <= 3 ? 'many concrete examples and visual descriptions' : 
                 safeGradeLevel <= 6 ? 'relatable examples and real-world applications' : 
                 'diverse examples and cross-curricular connections'}
-      - Structure with ${safeGradeLevel <= 2 ? 'clear sections and visual elements' : 
+      - Structure with ${safeGradeLevel === 0 ? 'very simple sections and frequent visual references' :
+                        safeGradeLevel <= 2 ? 'clear sections and visual elements' : 
                         safeGradeLevel <= 6 ? 'organized sections with headings' : 
                         'logical progression of ideas and supporting details'}`;
     
-    const userPrompt = `Please create a lesson about ${topic} suitable for grade ${gradeLevel} students.`;
+    const userPrompt = `Please create a lesson about ${topic} suitable for ${safeGradeLevel === 0 ? 'Kindergarten' : `grade ${safeGradeLevel}`} students.`;
     
     const messages: Message[] = [
       { role: 'system', content: systemPrompt },
@@ -216,25 +220,28 @@ export async function generateQuizQuestions(gradeLevel: number, topic: string, q
     const safeGradeLevel = Math.max(0, Math.min(12, gradeLevel));
     const gradeSpecificGuidance = getGradeSpecificGuidance(safeGradeLevel);
     
-    const systemPrompt = `You are an educational quiz creator making questions for grade ${safeGradeLevel} students on "${topic}".
-      Create ${questionCount} multiple-choice questions with 4 options each. Each question should have one correct answer.
-      Return the questions as a JSON array where each question has: text, options (array of strings), correctIndex (0-3), and explanation.
+    const systemPrompt = `You are an educational quiz creator making questions for ${safeGradeLevel === 0 ? 'Kindergarten' : `grade ${safeGradeLevel}`} students on "${topic}".
+      Create ${questionCount} multiple-choice questions with ${safeGradeLevel === 0 ? '3' : '4'} options each. Each question should have one correct answer.
+      Return the questions as a JSON array where each question has: text, options (array of strings), correctIndex (0-${safeGradeLevel === 0 ? '2' : '3'}), and explanation.
       
       ${gradeSpecificGuidance}
       
-      For grade ${safeGradeLevel} students:
-      - Create questions at the appropriate ${safeGradeLevel <= 2 ? 'early elementary' : 
+      For ${safeGradeLevel === 0 ? 'Kindergarten' : `grade ${safeGradeLevel}`} students:
+      - Create questions at the appropriate ${safeGradeLevel === 0 ? 'pre-K/Kindergarten' : 
+                                           safeGradeLevel <= 2 ? 'early elementary' : 
                                            safeGradeLevel <= 5 ? 'elementary' : 
                                            safeGradeLevel <= 8 ? 'middle school' : 'high school'} difficulty level
-      - Use ${safeGradeLevel <= 3 ? 'simple vocabulary and short sentences' : 
+      - Use ${safeGradeLevel === 0 ? 'extremely simple vocabulary and very short sentences' : 
+              safeGradeLevel <= 3 ? 'simple vocabulary and short sentences' : 
               safeGradeLevel <= 6 ? 'grade-appropriate vocabulary' : 
               'appropriate academic terminology'} 
-      - ${safeGradeLevel <= 2 ? 'Focus on recall and basic understanding' : 
+      - ${safeGradeLevel === 0 ? 'Focus only on recognition, matching, and extremely basic recall' :
+          safeGradeLevel <= 2 ? 'Focus on recall and basic understanding' : 
           safeGradeLevel <= 5 ? 'Include some application questions' : 
           safeGradeLevel <= 8 ? 'Incorporate analysis questions' : 
           'Include evaluation and analysis questions'}`;
     
-    const userPrompt = `Create ${questionCount} quiz questions about ${topic} suitable for grade ${gradeLevel} students.`;
+    const userPrompt = `Create ${questionCount} quiz questions about ${topic} suitable for ${safeGradeLevel === 0 ? 'Kindergarten' : `grade ${safeGradeLevel}`} students.`;
     
     const messages: Message[] = [
       { role: 'system', content: systemPrompt },
@@ -289,13 +296,13 @@ export async function generateFeedback(quizQuestions: any[], userAnswers: number
     
     const gradeSpecificGuidance = getGradeSpecificGuidance(gradeLevel);
     
-    const systemPrompt = `You are an educational assistant providing feedback on a grade ${gradeLevel} student's quiz performance.
+    const systemPrompt = `You are an educational assistant providing feedback on a ${gradeLevel === 0 ? 'Kindergarten' : `grade ${gradeLevel}`} student's quiz performance.
       The student scored ${score}% on a quiz. Analyze their answers and provide constructive, supportive feedback.
       Focus on areas of improvement while celebrating correct answers. Format using markdown with headings and bullet points.
       
       ${gradeSpecificGuidance}
       
-      Adapt your feedback to be encouraging, understandable, and appropriate for a grade ${gradeLevel} student.`;
+      Adapt your feedback to be encouraging, understandable, and appropriate for a ${gradeLevel === 0 ? 'Kindergarten' : `grade ${gradeLevel}`} student.`;
     
     // Construct a detailed prompt with the questions and answers
     let userPrompt = `Please provide personalized feedback on this quiz result:\n\n`;
@@ -328,8 +335,8 @@ export async function generateKnowledgeGraph(topic: string, gradeLevel: number):
   }
 
   try {
-    // Ensure grade level is within a valid range
-    const safeGradeLevel = Math.max(1, Math.min(12, gradeLevel));
+    // Ensure grade level is within a valid range (0 = Kindergarten, 1-12 = grades 1-12)
+    const safeGradeLevel = Math.max(0, Math.min(12, gradeLevel));
     const gradeSpecificGuidance = getGradeSpecificGuidance(safeGradeLevel);
     
     const systemPrompt = `You are an educational knowledge graph creator for grade ${safeGradeLevel} students.
@@ -340,12 +347,13 @@ export async function generateKnowledgeGraph(topic: string, gradeLevel: number):
       
       Ensure the concepts and their relationships are appropriate for the cognitive development and curriculum level of grade ${safeGradeLevel} students.
       
-      For grade ${safeGradeLevel}:
-      - Include ${safeGradeLevel <= 2 ? '3-5' : safeGradeLevel <= 5 ? '5-8' : '8-12'} main concepts
-      - Use ${safeGradeLevel <= 5 ? 'simple, concrete terminology' : 'appropriate academic terminology'}
-      - Make relationships ${safeGradeLevel <= 3 ? 'very clear and direct' : 'appropriately complex'}`;
+      For grade ${safeGradeLevel === 0 ? 'Kindergarten' : safeGradeLevel}:
+      - Include ${safeGradeLevel === 0 ? '2-3' : safeGradeLevel <= 2 ? '3-5' : safeGradeLevel <= 5 ? '5-8' : '8-12'} main concepts
+      - Use ${safeGradeLevel === 0 ? 'extremely simple, everyday language' : safeGradeLevel <= 5 ? 'simple, concrete terminology' : 'appropriate academic terminology'}
+      - Make relationships ${safeGradeLevel === 0 ? 'extremely basic and visual' : safeGradeLevel <= 3 ? 'very clear and direct' : 'appropriately complex'}
+      - ${safeGradeLevel === 0 ? 'Focus exclusively on familiar objects and ideas from a child\'s immediate experience' : ''}`;
     
-    const userPrompt = `Create a knowledge graph about ${topic} suitable for grade ${gradeLevel} students.`;
+    const userPrompt = `Create a knowledge graph about ${topic} suitable for ${safeGradeLevel === 0 ? 'Kindergarten' : `grade ${safeGradeLevel}`} students.`;
     
     const messages: Message[] = [
       { role: 'system', content: systemPrompt },
