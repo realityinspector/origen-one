@@ -164,6 +164,55 @@ export function registerRoutes(app: Express): Server {
     return res.status(403).json({ error: "Forbidden" });
   }));
   
+  // Update learner profile (supports updating grade level)
+  app.put("/api/learner-profile/:userId", hasRole(["PARENT", "ADMIN"]), asyncHandler(async (req: AuthRequest, res) => {
+    const userId = parseInt(req.params.userId);
+    const { gradeLevel } = req.body;
+    
+    // Validate grade level
+    if (gradeLevel === undefined) {
+      return res.status(400).json({ error: "Grade level is required" });
+    }
+    
+    // Convert 'K' to 0 for Kindergarten
+    let gradeLevelNum: number;
+    if (gradeLevel === 'K') {
+      gradeLevelNum = 0; // Kindergarten
+    } else {
+      gradeLevelNum = parseInt(gradeLevel);
+      if (isNaN(gradeLevelNum) || gradeLevelNum < 0 || gradeLevelNum > 12) {
+        return res.status(400).json({ error: "Grade level must be between K and 12" });
+      }
+    }
+    
+    // Check authorization for parents
+    if (req.user?.role === "PARENT") {
+      // Check if the learner belongs to this parent
+      const learners = await storage.getUsersByParentId(req.user.id);
+      const isParentOfLearner = learners.some(learner => learner.id === userId);
+      
+      if (!isParentOfLearner) {
+        return res.status(403).json({ error: "Not authorized to update this profile" });
+      }
+    }
+    
+    // Update the profile
+    try {
+      const updatedProfile = await storage.updateLearnerProfile(userId, { 
+        gradeLevel: gradeLevelNum 
+      });
+      
+      if (!updatedProfile) {
+        return res.status(404).json({ error: "Learner profile not found" });
+      }
+      
+      return res.json(updatedProfile);
+    } catch (error) {
+      console.error('Error updating learner profile:', error);
+      return res.status(500).json({ error: "Failed to update learner profile" });
+    }
+  }));
+  
   // Get active lesson for learner
   app.get("/api/lessons/active", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
     if (!req.user) {
