@@ -26,6 +26,7 @@
 - [User Roles and Permissions](#user-roles-and-permissions)
 - [API Endpoints](#api-endpoints)
 - [AI Integration](#ai-integration)
+- [Database Synchronization](#database-synchronization)
 - [Cross-Environment Compatibility and Error Handling](#cross-environment-compatibility-and-error-handling)
 - [Development](#development)
 - [Contributing](#contributing)
@@ -59,6 +60,7 @@ Designed for children and educational institutions, Origen helps bridge learning
 - **Parent Dashboard**: Monitor child's progress and achievements
 - **Admin Controls**: Manage users, content, and system settings
 - **Reporting Suite**: Generate comprehensive learning reports
+- **Database Synchronization**: Configure and manage external database connections for data replication
 
 ## Technology Stack
 
@@ -305,6 +307,64 @@ AI features can be enabled or disabled through environment variables:
 To use the AI features, you'll need to set the following environment variables:
 - `OPENROUTER_API_KEY` - For lesson generation
 - `PERPLEXITY_API_KEY` - For enhanced knowledge context
+
+## Database Synchronization
+
+The database synchronization feature allows parents to replicate their data (including their account, associated learners, lessons, and achievements) to external PostgreSQL databases. This enables data backup and multi-device access.
+
+### How It Works
+
+1. Parents can access the database synchronization interface from their dashboard
+2. They can add connection details for external PostgreSQL databases
+3. The system securely stores these connection details
+4. Parents can initiate a synchronization process that copies their data to the external database
+5. The synchronization status is tracked and displayed to the user
+
+### Technical Implementation
+
+- The feature uses a direct database-to-database synchronization approach
+- All data related to the parent user and their associated learners is synchronized
+- The system maintains referential integrity in the target database
+- Connection details are securely stored and the passwords are never exposed in logs
+
+### Setting Up External Databases
+
+To use this feature, you'll need:
+
+1. A PostgreSQL database accessible from the application
+2. Connection details in the format: `postgresql://username:password@hostname:port/database`
+3. Proper permissions to create tables and insert data
+
+### Testing Database Synchronization
+
+The application includes a test script to verify the synchronization functionality:
+
+1. Create a `test.env` file with the following variables:
+   ```
+   EXTERNAL_DB_URL=postgresql://testuser:testpass@test-postgres:5432/test_sync_db
+   JWT_SECRET=test-jwt-secret-for-auth-token-generation
+   SESSION_SECRET=test-session-secret-key
+   DATABASE_URL=${DATABASE_URL}
+   ```
+
+2. Run the test script:
+   ```bash
+   ./test-db-sync.sh
+   ```
+
+3. The script will:
+   - Create a test parent and learner account
+   - Set up a test database sync configuration
+   - Perform a synchronization
+   - Verify that the data was correctly synchronized to the external database
+
+### Troubleshooting
+
+If synchronization fails, check the following:
+- Ensure the external database is accessible from the application
+- Verify that the connection string is correctly formatted
+- Check that the database user has appropriate permissions
+- Review the error message in the sync configuration status
 
 ## Cross-Environment Compatibility and Error Handling
 
