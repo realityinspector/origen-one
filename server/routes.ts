@@ -51,6 +51,67 @@ export function registerRoutes(app: Express): Server {
     res.json(learners);
   }));
   
+  // Create a new learner account
+  app.post("/api/learners", hasRole(["PARENT", "ADMIN"]), asyncHandler(async (req: AuthRequest, res) => {
+    const { name, email, password, role = "LEARNER" } = req.body;
+    
+    if (!name || !email || !password) {
+      return res.status(400).json({ error: "Missing required fields: name, email, password" });
+    }
+    
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: "Invalid email format" });
+    }
+    
+    try {
+      // Check if email already exists
+      const existingUser = await storage.getUserByUsername(email);
+      if (existingUser) {
+        return res.status(409).json({ error: "Email already in use" });
+      }
+      
+      // Set parent ID based on the user's role
+      let parentId: number | null = null;
+      if (req.user?.role === "PARENT") {
+        parentId = req.user.id;
+      } else if (req.user?.role === "ADMIN" && req.body.parentId) {
+        parentId = Number(req.body.parentId);
+      } else if (role === "LEARNER") {
+        // Learners must have a parent
+        return res.status(400).json({ error: "Learner accounts must have a parent" });
+      }
+      
+      // Create the new user
+      const newUser = await storage.createUser({
+        email,
+        username: email, // Use email as username
+        password, // This will be hashed in the storage layer
+        name,
+        role,
+        parentId,
+      });
+      
+      // If it's a learner, create their profile automatically
+      if (newUser.role === "LEARNER") {
+        await storage.createLearnerProfile({
+          userId: newUser.id,
+          gradeLevel: req.body.gradeLevel || 5, // Default to grade 5 if not specified
+          graph: { nodes: [], edges: [] },
+        });
+      }
+      
+      // Return the created user without password
+      const { password: _, ...userResponse } = newUser;
+      res.status(201).json(userResponse);
+      
+    } catch (error) {
+      console.error('Error creating new learner:', error);
+      res.status(500).json({ error: "Failed to create learner account" });
+    }
+  }));
+  
   // Get learner profile (create if needed)
   app.get("/api/learner-profile/:userId", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
     const userId = parseInt(req.params.userId);
