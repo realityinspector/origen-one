@@ -74,11 +74,26 @@ export function registerRoutes(app: Express): Server {
       
       // Set parent ID based on the user's role
       let parentId: number | null = null;
+      
+      // For PARENT users, the parent is the user themselves
       if (req.user?.role === "PARENT") {
         parentId = req.user.id;
-      } else if (req.user?.role === "ADMIN" && req.body.parentId) {
-        parentId = Number(req.body.parentId);
-      } else if (role === "LEARNER") {
+      } 
+      // For ADMIN users, check if parentId was provided in the request
+      else if (req.user?.role === "ADMIN") {
+        // If parentId was provided in the request body, use that
+        if (req.body.parentId) {
+          parentId = Number(req.body.parentId);
+        } 
+        // If creating a LEARNER as an ADMIN but no parentId specified,
+        // use the admin as the parent (this is our fallback solution)
+        else if (role === "LEARNER") {
+          parentId = req.user.id;
+          console.log(`Admin creating learner without parentId specified. Using admin (${req.user.id}) as parent.`);
+        }
+      } 
+      // For any other scenario where a LEARNER is being created without a parent
+      else if (role === "LEARNER" && !parentId) {
         // Learners must have a parent
         return res.status(400).json({ error: "Learner accounts must have a parent" });
       }
