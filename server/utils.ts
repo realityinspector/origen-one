@@ -26,8 +26,8 @@ export async function generateLesson(gradeLevel: number, topic?: string): Promis
 
   if (USE_AI) {
     try {
-      // Default to grade 3 if outside of range
-      const safeGradeLevel = gradeLevel >= 1 && gradeLevel <= 8 ? gradeLevel : 3;
+      // Default to grade 3 if outside of range (0 = Kindergarten, 1-12 = grades 1-12)
+      const safeGradeLevel = gradeLevel >= 0 && gradeLevel <= 12 ? gradeLevel : 3;
       
       // Select a random topic if none provided
       const availableTopics = gradeTopics[safeGradeLevel];
@@ -43,7 +43,7 @@ export async function generateLesson(gradeLevel: number, topic?: string): Promis
       
       // Return the lesson spec
       return {
-        title: `${selectedTopic} for Grade ${safeGradeLevel}`,
+        title: `${selectedTopic} for ${safeGradeLevel === 0 ? 'Kindergarten' : `Grade ${safeGradeLevel}`}`,
         content: content,
         questions: questions,
         graph: graph
@@ -62,8 +62,8 @@ export async function generateLesson(gradeLevel: number, topic?: string): Promis
 
 // Fallback function that provides static content if AI fails
 function generateStaticLesson(gradeLevel: number, topic?: string): InsertLesson['spec'] {
-  // Default to grade 3 if outside of range
-  const safeGradeLevel = gradeLevel >= 1 && gradeLevel <= 8 ? gradeLevel : 3;
+  // Default to grade 3 if outside of range (0 = Kindergarten, 1-12 = grades 1-12)
+  const safeGradeLevel = gradeLevel >= 0 && gradeLevel <= 12 ? gradeLevel : 3;
   
   // Select a random topic if none provided
   const availableTopics = gradeTopics[safeGradeLevel];
@@ -71,7 +71,7 @@ function generateStaticLesson(gradeLevel: number, topic?: string): InsertLesson[
   
   // Generate basic lesson content
   const lessonContent = `
-    # ${selectedTopic} for Grade ${safeGradeLevel}
+    # ${selectedTopic} for ${safeGradeLevel === 0 ? 'Kindergarten' : `Grade ${safeGradeLevel}`}
     
     Today we're going to learn about ${selectedTopic.toLowerCase()}.
     
@@ -100,7 +100,7 @@ function generateStaticLesson(gradeLevel: number, topic?: string): InsertLesson[
   };
   
   return {
-    title: `${selectedTopic} for Grade ${safeGradeLevel}`,
+    title: `${selectedTopic} for ${safeGradeLevel === 0 ? 'Kindergarten' : `Grade ${safeGradeLevel}`}`,
     content: lessonContent,
     questions: questions,
     graph: graph
@@ -108,7 +108,20 @@ function generateStaticLesson(gradeLevel: number, topic?: string): InsertLesson[
 }
 
 function getStaticContentForTopic(topic: string, gradeLevel: number): string {
-  // Static content that doesn't rely on AI
+  // Special formatting for Kindergarten
+  if (gradeLevel === 0) {
+    const kindergartenContent: Record<string, string> = {
+      "Alphabet": "A is for Apple. B is for Ball. C is for Cat.\n\nLetters make sounds. We use letters to make words!",
+      "Counting": "Let's count together! 1, 2, 3, 4, 5.\n\nWe can count fingers. We can count toes. Counting is fun!",
+      "Colors": "Red like an apple. Blue like the sky. Yellow like the sun.\n\nColors are all around us!",
+      "Shapes": "Circle like a ball. Square like a box. Triangle has three sides.\n\nShapes are fun to find!",
+      "Animals": "Dogs say 'woof'. Cats say 'meow'. Cows say 'moo'.\n\nAnimals are our friends!"
+    };
+    
+    return kindergartenContent[topic] || `Let's learn about ${topic.toLowerCase()} together!`;
+  }
+  
+  // Static content that doesn't rely on AI (for grades 1-12)
   const contentMap: Record<string, string> = {
     "Numbers": "Numbers are the building blocks of mathematics. We use them to count, measure, and understand the world around us.",
     "Letters": "Letters are symbols that represent sounds in our language. When we put letters together, we create words.",
@@ -145,6 +158,103 @@ function generateStaticQuizQuestions(topic: string, gradeLevel: number) {
     explanation: string;
   }[] = [];
   
+  // Kindergarten-specific simpler questions with fewer options
+  if (gradeLevel === 0) {
+    switch (topic) {
+      case "Alphabet":
+        questions.push({
+          text: "Which letter makes the 'mmm' sound?",
+          options: ["A", "M", "Z"],
+          correctIndex: 1,
+          explanation: "M makes the 'mmm' sound like in 'mommy' and 'mouse'."
+        });
+        questions.push({
+          text: "Which picture starts with the letter B?",
+          options: ["Apple", "Ball", "Cat"],
+          correctIndex: 1,
+          explanation: "Ball starts with the letter B."
+        });
+        break;
+      
+      case "Counting":
+        questions.push({
+          text: "Count the stars: ★ ★ ★. How many stars?",
+          options: ["2", "3", "4"],
+          correctIndex: 1,
+          explanation: "There are 3 stars."
+        });
+        questions.push({
+          text: "What number comes after 2?",
+          options: ["1", "3", "5"],
+          correctIndex: 1,
+          explanation: "3 comes after 2."
+        });
+        break;
+      
+      case "Colors":
+        questions.push({
+          text: "What color is the sky on a sunny day?",
+          options: ["Red", "Blue", "Green"],
+          correctIndex: 1,
+          explanation: "The sky is blue on a sunny day."
+        });
+        questions.push({
+          text: "What color are bananas?",
+          options: ["Yellow", "Purple", "Orange"],
+          correctIndex: 0,
+          explanation: "Bananas are yellow."
+        });
+        break;
+        
+      case "Shapes":
+        questions.push({
+          text: "Which shape is round like a ball?",
+          options: ["Square", "Circle", "Triangle"],
+          correctIndex: 1,
+          explanation: "A circle is round like a ball."
+        });
+        questions.push({
+          text: "Which shape has 3 sides?",
+          options: ["Circle", "Square", "Triangle"],
+          correctIndex: 2,
+          explanation: "A triangle has 3 sides."
+        });
+        break;
+        
+      case "Animals":
+        questions.push({
+          text: "Which animal says 'meow'?",
+          options: ["Dog", "Cat", "Fish"],
+          correctIndex: 1,
+          explanation: "Cats say 'meow'."
+        });
+        questions.push({
+          text: "Which animal has a very long neck?",
+          options: ["Elephant", "Giraffe", "Monkey"],
+          correctIndex: 1,
+          explanation: "Giraffes have very long necks."
+        });
+        break;
+        
+      default:
+        questions.push({
+          text: `What do you like about ${topic}?`,
+          options: ["It's fun!", "It's interesting!", "It's colorful!"],
+          correctIndex: 0,
+          explanation: `${topic} is really fun to learn about!`
+        });
+        questions.push({
+          text: `Can you name something about ${topic}?`,
+          options: ["Yes!", "Maybe!", "I'll try!"],
+          correctIndex: 0,
+          explanation: `Great job thinking about ${topic}!`
+        });
+    }
+    
+    return questions;
+  }
+  
+  // Regular questions for grades 1-12
   // Generate a few sample questions based on topic
   switch (topic) {
     case "Numbers":
