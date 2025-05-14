@@ -22,7 +22,9 @@ const LearnersPage: React.FC = () => {
   const queryClient = useQueryClient();
   const [, navigate] = useLocation();
   const [modalVisible, setModalVisible] = useState(false);
-  const [newLearner, setNewLearner] = useState({ name: '', email: '', password: '' });
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [currentEditLearner, setCurrentEditLearner] = useState<any>(null);
+  const [newLearner, setNewLearner] = useState({ name: '', email: '', password: '', gradeLevel: '5' });
   const [error, setError] = useState('');
 
   // Fetch learners
@@ -45,6 +47,35 @@ const LearnersPage: React.FC = () => {
     },
     enabled: (user?.role === 'PARENT' || user?.role === 'ADMIN') && !!user?.id,
   });
+  
+  // Fetch learner profiles to get grade level info
+  const {
+    data: learnerProfiles,
+    isLoading: profilesLoading,
+  } = useQuery({
+    queryKey: ['/api/learner-profiles', learners],
+    queryFn: async () => {
+      if (!learners || learners.length === 0) return {};
+      
+      // Create an object mapping userId to profile
+      const profiles = {};
+      
+      // Fetch profiles for each learner
+      await Promise.all(
+        learners.map(async (learner) => {
+          try {
+            const response = await apiRequest('GET', `/api/learner-profile/${learner.id}`);
+            profiles[learner.id] = response.data;
+          } catch (err) {
+            console.error(`Failed to fetch profile for learner ${learner.id}`, err);
+          }
+        })
+      );
+      
+      return profiles;
+    },
+    enabled: !!learners && learners.length > 0,
+  });
 
   const handleAddLearner = async () => {
     try {
@@ -66,7 +97,7 @@ const LearnersPage: React.FC = () => {
       });
 
       // Reset form and close modal
-      setNewLearner({ name: '', email: '', password: '' });
+      setNewLearner({ name: '', email: '', password: '', gradeLevel: '5' });
       setModalVisible(false);
 
       // Refresh learners list
@@ -222,6 +253,47 @@ const LearnersPage: React.FC = () => {
                 placeholder="Create password"
                 secureTextEntry
               />
+              
+              <Text style={styles.inputLabel}>Grade Level</Text>
+              <View style={styles.gradeLevelContainer}>
+                <ScrollView 
+                  horizontal 
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={styles.gradeLevelPicker}
+                >
+                  {[
+                    { value: 'K', label: 'Kindergarten' },
+                    { value: '1', label: 'Grade 1' },
+                    { value: '2', label: 'Grade 2' },
+                    { value: '3', label: 'Grade 3' },
+                    { value: '4', label: 'Grade 4' },
+                    { value: '5', label: 'Grade 5' },
+                    { value: '6', label: 'Grade 6' },
+                    { value: '7', label: 'Grade 7' },
+                    { value: '8', label: 'Grade 8' },
+                    { value: '9', label: 'Grade 9' },
+                    { value: '10', label: 'Grade 10' },
+                    { value: '11', label: 'Grade 11' },
+                    { value: '12', label: 'Grade 12' },
+                  ].map((grade) => (
+                    <TouchableOpacity
+                      key={grade.value}
+                      style={[
+                        styles.gradeLevelButton,
+                        newLearner.gradeLevel === grade.value && styles.gradeLevelButtonActive,
+                      ]}
+                      onPress={() => setNewLearner({ ...newLearner, gradeLevel: grade.value })}
+                    >
+                      <Text style={[
+                        styles.gradeLevelButtonText,
+                        newLearner.gradeLevel === grade.value && styles.gradeLevelButtonTextActive,
+                      ]}>
+                        {grade.value === 'K' ? 'K' : grade.value}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
 
               {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
@@ -230,7 +302,7 @@ const LearnersPage: React.FC = () => {
                   style={styles.cancelButton}
                   onPress={() => {
                     setModalVisible(false);
-                    setNewLearner({ name: '', email: '', password: '' });
+                    setNewLearner({ name: '', email: '', password: '', gradeLevel: '5' });
                     setError('');
                   }}
                 >
@@ -252,6 +324,12 @@ const LearnersPage: React.FC = () => {
       </Modal>
     </View>
   );
+};
+
+// Helper function to format grade level for display
+const getGradeDisplayText = (gradeLevel: number) => {
+  if (gradeLevel === 0) return 'Kindergarten';
+  return `Grade ${gradeLevel}`;
 };
 
 const styles = StyleSheet.create({
@@ -460,6 +538,63 @@ const styles = StyleSheet.create({
   saveButtonText: {
     ...typography.button,
     color: colors.onPrimary,
+  },
+  gradeLevelContainer: {
+    marginBottom: 16,
+  },
+  gradeLevelPicker: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+  },
+  gradeLevelButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginRight: 8,
+    backgroundColor: colors.inputBackground,
+    borderWidth: 1,
+    borderColor: colors.divider,
+  },
+  gradeLevelButtonActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  gradeLevelButtonText: {
+    ...typography.button,
+    color: colors.textPrimary,
+  },
+  gradeLevelButtonTextActive: {
+    color: colors.onPrimary,
+  },
+  gradeBadge: {
+    marginTop: 4,
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+  },
+  gradeBadgeText: {
+    fontSize: 12,
+    color: colors.primary,
+    fontWeight: '500',
+  },
+  editButton: {
+    backgroundColor: colors.primaryLight,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  editLearnerName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+    marginBottom: 15,
+    textAlign: 'center',
   },
 });
 
