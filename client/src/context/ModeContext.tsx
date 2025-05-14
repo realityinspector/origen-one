@@ -50,16 +50,31 @@ export const ModeProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isLoading: isLoadingLearners,
   } = useQuery({
     queryKey: ["/api/learners", user?.id, user?.role],
-    queryFn: () => {
+    queryFn: async () => {
       if (!user) return Promise.resolve([]);
       
-      if (user.role === 'ADMIN') {
-        return apiRequest('GET', `/api/learners?parentId=${user.id}`).then(res => res.data);
-      } else if (user.role === 'PARENT') {
-        return apiRequest('GET', "/api/learners").then(res => res.data);
+      try {
+        let response;
+        
+        if (user.role === 'ADMIN') {
+          response = await apiRequest('GET', `/api/learners?parentId=${user.id}`);
+        } else if (user.role === 'PARENT') {
+          response = await apiRequest('GET', "/api/learners");
+        } else {
+          return [];
+        }
+        
+        // Check if we have valid data
+        if (!response || !response.data || !Array.isArray(response.data)) {
+          console.error('Invalid learners data received:', response);
+          return [];
+        }
+        
+        return response.data;
+      } catch (error) {
+        console.error('Error fetching learners:', error);
+        return [];
       }
-      
-      return Promise.resolve([]);
     },
     enabled: (user?.role === 'PARENT' || user?.role === 'ADMIN') && !!user?.id,
   });
@@ -75,15 +90,25 @@ export const ModeProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (foundLearner) {
           setSelectedLearner(foundLearner);
-        } else if (availableLearners.length > 0) {
+        } else if (availableLearners && availableLearners.length > 0) {
           // Default to first learner if stored one not found
-          setSelectedLearner(availableLearners[0]);
-          window.localStorage.setItem('selectedLearnerId', availableLearners[0].id.toString());
+          const firstLearner = availableLearners[0];
+          if (firstLearner && typeof firstLearner.id !== 'undefined') {
+            setSelectedLearner(firstLearner);
+            window.localStorage.setItem('selectedLearnerId', String(firstLearner.id));
+          } else {
+            console.error('Invalid learner object found:', firstLearner);
+          }
         }
-      } else if (availableLearners.length > 0) {
+      } else if (availableLearners && availableLearners.length > 0) {
         // Default to first learner if none stored
-        setSelectedLearner(availableLearners[0]);
-        window.localStorage.setItem('selectedLearnerId', availableLearners[0].id.toString());
+        const firstLearner = availableLearners[0];
+        if (firstLearner && typeof firstLearner.id !== 'undefined') {
+          setSelectedLearner(firstLearner);
+          window.localStorage.setItem('selectedLearnerId', String(firstLearner.id));
+        } else {
+          console.error('Invalid learner object found:', firstLearner);
+        }
       }
     }
   }, [availableLearners]);
@@ -168,9 +193,15 @@ export const ModeProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // For parents and admins switching to learner mode, ensure a learner is selected
     if (mode === 'GROWN_UP' && (user?.role === 'PARENT' || user?.role === 'ADMIN')) {
-      if (!selectedLearner && availableLearners?.length > 0) {
+      if (!selectedLearner && availableLearners && availableLearners.length > 0) {
         // Auto-select the first learner if none is selected
-        selectLearner(availableLearners[0]);
+        const firstLearner = availableLearners[0];
+        if (firstLearner && typeof firstLearner.id !== 'undefined') {
+          selectLearner(firstLearner);
+        } else {
+          console.error('Cannot auto-select learner: Invalid first learner object', firstLearner);
+          return;
+        }
       } else if (!selectedLearner) {
         console.log('Cannot switch to learner mode: no learners available');
         return;
