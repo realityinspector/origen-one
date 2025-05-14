@@ -14,6 +14,7 @@ import LearnerHome from './pages/learner-home';
 import ActiveLessonPage from './pages/active-lesson-page';
 import QuizPage from './pages/quiz-page';
 import ProgressPage from './pages/progress-page';
+import DatabaseSyncPage from './pages/database-sync-page';
 import { ProtectedRoute } from './lib/protected-route';
 import { AdminRoute } from './lib/admin-route';
 import { LearnerRoute } from './lib/learner-route';

@@ -4,6 +4,8 @@ import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { generateLesson, checkForAchievements } from "./utils";
 import { asyncHandler, authenticateJwt, hasRoleMiddleware, AuthRequest } from "./middleware/auth";
+import { synchronizeToExternalDatabase } from "./sync-utils";
+import { InsertDbSyncConfig } from "../shared/schema";
 import { USE_AI } from "./config/flags";
 
 // Use our imported middleware functions for authentication
@@ -532,6 +534,207 @@ export function registerRoutes(app: Express): Server {
       exportDate: new Date().toISOString(),
       exportedBy: req.user.id
     });
+  }));
+  
+  // Database Synchronization Endpoints
+  
+  // Get all sync configurations for a parent
+  app.get("/api/sync-configs", hasRole(["PARENT"]), asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    try {
+      const syncConfigs = await storage.getSyncConfigsByParentId(req.user.id);
+      res.json(syncConfigs);
+    } catch (error) {
+      console.error('Error getting sync configurations:', error);
+      res.status(500).json({ error: "Failed to retrieve synchronization configurations" });
+    }
+  }));
+  
+  // Get a specific sync configuration
+  app.get("/api/sync-configs/:id", hasRole(["PARENT"]), asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    try {
+      const syncConfig = await storage.getSyncConfigById(req.params.id);
+      
+      if (!syncConfig) {
+        return res.status(404).json({ error: "Sync configuration not found" });
+      }
+      
+      // Check if the sync config belongs to the requesting parent
+      if (syncConfig.parentId !== req.user.id) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+      
+      res.json(syncConfig);
+    } catch (error) {
+      console.error('Error getting sync configuration:', error);
+      res.status(500).json({ error: "Failed to retrieve synchronization configuration" });
+    }
+  }));
+  
+  // Create a new sync configuration
+  app.post("/api/sync-configs", hasRole(["PARENT"]), asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    const { targetDbUrl, continuousSync = false } = req.body;
+    
+    if (!targetDbUrl) {
+      return res.status(400).json({ error: "Missing required field: targetDbUrl" });
+    }
+    
+    // Validate PostgreSQL connection string format
+    const postgresRegex = /^postgresql:\/\/\w+:.*@[\w.-]+:\d+\/\w+(\?.*)?$/;
+    if (!postgresRegex.test(targetDbUrl)) {
+      return res.status(400).json({ 
+        error: "Invalid PostgreSQL connection string format",
+        message: "Connection string should be in format: postgresql://username:password@hostname:port/database"
+      });
+    }
+    
+    try {
+      const syncConfig = await storage.createSyncConfig({
+        parentId: req.user.id,
+        targetDbUrl,
+        continuousSync,
+        syncStatus: "IDLE"
+      });
+      
+      res.status(201).json(syncConfig);
+    } catch (error) {
+      console.error('Error creating sync configuration:', error);
+      res.status(500).json({ error: "Failed to create synchronization configuration" });
+    }
+  }));
+  
+  // Update a sync configuration
+  app.put("/api/sync-configs/:id", hasRole(["PARENT"]), asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    const { targetDbUrl, continuousSync } = req.body;
+    const updateData: Partial<InsertDbSyncConfig> = {};
+    
+    if (targetDbUrl !== undefined) {
+      // Validate PostgreSQL connection string format
+      const postgresRegex = /^postgresql:\/\/\w+:.*@[\w.-]+:\d+\/\w+(\?.*)?$/;
+      if (!postgresRegex.test(targetDbUrl)) {
+        return res.status(400).json({ 
+          error: "Invalid PostgreSQL connection string format",
+          message: "Connection string should be in format: postgresql://username:password@hostname:port/database"
+        });
+      }
+      updateData.targetDbUrl = targetDbUrl;
+    }
+    
+    if (continuousSync !== undefined) {
+      updateData.continuousSync = continuousSync;
+    }
+    
+    try {
+      // Check if the sync config exists and belongs to the requesting parent
+      const syncConfig = await storage.getSyncConfigById(req.params.id);
+      
+      if (!syncConfig) {
+        return res.status(404).json({ error: "Sync configuration not found" });
+      }
+      
+      if (syncConfig.parentId !== req.user.id) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+      
+      // Update the sync config
+      const updatedConfig = await storage.updateSyncConfig(req.params.id, updateData);
+      res.json(updatedConfig);
+    } catch (error) {
+      console.error('Error updating sync configuration:', error);
+      res.status(500).json({ error: "Failed to update synchronization configuration" });
+    }
+  }));
+  
+  // Delete a sync configuration
+  app.delete("/api/sync-configs/:id", hasRole(["PARENT"]), asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    try {
+      // Check if the sync config exists and belongs to the requesting parent
+      const syncConfig = await storage.getSyncConfigById(req.params.id);
+      
+      if (!syncConfig) {
+        return res.status(404).json({ error: "Sync configuration not found" });
+      }
+      
+      if (syncConfig.parentId !== req.user.id) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+      
+      // Delete the sync config
+      const deleted = await storage.deleteSyncConfig(req.params.id);
+      
+      if (deleted) {
+        res.status(204).end();
+      } else {
+        res.status(500).json({ error: "Failed to delete synchronization configuration" });
+      }
+    } catch (error) {
+      console.error('Error deleting sync configuration:', error);
+      res.status(500).json({ error: "Failed to delete synchronization configuration" });
+    }
+  }));
+  
+  // Initiate a one-time sync (push)
+  app.post("/api/sync-configs/:id/push", hasRole(["PARENT"]), asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    try {
+      // Check if the sync config exists and belongs to the requesting parent
+      const syncConfig = await storage.getSyncConfigById(req.params.id);
+      
+      if (!syncConfig) {
+        return res.status(404).json({ error: "Sync configuration not found" });
+      }
+      
+      if (syncConfig.parentId !== req.user.id) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+      
+      // Update status to IN_PROGRESS
+      await storage.updateSyncStatus(req.params.id, "IN_PROGRESS");
+      
+      // Start the synchronization process (handled by a separate function)
+      synchronizeToExternalDatabase(req.user.id, syncConfig)
+        .then(() => {
+          // Synchronization completed successfully
+          storage.updateSyncStatus(req.params.id, "COMPLETED");
+        })
+        .catch((error) => {
+          // Synchronization failed
+          console.error('Error during synchronization:', error);
+          storage.updateSyncStatus(req.params.id, "FAILED", error.message);
+        });
+      
+      // Return immediately to the client with a status indicating the sync has started
+      res.json({ 
+        message: "Synchronization started", 
+        syncId: req.params.id,
+        status: "IN_PROGRESS" 
+      });
+    } catch (error) {
+      console.error('Error initiating synchronization:', error);
+      res.status(500).json({ error: "Failed to initiate synchronization" });
+    }
   }));
   
   // Error handling middleware

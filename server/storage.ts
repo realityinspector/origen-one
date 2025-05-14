@@ -1,5 +1,11 @@
-import { users, lessons, learnerProfiles, achievements } from "../shared/schema";
-import type { User, InsertUser, Lesson, InsertLesson, LearnerProfile, InsertLearnerProfile, Achievement, InsertAchievement } from "../shared/schema";
+import { users, lessons, learnerProfiles, achievements, dbSyncConfigs } from "../shared/schema";
+import type { 
+  User, InsertUser, 
+  Lesson, InsertLesson, 
+  LearnerProfile, InsertLearnerProfile, 
+  Achievement, InsertAchievement,
+  DbSyncConfig, InsertDbSyncConfig
+} from "../shared/schema";
 import { db, withRetry, checkDatabaseConnection } from "./db";
 import { eq, and, desc } from "drizzle-orm";
 import { pool } from "./db";
@@ -27,6 +33,14 @@ export interface IStorage {
   // Achievement operations
   createAchievement(achievement: InsertAchievement): Promise<Achievement>;
   getAchievements(learnerId: number): Promise<Achievement[]>;
+  
+  // Database sync operations
+  getSyncConfigsByParentId(parentId: number): Promise<DbSyncConfig[]>;
+  getSyncConfigById(id: string): Promise<DbSyncConfig | undefined>;
+  createSyncConfig(config: InsertDbSyncConfig): Promise<DbSyncConfig>;
+  updateSyncConfig(id: string, data: Partial<InsertDbSyncConfig>): Promise<DbSyncConfig | undefined>;
+  deleteSyncConfig(id: string): Promise<boolean>;
+  updateSyncStatus(id: string, status: "IDLE" | "IN_PROGRESS" | "FAILED" | "COMPLETED", errorMessage?: string): Promise<DbSyncConfig | undefined>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -162,6 +176,82 @@ export class DatabaseStorage implements IStorage {
       .where(eq(achievements.learnerId, learnerId))
       .orderBy(desc(achievements.awardedAt));
     return Array.isArray(result) ? result.map(achievement => achievement as Achievement) : [result as Achievement];
+  }
+
+  // Database sync operations
+  async getSyncConfigsByParentId(parentId: number): Promise<DbSyncConfig[]> {
+    const result = await db
+      .select()
+      .from(dbSyncConfigs)
+      .where(eq(dbSyncConfigs.parentId, parentId));
+    return Array.isArray(result) ? result.map(config => config as DbSyncConfig) : [result as DbSyncConfig];
+  }
+
+  async getSyncConfigById(id: string): Promise<DbSyncConfig | undefined> {
+    const result = await db
+      .select()
+      .from(dbSyncConfigs)
+      .where(eq(dbSyncConfigs.id, id));
+    const configs = Array.isArray(result) ? result : [result];
+    return configs.length > 0 ? configs[0] as DbSyncConfig : undefined;
+  }
+
+  async createSyncConfig(config: InsertDbSyncConfig): Promise<DbSyncConfig> {
+    const result = await db
+      .insert(dbSyncConfigs)
+      .values(config)
+      .returning();
+    const configs = Array.isArray(result) ? result : [result];
+    return configs[0] as DbSyncConfig;
+  }
+
+  async updateSyncConfig(id: string, data: Partial<InsertDbSyncConfig>): Promise<DbSyncConfig | undefined> {
+    const result = await db
+      .update(dbSyncConfigs)
+      .set({ 
+        ...data, 
+        updatedAt: new Date() 
+      })
+      .where(eq(dbSyncConfigs.id, id))
+      .returning();
+
+    const configs = Array.isArray(result) ? result : [result];
+    return configs.length > 0 ? configs[0] as DbSyncConfig : undefined;
+  }
+
+  async deleteSyncConfig(id: string): Promise<boolean> {
+    const result = await db
+      .delete(dbSyncConfigs)
+      .where(eq(dbSyncConfigs.id, id))
+      .returning();
+    const configs = Array.isArray(result) ? result : [result];
+    return configs.length > 0;
+  }
+
+  async updateSyncStatus(id: string, status: "IDLE" | "IN_PROGRESS" | "FAILED" | "COMPLETED", errorMessage?: string): Promise<DbSyncConfig | undefined> {
+    let updateData: Partial<InsertDbSyncConfig> = { 
+      syncStatus: status,
+      updatedAt: new Date()
+    };
+
+    // Set lastSyncAt when job completes
+    if (status === 'COMPLETED') {
+      updateData.lastSyncAt = new Date();
+    }
+
+    // Set errorMessage when job fails
+    if (status === 'FAILED' && errorMessage) {
+      updateData.errorMessage = errorMessage;
+    }
+
+    const result = await db
+      .update(dbSyncConfigs)
+      .set(updateData)
+      .where(eq(dbSyncConfigs.id, id))
+      .returning();
+
+    const configs = Array.isArray(result) ? result : [result];
+    return configs.length > 0 ? configs[0] as DbSyncConfig : undefined;
   }
 }
 
