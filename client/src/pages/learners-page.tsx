@@ -54,11 +54,15 @@ const LearnersPage: React.FC = () => {
         return;
       }
 
+      // For admin users, we need to set a parent ID
+      // For this implementation, let's set the admin as the parent for learners they create
+      // A more complete implementation would allow admins to select the parent from a list
       await apiRequest('POST', '/api/learners', {
         name: newLearner.name,
         email: newLearner.email,
         password: newLearner.password,
         role: 'LEARNER',
+        parentId: user?.id, // Use the current user's ID as the parent ID
       });
 
       // Reset form and close modal
@@ -67,8 +71,19 @@ const LearnersPage: React.FC = () => {
 
       // Refresh learners list
       queryClient.invalidateQueries({ queryKey: ["/api/learners", user?.id, user?.role] });
-    } catch (err) {
-      setError('Failed to add learner. Please try again.');
+    } catch (err: any) {
+      // Try to extract a meaningful error message
+      let errorMessage = 'Failed to add learner. Please try again.';
+      
+      if (err.response?.data?.error) {
+        // Use the server's error message if available
+        errorMessage = err.response.data.error;
+      } else if (err.message) {
+        // Otherwise use the error message property
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
       console.error('Add learner error:', err);
     }
   };
