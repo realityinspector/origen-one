@@ -203,8 +203,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           credentials: 'include' // Important for cookies
         });
         
+        // Check if the response is valid before trying to parse it
+        const contentType = response.headers.get('content-type');
         if (!response.ok) {
           throw new Error(`Login failed with status: ${response.status} ${response.statusText}`);
+        }
+        
+        // Make sure we're getting JSON back - if we get HTML it means we're getting the login page back
+        if (!contentType || !contentType.includes('application/json')) {
+          console.error('Received non-JSON response:', contentType);
+          const text = await response.text();
+          console.error('Response text preview:', text.substring(0, 100));
+          throw new Error(`Unexpected token '<', "<!DOCTYPE "... is not valid JSON Check console for details`);
         }
         
         // Parse the JSON response
@@ -378,8 +388,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           credentials: 'include' // Important for cookies
         });
         
+        // Check if the response is valid before trying to parse it
+        const contentType = response.headers.get('content-type');
         if (!response.ok) {
           throw new Error(`Registration failed with status: ${response.status} ${response.statusText}`);
+        }
+        
+        // Make sure we're getting JSON back - if we get HTML it means we're getting the login page back
+        if (!contentType || !contentType.includes('application/json')) {
+          console.error('Received non-JSON response during registration:', contentType);
+          const text = await response.text();
+          console.error('Response text preview:', text.substring(0, 100));
+          throw new Error(`Unexpected response format. Expected JSON but got ${contentType || 'unknown format'}`);
         }
         
         // Parse the JSON response
