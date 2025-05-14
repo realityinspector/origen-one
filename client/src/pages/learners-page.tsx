@@ -31,9 +31,19 @@ const LearnersPage: React.FC = () => {
     isLoading,
     error: fetchError,
   } = useQuery({
-    queryKey: ["/api/learners"],
-    queryFn: () => apiRequest('GET', "/api/learners").then(res => res.data),
-    enabled: user?.role === 'PARENT' || user?.role === 'ADMIN',
+    queryKey: ["/api/learners", user?.id, user?.role],
+    queryFn: () => {
+      if (user?.role === 'ADMIN') {
+        // For admin users, we need to provide a parentId parameter
+        return apiRequest('GET', `/api/learners?parentId=${user.id}`).then(res => res.data);
+      } else if (user?.role === 'PARENT') {
+        // For parents, the API uses their authenticated ID automatically
+        return apiRequest('GET', "/api/learners").then(res => res.data);
+      }
+      // Return empty array for other roles
+      return Promise.resolve([]);
+    },
+    enabled: (user?.role === 'PARENT' || user?.role === 'ADMIN') && !!user?.id,
   });
 
   const handleAddLearner = async () => {
@@ -56,7 +66,7 @@ const LearnersPage: React.FC = () => {
       setModalVisible(false);
 
       // Refresh learners list
-      queryClient.invalidateQueries({ queryKey: ["/api/learners"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/learners", user?.id, user?.role] });
     } catch (err) {
       setError('Failed to add learner. Please try again.');
       console.error('Add learner error:', err);
@@ -121,7 +131,7 @@ const LearnersPage: React.FC = () => {
             </Text>
             <TouchableOpacity
               style={styles.retryButton}
-              onPress={() => queryClient.invalidateQueries({ queryKey: ["/api/learners"] })}
+              onPress={() => queryClient.invalidateQueries({ queryKey: ["/api/learners", user?.id, user?.role] })}
             >
               <Text style={styles.retryButtonText}>Retry</Text>
             </TouchableOpacity>
