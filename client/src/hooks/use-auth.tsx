@@ -189,29 +189,51 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           passwordLength: credentials.password ? credentials.password.length : 0
         });
         
-        // Use absolute URL to ensure correct endpoint
-        const baseUrl = window.location.origin;
-        console.log('Using base URL for login:', baseUrl);
+        // Use relative URL for reliability
+        console.log('Using relative URL for login - more reliable across environments');
         
-        const res = await axios.post(`${baseUrl}/api/login`, credentials, {
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        });
+        // First attempt with direct API call - no redirects, strict validation
+        const response = await apiRequest("POST", "/api/login", credentials);
         
+        // Validate response data
+        if (!response?.data) {
+          throw new Error('No response data received from login request');
+        }
+        
+        // Log detailed response info
         console.log('Login response received:', {
-          status: res.status,
-          hasData: !!res.data,
-          dataType: typeof res.data,
-          responseKeys: res.data ? Object.keys(res.data) : [],
-          hasToken: res.data?.token ? 'Yes' : 'No',
-          tokenLength: res.data?.token ? res.data.token.length : 0,
-          hasUser: res.data?.user ? 'Yes' : 'No',
-          hasUserData: res.data?.userData ? 'Yes' : 'No',
+          status: response.status,
+          hasData: !!response.data,
+          dataType: typeof response.data,
+          responseKeys: response.data ? Object.keys(response.data) : [],
+          hasToken: response.data?.token ? 'Yes' : 'No',
+          tokenLength: response.data?.token ? response.data.token.length : 0,
+          hasUser: response.data?.user ? 'Yes (object)' : (typeof response.data === 'object' ? 'Yes (raw)' : 'No'),
         });
         
-        return res.data as LoginResponse;
+        // We need to handle both the exact format expected (token + user) and also the case
+        // where just the user object itself is returned
+        let processedResponse: LoginResponse;
+        
+        if (response.data.token && (response.data.user || response.data.userData)) {
+          // Standard expected response format
+          processedResponse = response.data as LoginResponse;
+          console.log('Login response is in standard format with token + user');
+        } else if (typeof response.data === 'object' && 'id' in response.data && 'role' in response.data) {
+          // The server returned just the user object directly
+          console.log('Login response contains just the user object, creating standard format');
+          processedResponse = {
+            token: response.headers?.['authorization']?.replace('Bearer ', '') || '',
+            user: response.data,
+            userData: response.data
+          };
+        } else {
+          // Unexpected format
+          console.error('Unexpected login response format:', response.data);
+          throw new Error('Unexpected response format from login endpoint');
+        }
+        
+        return processedResponse;
       } catch (err: any) {
         // Create a more descriptive error object
         const errorInfo = {
