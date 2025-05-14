@@ -39,6 +39,35 @@ const ParentDashboard = ({ navigation }: any) => {
     queryFn: () => apiRequest('GET', '/api/learners').then(res => res.data),
   });
   
+  // Fetch learner profiles to get grade level info
+  const {
+    data: learnerProfiles,
+    isLoading: profilesLoading,
+  } = useQuery({
+    queryKey: ['/api/learner-profiles'],
+    queryFn: async () => {
+      if (!learners || learners.length === 0) return {};
+      
+      // Create an object mapping userId to profile
+      const profiles = {};
+      
+      // Fetch profiles for each learner
+      await Promise.all(
+        learners.map(async (learner) => {
+          try {
+            const response = await apiRequest('GET', `/api/learner-profile/${learner.id}`);
+            profiles[learner.id] = response.data;
+          } catch (err) {
+            console.error(`Failed to fetch profile for learner ${learner.id}`, err);
+          }
+        })
+      );
+      
+      return profiles;
+    },
+    enabled: !!learners && learners.length > 0,
+  });
+  
   // Create child account mutation
   const createChildMutation = useMutation({
     mutationFn: (childData: any) =>
