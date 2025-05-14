@@ -11,11 +11,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   Dimensions,
+  Switch,
 } from 'react-native';
 import { useAuth } from '../hooks/use-auth';
 import { useToast } from '../hooks/use-toast';
 import { colors, typography, commonStyles } from '../styles/theme';
-import { Book, User, Shield } from 'react-feather';
+import { Book, User, Shield, Check } from 'react-feather';
 
 const AuthPage = () => {
   const { user, loginMutation, registerMutation } = useAuth();
@@ -25,6 +26,7 @@ const AuthPage = () => {
   // Login form state
   const [loginUsername, setLoginUsername] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
+  const [loginDisclaimerAccepted, setLoginDisclaimerAccepted] = useState(false);
   
   // Registration form state
   const [regUsername, setRegUsername] = useState('');
@@ -33,6 +35,7 @@ const AuthPage = () => {
   const [regPassword, setRegPassword] = useState('');
   const [regConfirmPassword, setRegConfirmPassword] = useState('');
   const [regRole, setRegRole] = useState('PARENT'); // Default role
+  const [regDisclaimerAccepted, setRegDisclaimerAccepted] = useState(false);
   
   // Redirect if already logged in
   const [, setLocation] = useLocation();
@@ -61,6 +64,15 @@ const AuthPage = () => {
       return;
     }
     
+    if (!loginDisclaimerAccepted) {
+      toast({
+        title: 'Error',
+        description: 'You must confirm that you are at least 18 years old and accept the terms to proceed',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     loginMutation.mutate({
       username: loginUsername,
       password: loginPassword,
@@ -73,6 +85,15 @@ const AuthPage = () => {
       toast({
         title: 'Error',
         description: 'Please fill in all fields',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (!regDisclaimerAccepted) {
+      toast({
+        title: 'Error',
+        description: 'You must confirm that you are at least 18 years old and accept the terms to proceed',
         variant: 'destructive',
       });
       return;
@@ -160,6 +181,20 @@ const AuthPage = () => {
                   value={loginPassword}
                   onChangeText={setLoginPassword}
                 />
+              </View>
+              
+              <View style={styles.checkboxContainer}>
+                <TouchableOpacity
+                  style={styles.checkboxWrapper}
+                  onPress={() => setLoginDisclaimerAccepted(!loginDisclaimerAccepted)}
+                >
+                  <View style={[styles.checkbox, loginDisclaimerAccepted ? styles.checkboxChecked : {}]}>
+                    {loginDisclaimerAccepted && <Check size={16} color={colors.onPrimary} />}
+                  </View>
+                  <Text style={styles.checkboxText}>
+                    I confirm I am at least 18 years old and understand I'm using alpha stage open source software meant for demonstration purposes only, provided under the MIT License. No support, services, or guarantee of this software existing in the future is made by setting up a test account for free.
+                  </Text>
+                </TouchableOpacity>
               </View>
               
               <TouchableOpacity
@@ -263,6 +298,20 @@ const AuthPage = () => {
                 </View>
               </View>
               
+              <View style={styles.checkboxContainer}>
+                <TouchableOpacity
+                  style={styles.checkboxWrapper}
+                  onPress={() => setRegDisclaimerAccepted(!regDisclaimerAccepted)}
+                >
+                  <View style={[styles.checkbox, regDisclaimerAccepted ? styles.checkboxChecked : {}]}>
+                    {regDisclaimerAccepted && <Check size={16} color={colors.onPrimary} />}
+                  </View>
+                  <Text style={styles.checkboxText}>
+                    I confirm I am at least 18 years old and understand I'm using alpha stage open source software meant for demonstration purposes only, provided under the MIT License. No support, services, or guarantee of this software existing in the future is made by setting up a test account for free.
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              
               <TouchableOpacity
                 style={styles.button}
                 onPress={handleRegister}
@@ -326,6 +375,32 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
+  },
+  checkboxContainer: {
+    marginBottom: 16,
+  },
+  checkboxWrapper: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: colors.primary,
+    marginRight: 10,
+    marginTop: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxChecked: {
+    backgroundColor: colors.primary,
+  },
+  checkboxText: {
+    ...typography.body2,
+    flex: 1,
+    color: colors.textSecondary,
   },
   scrollContent: {
     flexGrow: 1,
