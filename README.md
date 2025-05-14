@@ -46,6 +46,7 @@ Designed for children and educational institutions, Origen helps bridge learning
 - **Adaptive Quizzes**: Questions that adjust in difficulty based on learner performance
 - **Achievement System**: Gamified learning with badges and recognition for milestones
 - **Progress Tracking**: Detailed analytics on learning progress and areas for improvement
+- **Database Synchronization**: Parents can synchronize their data to external PostgreSQL databases for backup and multi-device access
 
 ### User Experience
 
@@ -272,6 +273,14 @@ Below are the key API endpoints available in the application:
 
 ### Data Export
 - `GET /api/export` - Export user data (PARENT, ADMIN)
+
+### Database Synchronization
+- `GET /api/sync-configs` - List database sync configurations (PARENT)
+- `GET /api/sync-configs/:id` - Get specific sync configuration (PARENT)
+- `POST /api/sync-configs` - Create new sync configuration (PARENT)
+- `PUT /api/sync-configs/:id` - Update sync configuration (PARENT)
+- `DELETE /api/sync-configs/:id` - Delete sync configuration (PARENT)
+- `POST /api/sync-configs/:id/push` - Push data to external database (PARENT)
 
 ## AI Integration
 
