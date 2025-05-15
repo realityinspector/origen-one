@@ -7,13 +7,22 @@ import { Client } from 'pg';
 import { exit } from 'process';
 import { hashPassword } from '../server/middleware/auth';
 
-// Generate UUID v4 for database compatibility
+// Generate proper UUID v4 for database compatibility
 function generateId(size: number = 6): string {
   // For UUID, we need a proper UUID v4 format
   if (size >= 32) {
-    // Full UUID format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
-    const hex = randomBytes(16).toString('hex');
-    return `${hex.substring(0, 8)}-${hex.substring(8, 12)}-4${hex.substring(13, 16)}-${parseInt(hex.substring(16, 17), 16) & 0x3 | 0x8}${hex.substring(17, 20)}-${hex.substring(20, 32)}`;
+    // Generate a proper UUID v4
+    const bytes = randomBytes(16);
+    
+    // Set version to 4 (0100 binary = 4 decimal)
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    
+    // Set variant to RFC4122
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    
+    // Convert to hex representation with proper formatting
+    const hex = bytes.toString('hex');
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20, 32)}`;
   }
   // For shorter IDs, just use hex
   return randomBytes(size).toString('hex').slice(0, size);
