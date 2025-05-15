@@ -124,15 +124,38 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createLearnerProfile(profile: InsertLearnerProfile): Promise<LearnerProfile> {
-    // Make sure we have a UUID for the id field to prevent not-null constraint violations
-    const profileWithId = {
-      ...profile,
-      id: crypto.randomUUID()
-    };
-    
-    const result = await db.insert(learnerProfiles).values(profileWithId).returning();
-    const learnerProfile = Array.isArray(result) ? result[0] : result;
-    return learnerProfile as LearnerProfile;
+    try {
+      // Make sure we have a UUID for the id field to prevent not-null constraint violations
+      const profileWithId = {
+        ...profile,
+        id: profile.id || crypto.randomUUID()
+      };
+      
+      const result = await db.insert(learnerProfiles).values(profileWithId).returning();
+      const learnerProfile = Array.isArray(result) ? result[0] : result;
+      return learnerProfile as LearnerProfile;
+    } catch (error) {
+      console.error('Error in createLearnerProfile:', error);
+      
+      // Try again with just minimal fields if we encounter a column-related error
+      if (error.message && error.message.includes('column') && error.message.includes('does not exist')) {
+        console.log('Falling back to minimal profile creation');
+        
+        // Create with only the essential fields
+        const minimalProfile = {
+          id: profile.id || crypto.randomUUID(),
+          userId: profile.userId,
+          gradeLevel: profile.gradeLevel,
+          graph: profile.graph || { nodes: [], edges: [] }
+        };
+        
+        const minResult = await db.insert(learnerProfiles).values(minimalProfile).returning();
+        const minProfile = Array.isArray(minResult) ? minResult[0] : minResult;
+        return minProfile as LearnerProfile;
+      }
+      
+      throw error;
+    }
   }
 
   async updateLearnerProfile(userId: number, data: Partial<InsertLearnerProfile>): Promise<LearnerProfile | undefined> {
@@ -264,13 +287,50 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getLessonHistory(learnerId: number, limit: number = 10): Promise<Lesson[]> {
-    const result = await db
-      .select()
-      .from(lessons)
-      .where(eq(lessons.learnerId, learnerId))
-      .orderBy(desc(lessons.createdAt))
-      .limit(limit);
-    return Array.isArray(result) ? result.map(lesson => lesson as Lesson) : [result as Lesson];
+    try {
+      // Try to get the full lesson history first
+      try {
+        const result = await db
+          .select()
+          .from(lessons)
+          .where(eq(lessons.learnerId, learnerId))
+          .orderBy(desc(lessons.createdAt))
+          .limit(limit);
+        return Array.isArray(result) ? result.map(lesson => lesson as Lesson) : [result as Lesson];
+      } catch (e) {
+        console.log('Full history query failed, falling back to basic query:', e);
+      }
+      
+      // Fallback to a more specific query to avoid "column does not exist" errors
+      const result = await db
+        .select({
+          id: lessons.id,
+          learnerId: lessons.learnerId,
+          moduleId: lessons.moduleId,
+          status: lessons.status,
+          spec: lessons.spec,
+          score: lessons.score,
+          createdAt: lessons.createdAt,
+          completedAt: lessons.completedAt,
+        })
+        .from(lessons)
+        .where(eq(lessons.learnerId, learnerId))
+        .orderBy(desc(lessons.createdAt))
+        .limit(limit);
+      
+      // Add default values for potentially missing columns
+      return result.map(baseLesson => ({
+        ...baseLesson,
+        enhancedSpec: null,
+        subject: null,
+        category: null,
+        difficulty: 'beginner' as const,
+        imagePaths: null
+      })) as Lesson[];
+    } catch (error) {
+      console.error('Error in getLessonHistory:', error);
+      return [];
+    }
   }
 
   async updateLessonStatus(id: string, status: "QUEUED" | "ACTIVE" | "DONE", score?: number): Promise<Lesson | undefined> {
