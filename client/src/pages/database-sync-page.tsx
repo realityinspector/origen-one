@@ -90,11 +90,33 @@ const DatabaseSyncPage: React.FC = () => {
       const response = await axios.post(`/api/sync-configs/${id}/push`);
       return response.data;
     },
-    onSuccess: () => {
-      // After 2 seconds, refresh the sync configs to get updated status
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ['syncConfigs'] });
+    onSuccess: (data, id) => {
+      // Poll for status updates every 2 seconds
+      const pollInterval = setInterval(async () => {
+        try {
+          // Get the latest status
+          const response = await axios.get(`/api/sync-configs/${id}`);
+          const config = response.data;
+          
+          // If the sync is completed or failed, stop polling
+          if (config.syncStatus === 'COMPLETED' || config.syncStatus === 'FAILED') {
+            clearInterval(pollInterval);
+            queryClient.invalidateQueries({ queryKey: ['syncConfigs'] });
+          }
+        } catch (error) {
+          console.error('Error polling sync status:', error);
+          clearInterval(pollInterval);
+        }
       }, 2000);
+      
+      // As a safety measure, stop polling after 30 seconds regardless of status
+      setTimeout(() => {
+        clearInterval(pollInterval);
+        queryClient.invalidateQueries({ queryKey: ['syncConfigs'] });
+      }, 30000);
+      
+      // Immediate feedback to refresh the UI
+      queryClient.invalidateQueries({ queryKey: ['syncConfigs'] });
     },
     onError: (error: any) => {
       Alert.alert('Error', 'Failed to initiate synchronization');
