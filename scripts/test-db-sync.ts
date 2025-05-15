@@ -79,12 +79,14 @@ async function setupTestEnvironment() {
     } else {
       // Create learner associated with parent
       const hashedPassword = await hashPassword(TEST_LEARNER.password);
-      const [learner] = await db.insert(schema.users).values({
+      const learnerResult = await db.insert(schema.users).values({
         ...TEST_LEARNER,
         password: hashedPassword,
         parentId: parentId,
         createdAt: new Date()
       }).returning();
+      
+      const learner = learnerResult[0];
       
       learnerId = learner.id;
       console.log(`Created test learner with ID ${learnerId}`);
@@ -110,7 +112,7 @@ async function setupTestEnvironment() {
     });
     
     if (!existingLesson) {
-      const [lesson] = await db.insert(schema.lessons).values({
+      const lessonResult = await db.insert(schema.lessons).values({
         id: generateId(6),
         learnerId: learnerId,
         moduleId: 'test-module',
@@ -145,6 +147,8 @@ async function setupTestEnvironment() {
         createdAt: new Date(),
         completedAt: new Date()
       }).returning();
+      
+      const lesson = lessonResult[0];
       
       console.log(`Created test lesson for learner ID ${learnerId}`);
     } else {
@@ -212,7 +216,7 @@ async function testDatabaseSync(parentId: number) {
       syncConfigId = existingConfig.id;
     } else {
       // Create sync configuration
-      const [syncConfig] = await db.insert(schema.dbSyncConfigs).values({
+      const syncConfigResult = await db.insert(schema.dbSyncConfigs).values({
         id: generateId(8),
         parentId: parentId,
         targetDbUrl: externalDbUrl,
@@ -224,6 +228,7 @@ async function testDatabaseSync(parentId: number) {
         updatedAt: new Date()
       }).returning();
       
+      const syncConfig = syncConfigResult[0];
       syncConfigId = syncConfig.id;
       console.log(`Created sync configuration with ID ${syncConfigId}`);
     }
@@ -249,17 +254,17 @@ async function testDatabaseSync(parentId: number) {
     // Import the synchronize function directly
     const { synchronizeToExternalDatabase } = await import('../server/sync-utils');
     
-    // Get the sync config
-    const syncConfig = await db.query.dbSyncConfigs.findFirst({
+    // Get the current sync config
+    const currentSyncConfig = await db.query.dbSyncConfigs.findFirst({
       where: eq(schema.dbSyncConfigs.id, syncConfigId)
     });
     
-    if (!syncConfig) {
+    if (!currentSyncConfig) {
       throw new Error(`Sync configuration with ID ${syncConfigId} not found`);
     }
     
     // Execute the synchronization
-    await synchronizeToExternalDatabase(parentId, syncConfig);
+    await synchronizeToExternalDatabase(parentId, currentSyncConfig);
     
     console.log('Synchronization completed successfully');
     
