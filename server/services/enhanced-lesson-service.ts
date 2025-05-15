@@ -1,535 +1,383 @@
-/**
- * Enhanced Lesson Generator Service
- * 
- * This module provides functionality to generate enhanced lessons with
- * rich content, formatting, and images using OpenRouter and Stability AI.
- */
+import { askOpenRouter } from '../openrouter';
+import { generateEducationalImage, generateEducationalDiagram } from './stability-service';
+import { EnhancedLessonSpec, LessonSection, LessonImage, LessonDiagram } from '../../shared/schema';
 
-import axios from "axios";
-// Fix for nanoid ESM module issue - use crypto module instead
-import crypto from 'crypto';
-
-// Helper function to generate unique IDs (replacement for nanoid)
+// Create a simple ID generator since nanoid is causing ESM issues
 function generateId(length: number = 10): string {
-  return crypto.randomBytes(Math.ceil(length / 2))
-    .toString('hex')
-    .slice(0, length);
-}
-import { USE_AI } from "../config/flags";
-import { 
-  EnhancedLessonSpec, 
-  LessonImage,
-  LessonSection,
-  LessonDiagram
-} from "../../shared/schema";
-import { generateLessonImage, generateDiagram } from "./stability-service";
-
-// Utility to determine which types of diagrams are needed based on topic
-function determineDiagramsNeeded(topic: string, gradeLevel: number): { type: string; title: string }[] {
-  const diagrams = [];
-  
-  // Generic diagrams for all topics
-  diagrams.push({ type: "flowchart", title: `${topic} Process` });
-  
-  // Topic-specific diagrams
-  if (topic.toLowerCase().includes("math")) {
-    diagrams.push({ type: "hierarchy", title: `${topic} Concept Hierarchy` });
-  } else if (topic.toLowerCase().includes("science")) {
-    diagrams.push({ type: "cycle", title: `${topic} Cycle` });
-    diagrams.push({ type: "process", title: `${topic} Process Flow` });
-  } else if (topic.toLowerCase().includes("history")) {
-    diagrams.push({ type: "timeline", title: `${topic} Timeline` });
-  } else if (topic.toLowerCase().includes("language")) {
-    diagrams.push({ type: "comparison", title: `${topic} Comparison` });
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  
-  // Limit the number of diagrams based on grade level
-  // Younger students get fewer diagrams to avoid overwhelming them
-  const maxDiagrams = gradeLevel <= 3 ? 1 : (gradeLevel <= 6 ? 2 : 3);
-  
-  return diagrams.slice(0, maxDiagrams);
+  return result;
 }
 
 /**
- * Generate the structure for an enhanced lesson
+ * Map a diagram type string to one of the allowed diagram types in our schema
  */
-async function generateLessonStructure(gradeLevel: number, topic: string): Promise<any> {
-  if (!USE_AI) {
-    throw new Error('AI generation is disabled (USE_AI=0)');
+function mapDiagramType(type: string): LessonDiagram['type'] {
+  // Convert to lowercase and normalize
+  const normalizedType = type.toLowerCase().trim();
+  
+  // Map to one of the allowed types
+  if (normalizedType.includes('flow') || normalizedType.includes('process')) {
+    return 'flowchart';
+  } else if (normalizedType.includes('comparison') || normalizedType.includes('compare')) {
+    return 'comparison';
+  } else if (normalizedType.includes('cycle') || normalizedType.includes('circular')) {
+    return 'cycle';
+  } else if (normalizedType.includes('hierarchy') || normalizedType.includes('tree')) {
+    return 'hierarchy';
   }
   
-  if (!process.env.OPENROUTER_API_KEY) {
-    throw new Error('OPENROUTER_API_KEY is required for lesson generation');
-  }
-  
-  try {
-    const systemPrompt = `You are an expert educational curriculum designer creating a lesson structure for grade ${gradeLevel} students on the topic of "${topic}".
-    Create an outline with sections appropriate for this grade level and topic. Include a title, subtitle, and 3-6 section titles.`;
-    
-    // Define the JSON schema for structured output
-    const jsonSchema = {
-      type: 'object',
-      properties: {
-        title: { type: 'string', description: 'Engaging lesson title' },
-        subtitle: { type: 'string', description: 'Brief subtitle or tagline for the lesson' },
-        summary: { type: 'string', description: 'Brief 1-2 sentence overview of the lesson' },
-        sections: { 
-          type: 'array', 
-          description: 'List of section titles and types',
-          items: {
-            type: 'object',
-            properties: {
-              title: { type: 'string', description: 'Section title' },
-              type: { 
-                type: 'string', 
-                enum: ['introduction', 'key_concepts', 'examples', 'practice', 'summary', 'fun_facts'],
-                description: 'Section type' 
-              }
-            },
-            required: ['title', 'type']
-          }
-        },
-        estimatedDuration: { type: 'number', description: 'Estimated time to complete the lesson in minutes' },
-        difficultyLevel: { 
-          type: 'string', 
-          enum: ['beginner', 'intermediate', 'advanced'],
-          description: 'Difficulty level of the lesson' 
-        },
-        keywords: { 
-          type: 'array', 
-          items: { type: 'string' },
-          description: 'List of 3-5 keywords related to the lesson'
-        },
-        relatedTopics: { 
-          type: 'array', 
-          items: { type: 'string' },
-          description: 'List of 2-4 related topics'
-        }
-      },
-      required: ['title', 'summary', 'sections', 'estimatedDuration', 'difficultyLevel', 'keywords']
-    };
-    
-    const response = await axios.post(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        model: 'anthropic/claude-3-haiku',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Create a lesson structure about "${topic}" for grade ${gradeLevel} students. Make it age-appropriate and educational.` }
-        ],
-        temperature: 0.7,
-        response_format: {
-          type: 'json_schema',
-          schema: jsonSchema
-        }
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          'HTTP-Referer': 'https://origen-ai-tutor.replit.app',
-          'X-Title': 'ORIGEN - The Open Source AI Tutor'
-        }
-      }
-    );
-    
-    // Parse and return the structured output
-    return JSON.parse(response.data.choices[0].message.content);
-  } catch (error) {
-    console.error('Error generating lesson structure:', error);
-    throw error;
-  }
+  // Default to process if no match
+  return 'process';
 }
 
 /**
- * Generate detailed content for each lesson section
+ * Map the section type from any string to one of the allowed section types in our schema
  */
-async function generateSectionContent(
-  topic: string,
-  gradeLevel: number,
-  sectionTitle: string,
-  sectionType: string
-): Promise<string> {
-  if (!USE_AI) {
-    throw new Error('AI generation is disabled (USE_AI=0)');
+function mapSectionType(type: string): LessonSection['type'] {
+  // Define a mapping from common section types to our schema types
+  const typeMap: Record<string, LessonSection['type']> = {
+    'introduction': 'introduction',
+    'intro': 'introduction',
+    'beginning': 'introduction',
+    'key': 'key_concepts',
+    'key_concepts': 'key_concepts',
+    'concepts': 'key_concepts',
+    'main': 'key_concepts',
+    'core': 'key_concepts',
+    'example': 'examples',
+    'examples': 'examples',
+    'practice': 'practice',
+    'exercise': 'practice',
+    'exercises': 'practice',
+    'activities': 'practice',
+    'activity': 'practice',
+    'summary': 'summary',
+    'conclusion': 'summary',
+    'ending': 'summary',
+    'recap': 'summary',
+    'fun': 'fun_facts',
+    'fun_facts': 'fun_facts',
+    'interesting': 'fun_facts',
+    'did_you_know': 'fun_facts',
+    'facts': 'fun_facts'
+  };
+  
+  // Convert input to lowercase and remove spaces
+  const normalizedType = type.toLowerCase().replace(/\s+/g, '_');
+  
+  // Try to match directly or find partial matches
+  if (typeMap[normalizedType]) {
+    return typeMap[normalizedType];
   }
   
-  if (!process.env.OPENROUTER_API_KEY) {
-    throw new Error('OPENROUTER_API_KEY is required for content generation');
-  }
-  
-  try {
-    // Tailor prompt based on section type
-    let sectionGuidance = '';
-    switch (sectionType) {
-      case 'introduction':
-        sectionGuidance = 'Create an engaging introduction that hooks the student\'s interest and provides context for the topic.';
-        break;
-      case 'key_concepts':
-        sectionGuidance = 'Explain the core concepts clearly with definitions, explanations, and connections to prior knowledge.';
-        break;
-      case 'examples':
-        sectionGuidance = 'Provide concrete, relatable examples that illustrate the concepts. Include step-by-step explanations where appropriate.';
-        break;
-      case 'practice':
-        sectionGuidance = 'Create interactive exercises or problems for students to apply what they\'ve learned.';
-        break;
-      case 'summary':
-        sectionGuidance = 'Recap the key points covered in the lesson and emphasize the most important takeaways.';
-        break;
-      case 'fun_facts':
-        sectionGuidance = 'Share interesting and surprising facts related to the topic that will engage students.';
-        break;
-      default:
-        sectionGuidance = 'Create educational content that is clear, engaging, and appropriate for the grade level.';
+  // Look for partial matches in the keys
+  for (const key of Object.keys(typeMap)) {
+    if (normalizedType.includes(key)) {
+      return typeMap[key];
     }
-    
-    const systemPrompt = `You are an expert educational content creator writing a ${sectionType} section titled "${sectionTitle}" for a lesson about "${topic}" for grade ${gradeLevel} students.
-    
-    ${sectionGuidance}
-    
-    Format the content in Markdown with appropriate headings, bullet points, and emphasis. Use age-appropriate language and examples.
-    If relevant, include simple mathematical notations, diagrams descriptions, or step-by-step instructions.
-    
-    Do not use placeholder content. Create detailed, educational content that directly teaches the topic.`;
-    
-    const response = await axios.post(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        model: 'anthropic/claude-3-opus',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Write the "${sectionTitle}" section for a grade ${gradeLevel} lesson about ${topic}.` }
-        ],
-        temperature: 0.7,
-        max_tokens: 1000
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          'HTTP-Referer': 'https://origen-ai-tutor.replit.app',
-          'X-Title': 'ORIGEN - The Open Source AI Tutor'
-        }
-      }
-    );
-    
-    return response.data.choices[0].message.content;
-  } catch (error) {
-    console.error(`Error generating content for section "${sectionTitle}":`, error);
-    return `# ${sectionTitle}\n\nContent for this section could not be generated.`;
   }
+  
+  // Default to key_concepts if no match found
+  return 'key_concepts';
 }
 
 /**
- * Generate quiz questions for the lesson
+ * Base lesson prompt for OpenRouter
  */
-async function generateEnhancedQuizQuestions(
-  topic: string,
-  gradeLevel: number,
-  questionCount: number = 5
-): Promise<any[]> {
-  if (!USE_AI) {
-    throw new Error('AI generation is disabled (USE_AI=0)');
-  }
-  
-  if (!process.env.OPENROUTER_API_KEY) {
-    throw new Error('OPENROUTER_API_KEY is required for question generation');
-  }
-  
-  try {
-    const systemPrompt = `You are an expert educational assessment designer creating quiz questions about "${topic}" for grade ${gradeLevel} students.
-    Create ${questionCount} multiple-choice questions that test understanding of key concepts.
-    Vary the difficulty and complexity appropriately for the grade level.
-    Each question should have 4 options with one correct answer, a clear explanation for the answer, and difficulty level.`;
-    
-    // Define the JSON schema for structured output
-    const jsonSchema = {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          text: { type: 'string', description: 'Question text' },
-          options: { 
-            type: 'array', 
-            items: { type: 'string' },
-            description: 'Array of 4 answer choices'
-          },
-          correctIndex: { 
-            type: 'integer',
-            description: 'Index of correct answer (0-3)' 
-          },
-          explanation: { 
-            type: 'string',
-            description: 'Explanation of the correct answer' 
-          },
-          difficulty: { 
-            type: 'string',
-            enum: ['easy', 'medium', 'hard'],
-            description: 'Difficulty level of the question' 
-          },
-          type: { 
-            type: 'string',
-            enum: ['multiple_choice', 'true_false', 'image_based', 'sequence'],
-            description: 'Type of question' 
-          }
-        },
-        required: ['text', 'options', 'correctIndex', 'explanation', 'difficulty', 'type']
-      }
-    };
-    
-    const response = await axios.post(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        model: 'anthropic/claude-3-haiku',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Create ${questionCount} quiz questions about "${topic}" for grade ${gradeLevel} students.` }
-        ],
-        temperature: 0.7,
-        response_format: {
-          type: 'json_schema',
-          schema: jsonSchema
-        }
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          'HTTP-Referer': 'https://origen-ai-tutor.replit.app',
-          'X-Title': 'ORIGEN - The Open Source AI Tutor'
-        }
-      }
-    );
-    
-    // Parse and return the structured output
-    return JSON.parse(response.data.choices[0].message.content);
-  } catch (error) {
-    console.error('Error generating quiz questions:', error);
-    throw error;
-  }
-}
+const baseEnhancedLessonPrompt = `Create an educational lesson for a grade school student. 
+The lesson should be rich in educational content, engaging, and appropriate for the grade level specified.
+
+Follow these requirements:
+1. The content should be factually accurate and educational
+2. The writing should be clear, concise, and engaging for the target age group
+3. Structure the content in sections with clear headings
+4. Include opportunities for visual elements (you don't need to create the visuals)
+5. Suggest 3-4 places where images would enhance understanding
+6. Include a brief summary at the beginning
+7. List key vocabulary terms or concepts
+8. Suggest 2-3 related topics that build on this knowledge
+9. The content should take approximately 10-15 minutes to read
+
+Please format your response as a JSON object with the following structure:
+
+{
+  "title": "Main title of the lesson",
+  "subtitle": "Optional subtitle or tagline",
+  "summary": "A brief 2-3 sentence summary of what will be learned",
+  "targetGradeLevel": 5,
+  "difficultyLevel": "Beginner/Intermediate/Advanced",
+  "estimatedDuration": 15,
+  "sections": [
+    {
+      "title": "Section Title",
+      "type": "introduction/core/advanced/activity/conclusion",
+      "content": "Markdown formatted content for this section",
+      "imageDescription": "Description of an image that would work well here"
+    }
+  ],
+  "keywords": ["keyword1", "keyword2"],
+  "relatedTopics": ["related topic 1", "related topic 2"]
+}`;
 
 /**
- * Generate a knowledge graph for the lesson topic
- */
-async function generateEnhancedKnowledgeGraph(
-  topic: string,
-  gradeLevel: number
-): Promise<any> {
-  if (!USE_AI) {
-    throw new Error('AI generation is disabled (USE_AI=0)');
-  }
-  
-  if (!process.env.OPENROUTER_API_KEY) {
-    throw new Error('OPENROUTER_API_KEY is required for knowledge graph generation');
-  }
-  
-  try {
-    const systemPrompt = `You are an expert educational content creator designing a knowledge graph about "${topic}" for grade ${gradeLevel} students.
-    Create a graph with nodes representing key concepts and edges representing relationships between them.
-    Make it appropriate for the grade level in complexity and depth.`;
-    
-    // Define the JSON schema for structured output
-    const jsonSchema = {
-      type: 'object',
-      properties: {
-        nodes: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              id: { type: 'string', description: 'Unique identifier for the node' },
-              label: { type: 'string', description: 'Display label for the node' },
-              category: { type: 'string', description: 'Category or type of the node' },
-              importance: { type: 'number', description: 'Importance score (1-10)' }
-            },
-            required: ['id', 'label']
-          }
-        },
-        edges: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              source: { type: 'string', description: 'Source node ID' },
-              target: { type: 'string', description: 'Target node ID' },
-              label: { type: 'string', description: 'Relationship label' },
-              strength: { type: 'number', description: 'Relationship strength (1-10)' }
-            },
-            required: ['source', 'target']
-          }
-        }
-      },
-      required: ['nodes', 'edges']
-    };
-    
-    const response = await axios.post(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        model: 'anthropic/claude-3-haiku',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: `Create a knowledge graph about "${topic}" for grade ${gradeLevel} students with 8-12 nodes and appropriate connections.` }
-        ],
-        temperature: 0.7,
-        response_format: {
-          type: 'json_schema',
-          schema: jsonSchema
-        }
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-          'HTTP-Referer': 'https://origen-ai-tutor.replit.app',
-          'X-Title': 'ORIGEN - The Open Source AI Tutor'
-        }
-      }
-    );
-    
-    // Parse and return the structured output
-    return JSON.parse(response.data.choices[0].message.content);
-  } catch (error) {
-    console.error('Error generating knowledge graph:', error);
-    
-    // Return a simple fallback graph
-    return {
-      nodes: [
-        { id: 'main', label: topic, importance: 10 },
-        { id: 'sub1', label: `${topic} Basics`, importance: 8 },
-        { id: 'sub2', label: `Advanced ${topic}`, importance: 6 },
-        { id: 'related1', label: 'Related Concept 1', importance: 5 },
-        { id: 'related2', label: 'Related Concept 2', importance: 5 }
-      ],
-      edges: [
-        { source: 'main', target: 'sub1', label: 'includes' },
-        { source: 'main', target: 'sub2', label: 'includes' },
-        { source: 'main', target: 'related1', label: 'relates to' },
-        { source: 'main', target: 'related2', label: 'relates to' },
-        { source: 'sub1', target: 'related1', label: 'connects to' }
-      ]
-    };
-  }
-}
-
-/**
- * Generate the complete enhanced lesson with all components
+ * Generate a full enhanced lesson with content and images
  */
 export async function generateEnhancedLesson(
   gradeLevel: number,
-  topic: string
-): Promise<EnhancedLessonSpec> {
-  if (!USE_AI) {
-    throw new Error('AI generation is disabled (USE_AI=0)');
-  }
-  
+  topic: string,
+  withImages: boolean = true
+): Promise<EnhancedLessonSpec | null> {
   try {
-    console.log(`Generating enhanced lesson for grade ${gradeLevel} about "${topic}"`);
-    
-    // 1. Generate the lesson structure
-    const structure = await generateLessonStructure(gradeLevel, topic);
-    console.log('Lesson structure generated');
-    
-    // 2. Generate the main featured image
-    const mainImagePromise = generateLessonImage(
-      topic,
-      gradeLevel,
-      `Main educational illustration about ${topic}`
-    );
-    
-    // 3. Generate quiz questions
-    const questionsPromise = generateEnhancedQuizQuestions(topic, gradeLevel, 5);
-    
-    // 4. Generate the knowledge graph
-    const graphPromise = generateEnhancedKnowledgeGraph(topic, gradeLevel);
-    
-    // 5. Determine which diagrams to generate
-    const diagramSpecs = determineDiagramsNeeded(topic, gradeLevel);
-    const diagramPromises = diagramSpecs.map(spec => 
-      generateDiagram(topic, gradeLevel, spec.type)
-        .then(svgData => ({
-          id: generateId(10),
-          type: spec.type as any,
-          title: spec.title,
-          svgData,
-          description: `A ${spec.type} diagram about ${topic}`
-        }))
-    );
-    
-    // 6. Generate content for each section in parallel
-    const sectionsPromises = structure.sections.map(async (section: any) => {
-      const content = await generateSectionContent(
-        topic,
-        gradeLevel,
-        section.title,
-        section.type
-      );
-      
-      return {
-        ...section,
-        content
-      };
-    });
-    
-    // 7. Wait for all promises to resolve
-    const [
-      mainImage,
-      questions,
-      graph,
-      diagrams,
-      sections
-    ] = await Promise.all([
-      mainImagePromise,
-      questionsPromise,
-      graphPromise,
-      Promise.all(diagramPromises),
-      Promise.all(sectionsPromises)
-    ]);
-    
-    console.log('All lesson components generated successfully');
-    
-    // 8. Generate section images (for the first 3 sections)
-    const sectionImagePromises = sections.slice(0, 3).map((section: LessonSection, index: number) => {
-      return generateLessonImage(
-        topic,
-        gradeLevel,
-        `Illustration for "${section.title}" section`
-      );
-    });
-    
-    const sectionImages = await Promise.all(sectionImagePromises);
-    
-    // Assign image IDs to sections
-    sectionImages.forEach((image: LessonImage, index: number) => {
-      if (sections[index].imageIds === undefined) {
-        sections[index].imageIds = [];
+    // 1. Generate the lesson content structure with OpenRouter
+    const structureResponse = await askOpenRouter({
+      messages: [
+        {
+          role: 'system',
+          content: baseEnhancedLessonPrompt
+        },
+        {
+          role: 'user',
+          content: `Create an educational lesson about "${topic}" for grade ${gradeLevel} students.`
+        }
+      ],
+      model: 'anthropic/claude-3-opus-20240229',
+      temperature: 0.7,
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          type: 'object',
+          properties: {
+            title: { type: 'string' },
+            subtitle: { type: 'string' },
+            summary: { type: 'string' },
+            targetGradeLevel: { type: 'number' },
+            difficultyLevel: { type: 'string' },
+            estimatedDuration: { type: 'number' },
+            sections: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  title: { type: 'string' },
+                  type: { type: 'string' },
+                  content: { type: 'string' },
+                  imageDescription: { type: 'string' }
+                }
+              }
+            },
+            keywords: { 
+              type: 'array',
+              items: { type: 'string' }
+            },
+            relatedTopics: {
+              type: 'array',
+              items: { type: 'string' }
+            }
+          }
+        }
       }
-      sections[index].imageIds.push(image.id);
     });
     
-    // 9. Combine all images
-    const allImages = [mainImage, ...sectionImages];
+    console.log('Generated lesson structure from OpenRouter');
     
-    // 10. Assemble and return the complete enhanced lesson
-    return {
-      title: structure.title,
-      targetGradeLevel: gradeLevel,
-      subtitle: structure.subtitle,
-      summary: structure.summary,
-      sections,
-      featuredImage: mainImage.id,
-      images: allImages,
-      diagrams,
-      questions,
-      graph,
-      keywords: structure.keywords,
-      relatedTopics: structure.relatedTopics || [],
-      estimatedDuration: structure.estimatedDuration,
-      difficultyLevel: structure.difficultyLevel
+    // Parse the response
+    const content = JSON.parse(structureResponse.choices[0].message.content);
+    
+    // Initialize our enhanced lesson spec
+    const enhancedLesson: EnhancedLessonSpec = {
+      title: content.title,
+      subtitle: content.subtitle,
+      targetGradeLevel: content.targetGradeLevel || gradeLevel,
+      summary: content.summary,
+      difficultyLevel: content.difficultyLevel || 'Intermediate',
+      estimatedDuration: content.estimatedDuration || 15,
+      sections: [],
+      images: [],
+      diagrams: [],
+      questions: [],
+      keywords: content.keywords || [],
+      relatedTopics: content.relatedTopics || []
     };
+    
+    // 2. Add sections and generate image placeholders
+    const allImagePrompts: { id: string, description: string, prompt: string }[] = [];
+    
+    for (const section of content.sections) {
+      const sectionImageIds: string[] = [];
+      
+      // If the section has an image description, create a placeholder
+      if (section.imageDescription) {
+        const imageId = generateId(10);
+        allImagePrompts.push({
+          id: imageId,
+          description: section.imageDescription,
+          prompt: `${section.imageDescription} related to ${topic} for grade ${gradeLevel} education`
+        });
+        sectionImageIds.push(imageId);
+      }
+      
+      // Map the section type to one of the allowed types in our schema
+      const validSectionType = mapSectionType(section.type || 'content');
+      
+      // Add the section to our enhanced lesson 
+      enhancedLesson.sections.push({
+        title: section.title,
+        content: section.content,
+        type: validSectionType,
+        imageIds: sectionImageIds
+      });
+    }
+    
+    // 3. Generate a featured image for the lesson
+    const featuredImageId = generateId(10);
+    allImagePrompts.push({
+      id: featuredImageId,
+      description: `Main illustration for ${content.title}`,
+      prompt: `Educational illustration for "${content.title}" lesson for grade ${gradeLevel} students, ${topic}, main concept visualization`
+    });
+    enhancedLesson.featuredImage = featuredImageId;
+    
+    // 4. If images are requested, generate them with Stability AI
+    if (withImages) {
+      console.log(`Generating ${allImagePrompts.length} images for the lesson...`);
+      
+      // Generate all images concurrently
+      const imagePromises = allImagePrompts.map(async (imagePrompt) => {
+        const result = await generateEducationalImage(
+          imagePrompt.prompt,
+          imagePrompt.description
+        );
+        
+        if (result) {
+          return {
+            id: imagePrompt.id,
+            description: imagePrompt.description,
+            alt: imagePrompt.description,
+            base64Data: result.base64Data,
+            promptUsed: result.promptUsed
+          };
+        }
+        
+        // If image generation fails, create a placeholder
+        return {
+          id: imagePrompt.id,
+          description: imagePrompt.description,
+          alt: imagePrompt.description,
+          promptUsed: imagePrompt.prompt
+        };
+      });
+      
+      // Add images as they complete
+      const images = await Promise.all(imagePromises);
+      enhancedLesson.images = images;
+      
+      // 5. Generate a diagram related to the topic
+      try {
+        console.log('Generating a diagram for the lesson...');
+        const diagramTypes = ['concept map', 'flowchart', 'comparison', 'cycle'];
+        const randomDiagramType = diagramTypes[Math.floor(Math.random() * diagramTypes.length)];
+        
+        const diagram = await generateEducationalDiagram(
+          topic,
+          randomDiagramType,
+          `${randomDiagramType} diagram about ${topic}`
+        );
+        
+        if (diagram) {
+          // Map the diagram type to a valid enum value
+          const mappedDiagramType = mapDiagramType(randomDiagramType);
+          
+          enhancedLesson.diagrams.push({
+            id: generateId(10),
+            type: mappedDiagramType,
+            title: `${randomDiagramType.charAt(0).toUpperCase() + randomDiagramType.slice(1)} of ${topic}`,
+            svgData: '', // We're using base64 images instead of SVG
+            description: `Visual representation of ${topic} as a ${randomDiagramType}`
+          });
+          
+          // Add the diagram to the images array as well
+          enhancedLesson.images.push({
+            id: generateId(10),
+            description: `${randomDiagramType.charAt(0).toUpperCase() + randomDiagramType.slice(1)} of ${topic}`,
+            alt: `Visual representation of ${topic} as a ${randomDiagramType}`,
+            base64Data: diagram.base64Data,
+            promptUsed: diagram.promptUsed
+          });
+        }
+      } catch (error) {
+        console.error('Error generating diagram:', error);
+      }
+    } else {
+      // Add placeholders for images if we're not generating them
+      enhancedLesson.images = allImagePrompts.map(prompt => ({
+        id: prompt.id,
+        description: prompt.description,
+        alt: prompt.description,
+        promptUsed: prompt.prompt
+      }));
+    }
+    
+    console.log('Enhanced lesson generation complete');
+    return enhancedLesson;
   } catch (error) {
     console.error('Error generating enhanced lesson:', error);
-    throw error;
+    return null;
+  }
+}
+
+/**
+ * Generate quiz questions for an enhanced lesson
+ */
+export async function generateEnhancedQuestions(
+  enhancedLesson: EnhancedLessonSpec,
+  questionCount: number = 5
+): Promise<any[]> {
+  try {
+    // Combine all content for context
+    const lessonContent = enhancedLesson.sections.map(s => `${s.title}:\n${s.content}`).join('\n\n');
+    
+    // Generate questions with OpenRouter
+    const response = await askOpenRouter({
+      messages: [
+        {
+          role: 'system',
+          content: `You are an educational assessment expert. Create ${questionCount} multiple-choice questions based on the lesson content provided. Each question should have 4 options with only one correct answer. Format as a JSON array.`
+        },
+        {
+          role: 'user',
+          content: `Create ${questionCount} multiple-choice questions for a grade ${enhancedLesson.targetGradeLevel} lesson titled "${enhancedLesson.title}". Here's the lesson content:\n\n${lessonContent}\n\nFormat each question as a JSON object with "question", "options" (array of 4 choices), "correctAnswer" (index of correct option, 0-3), and "explanation" fields.`
+        }
+      ],
+      model: 'anthropic/claude-3-opus-20240229',
+      temperature: 0.7,
+      response_format: {
+        type: 'json_schema',
+        json_schema: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              question: { type: 'string' },
+              options: { 
+                type: 'array',
+                items: { type: 'string' }
+              },
+              correctAnswer: { type: 'number' },
+              explanation: { type: 'string' }
+            }
+          }
+        }
+      }
+    });
+    
+    const questions = JSON.parse(response.choices[0].message.content);
+    return questions;
+  } catch (error) {
+    console.error('Error generating enhanced questions:', error);
+    return [];
   }
 }

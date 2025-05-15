@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   },
   diagram: {
     marginBottom: 16,
-    backgroundColor: colors.backgroundLight,
+    backgroundColor: colors.surfaceColor,
     borderRadius: 8,
     padding: 12,
   },
@@ -328,7 +328,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   tag: {
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: colors.primaryLight,
     borderRadius: 16,
     paddingHorizontal: 12,
     paddingVertical: 4,

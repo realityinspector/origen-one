@@ -94,14 +94,38 @@ export async function chat(
 
 /**
  * Generate a lesson for a specific grade level and topic
- * This is the legacy function that calls the new enhanced lesson generator
+ * This function can either return a simple markdown string (legacy)
+ * or generate a full enhanced lesson if the enhanced parameter is true
  */
-export async function generateLessonContent(gradeLevel: number, topic: string): Promise<string> {
+export async function generateLessonContent(
+  gradeLevel: number, 
+  topic: string,
+  enhanced: boolean = false
+): Promise<string | EnhancedLessonSpec> {
   if (!USE_AI) {
     throw new Error('AI generation is disabled (USE_AI=0)');
   }
 
+  // If enhanced mode requested, use the enhanced lesson generator
+  if (enhanced) {
+    try {
+      console.log(`Generating enhanced lesson about "${topic}" for grade ${gradeLevel}`);
+      const enhancedLesson = await generateEnhancedLesson(gradeLevel, topic, true);
+      
+      if (!enhancedLesson) {
+        throw new Error('Enhanced lesson generation failed');
+      }
+      
+      return enhancedLesson;
+    } catch (error) {
+      console.error("Error generating enhanced lesson:", error);
+      throw error;
+    }
+  } 
+  
+  // Legacy lesson generation (simple markdown)
   try {
+    console.log(`Generating legacy lesson about "${topic}" for grade ${gradeLevel}`);
     const systemPrompt = `You are an educational assistant creating a lesson for grade ${gradeLevel} students on the topic of "${topic}".
       Create a comprehensive, age-appropriate lesson with clear explanations, examples, and engaging content.
       Format the lesson with markdown headings, bullet points, and emphasis where appropriate.`;
