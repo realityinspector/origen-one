@@ -453,6 +453,8 @@ export function registerRoutes(app: Express): Server {
       
       // Generate the lesson with the specified format or use a fallback if AI is disabled
       let lessonSpec;
+      let enhancedSpec = null; // Initialize enhanced spec as null
+      
       if (USE_AI) {
         lessonSpec = await generateLesson(gradeLevel, topic, useEnhanced);
       } else {
@@ -470,34 +472,60 @@ export function registerRoutes(app: Express): Server {
                 "A complex math lesson",
                 "None of the above"
               ],
-              correctAnswer: 1
+              correctIndex: 1, // Fixed from correctAnswer to correctIndex to match schema
+              explanation: "This is a demo lesson for testing the application."
             }
           ]
         };
         
-        // Add enhanced spec fields if requested
+        // Create a separate enhanced spec object if enhanced mode is requested
         if (useEnhanced) {
-          lessonSpec.enhanced = true;
-          lessonSpec.sections = [
-            {
-              title: "Introduction",
-              content: "This is a sample lesson created when AI generation is disabled."
-            },
-            {
-              title: "Main Content",
-              content: "Please enable AI for full functionality."
-            }
-          ];
-          lessonSpec.imagePrompts = [];
+          enhancedSpec = {
+            title: topic || "Sample Lesson",
+            targetGradeLevel: gradeLevel,
+            summary: "This is a sample lesson created when AI generation is disabled.",
+            sections: [
+              {
+                title: "Introduction",
+                content: "This is a sample lesson created when AI generation is disabled.",
+                type: "introduction" as const
+              },
+              {
+                title: "Main Content",
+                content: "Please enable AI for full functionality.",
+                type: "key_concepts" as const
+              }
+            ],
+            images: [],
+            diagrams: [],
+            questions: [
+              {
+                text: "What is this lesson?",
+                options: [
+                  "A real AI-generated lesson",
+                  "A sample lesson for testing",
+                  "A complex math lesson", 
+                  "None of the above"
+                ],
+                correctIndex: 1,
+                explanation: "This is a demo lesson for testing the application."
+              }
+            ],
+            keywords: ["sample", "demo", "test"],
+            relatedTopics: [],
+            estimatedDuration: 10,
+            difficultyLevel: "beginner" as const
+          };
         }
       }
       
-      // Create the lesson
+      // Create the lesson with both standard and enhanced specs
       const newLesson = await storage.createLesson({
         learnerId: targetLearnerId,
         moduleId: `custom-${Date.now()}`,
         status: "ACTIVE",
         spec: lessonSpec,
+        enhancedSpec: enhancedSpec, // Add the enhanced spec when applicable
       });
       
       res.json(newLesson);
