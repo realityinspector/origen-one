@@ -1,22 +1,43 @@
-# Enhanced Lesson Framework
+# Enhanced Lesson System
+
+This document outlines the plan for enhancing the educational content system with richer, more engaging lessons.
 
 ## Overview
-This document outlines a comprehensive enhancement plan for the lesson generation system in our educational application. The goal is to transform lessons from basic text-based content to rich, visually engaging, interactive experiences using advanced AI-powered content generation.
 
-## Current Implementation
-Currently, the application generates lessons using:
-- OpenRouter AI API for text content generation
-- Basic markdown formatting
-- Simple knowledge graphs
-- Multiple-choice quiz questions
-- Fallback to static content when AI fails
+The enhanced lesson system uses AI to generate structured, rich educational content with images, diagrams, and properly segmented content to improve the learning experience.
 
-## Enhancement Strategy
+### Technology Stack
+- **Content Generation**: OpenRouter API (Claude 3 Opus model)
+- **Image Generation**: Stability AI API
+- **Content Display**: React Native with Markdown support
+- **Data Format**: Enhanced JSON structure with support for rich media
 
-### 1. Rich Multimedia Lesson Content
+## Key Features
 
-#### Structured Lesson Framework
-We'll implement a new lesson spec structure that includes:
+1. **Structured Content Format**
+   - Organized sections with clear headings
+   - Rich Markdown formatting
+   - Support for embedded images and diagrams
+   - Learning metadata (duration, difficulty, grade level)
+
+2. **AI-Generated Educational Images**
+   - Relevant illustrations for key concepts
+   - Diagrams for complex topics (flowcharts, concept maps, etc.)
+   - Age-appropriate visual content
+
+3. **Enhanced Assessment**
+   - Questions linked to specific content sections
+   - Explanations for correct/incorrect answers
+   - Varied question types
+
+4. **Metadata & Context**
+   - Related topics for further exploration
+   - Keywords and vocabulary
+   - Estimated completion time
+
+## Implementation Details
+
+### Enhanced Lesson Structure
 
 ```typescript
 interface EnhancedLessonSpec {
@@ -24,332 +45,112 @@ interface EnhancedLessonSpec {
   targetGradeLevel: number;
   subtitle?: string;
   summary: string;
-  
-  // Main content sections
-  sections: LessonSection[];
-  
-  // Visual elements
-  featuredImage?: string; // Base64 encoded image or SVG
-  images: LessonImage[];
-  diagrams: LessonDiagram[];
-  
-  // Interactive elements
-  interactiveElements: InteractiveElement[];
-  
-  // Assessment
-  questions: QuizQuestion[];
-  
-  // Knowledge graph
-  graph: KnowledgeGraph;
-  
-  // Metadata
+  sections: {
+    title: string;
+    content: string;
+    type: string;
+    imageIds?: string[];
+  }[];
+  featuredImage?: string;
+  images: {
+    id: string;
+    description: string;
+    alt: string;
+    base64Data?: string;
+    svgData?: string;
+    promptUsed: string;
+  }[];
+  diagrams: {
+    id: string;
+    type: string;
+    title: string;
+    svgData: string;
+    description: string;
+  }[];
+  questions: any[];
+  graph?: any;
   keywords: string[];
   relatedTopics: string[];
-  estimatedDuration: number; // in minutes
-  difficultyLevel: "beginner" | "intermediate" | "advanced";
-}
-
-interface LessonSection {
-  title: string;
-  content: string; // Markdown formatted
-  type: "introduction" | "key_concepts" | "examples" | "practice" | "summary" | "fun_facts";
-  imageIds?: string[]; // References to images in the images array
-}
-
-interface LessonImage {
-  id: string;
-  description: string;
-  alt: string;
-  base64Data?: string; // Base64 encoded image data
-  svgData?: string; // SVG markup
-  promptUsed: string; // The prompt used to generate the image
-}
-
-interface LessonDiagram {
-  id: string;
-  type: "flowchart" | "comparison" | "process" | "cycle" | "hierarchy";
-  title: string;
-  svgData: string;
-  description: string;
-}
-
-interface InteractiveElement {
-  id: string;
-  type: "drag_and_drop" | "fill_in_blank" | "matching" | "interactive_diagram";
-  title: string;
-  content: any; // Structure depends on type
-  feedbackCorrect: string;
-  feedbackIncorrect: string;
+  estimatedDuration: number;
+  difficultyLevel: string;
 }
 ```
 
-#### Age-Appropriate Visual Design
-- Implement different visual themes based on grade level:
-  - K-2: Bright colors, simple shapes, larger text, more illustrations
-  - 3-5: Balanced text and visuals, engaging diagrams, moderate complexity
-  - 6-8: More sophisticated visuals, detailed diagrams, advanced concepts
-  - 9-12: Complex visualizations, real-world connections, abstract concepts
+### Server-Side Components
 
-### 2. AI-Generated Imagery Integration
+1. **stability-service.ts**
+   - Integration with Stability AI for image generation
+   - Educational image generation with appropriate prompts
+   - Diagram generation for educational concepts
 
-#### OpenAI DALL-E 3 Integration
-We'll integrate OpenAI's image generation capabilities to create custom images for each lesson:
+2. **enhanced-lesson-service.ts**
+   - Integration with OpenRouter for content generation
+   - Structured lesson format creation
+   - Image placement and integration
+   - Question generation
 
-```typescript
-/**
- * Generate an image for a lesson using OpenAI's DALL-E 3 model
- */
-async function generateLessonImage(topic: string, gradeLevel: number, description: string): Promise<LessonImage> {
-  // Create an age-appropriate, educational prompt
-  const prompt = createImageGenerationPrompt(topic, gradeLevel, description);
-  
-  try {
-    // Use OpenAI to generate the image
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: prompt,
-      n: 1,
-      size: "1024x1024",
-      quality: "standard",
-      response_format: "b64_json"
-    });
-    
-    const imageId = nanoid(10);
-    
-    return {
-      id: imageId,
-      description,
-      alt: `Educational illustration about ${topic} for grade ${gradeLevel}`,
-      base64Data: response.data[0].b64_json,
-      promptUsed: prompt
-    };
-  } catch (error) {
-    console.error('Error generating image:', error);
-    
-    // Fallback to SVG generation if image generation fails
-    return generateFallbackSvgImage(topic, gradeLevel, description);
-  }
-}
-```
+3. **ai.ts (updates)**
+   - Support for both legacy and enhanced lesson formats
+   - Feature detection for gradual rollout
 
-#### Smart Prompt Engineering
-- Develop specialized prompts for different types of educational content:
-  - Concept illustrations (abstract concepts made visual)
-  - Step-by-step processes
-  - Comparison diagrams
-  - Historical scenes
-  - Scientific phenomena
+### Client-Side Components
 
-#### SVG Diagrams and Illustrations
-- Implement SVG generation for diagrams and illustrations when AI image generation is not feasible:
+1. **EnhancedLessonContent.tsx**
+   - Rich rendering of enhanced lesson content
+   - Support for displaying images and diagrams
+   - Section-based navigation
+   - Metadata display
 
-```typescript
-/**
- * Generate an SVG diagram using AI-guided instructions
- */
-async function generateSvgDiagram(topic: string, gradeLevel: number, diagramType: string): Promise<string> {
-  // Use AI to generate SVG code for educational diagrams
-  const systemPrompt = `You are an expert educational diagram creator. 
-  Create a clear, age-appropriate ${diagramType} diagram about "${topic}" for grade ${gradeLevel} students.
-  Return ONLY valid SVG code with no explanation.`;
-  
-  const messages = [
-    { role: "system", content: systemPrompt },
-    { role: "user", content: `Create a ${diagramType} diagram about ${topic}` }
-  ];
-  
-  const response = await chat(messages, {
-    max_tokens: 1500,
-    temperature: 0.2
-  });
-  
-  // Extract SVG code from response
-  const svgMatch = response.match(/<svg.*<\/svg>/s);
-  if (svgMatch) {
-    return svgMatch[0];
-  }
-  
-  // Fallback to predefined SVG templates if extraction fails
-  return createFallbackDiagram(topic, diagramType, gradeLevel);
-}
-```
+2. **lesson-page.tsx (updates)**
+   - Backwards compatibility with legacy lessons
+   - Support for new enhanced lesson format
 
-### 3. Enhanced Content Structure and Formatting
+## Performance Considerations
 
-#### Rich Text Formatting
-- Implement advanced Markdown rendering with:
-  - Styled callout boxes for important information
-  - Colored text for emphasis
-  - Custom formatting for vocabulary terms
-  - Embedded LaTeX for mathematical expressions
-  - Code blocks with syntax highlighting for programming lessons
+1. **Image Optimization**
+   - Appropriate size for mobile devices
+   - Progressive loading for slower connections
+   - Fallback to text-only when needed
 
-#### Content Templates by Subject
-- Create specialized content templates for different subjects:
-  - Math: Concepts, examples, step-by-step solutions, practice problems
-  - Science: Phenomena, experiments, observations, explanations
-  - History: Timelines, key figures, events, impacts
-  - Language Arts: Literary elements, examples, analysis, writing prompts
+2. **Content Loading**
+   - Chunked loading for large lessons
+   - Caching strategies for offline access
+   - Progress indicators for generation steps
 
-#### Age-Appropriate Language Processing
-- Implement language complexity adjustment based on grade level:
-  - Vocabulary complexity controls
-  - Sentence length and structure adaptation
-  - Concept explanation depth adjustment
-  - Use of metaphors and analogies appropriate to age
+## Rollout Plan
 
-### 4. Interactive Elements
+1. **Phase 1: Infrastructure**
+   - Set up Stability AI integration
+   - Implement enhanced lesson format on server
+   - Create client components for rendering
 
-#### Embedded Interactive Components
-- Add interactive elements to lessons:
-  - Drag-and-drop activities
-  - Fill-in-the-blank exercises
-  - Matching exercises
-  - Interactive diagrams (clickable parts that reveal information)
-  - Simple simulations for science concepts
+2. **Phase 2: Testing**
+   - Generate test lessons across grade levels
+   - Validate image generation quality and appropriateness
+   - Performance testing on target devices
 
-#### Knowledge Check Micro-Quizzes
-- Embed mini-quizzes within lesson sections to reinforce learning:
-  - Multiple choice
-  - True/false
-  - Short answer
-  - Image-based questions
-  - Provide immediate feedback
+3. **Phase 3: Rollout**
+   - Enable enhanced lessons for new content
+   - Maintain backward compatibility
+   - Collect usage metrics and feedback
 
-### 5. Enhanced Assessment
+## Success Metrics
 
-#### Diverse Question Types
-- Expand quiz capabilities beyond basic multiple choice:
-  - Image-based questions (identify parts of images)
-  - Sequence ordering questions
-  - Matching questions
-  - Short-answer questions with AI evaluation
-  - Multi-step problems (especially for math)
+1. **Engagement**
+   - Time spent with enhanced vs. standard lessons
+   - Completion rates for lessons
 
-#### Adaptive Difficulty
-- Implement question difficulty that adapts based on learner performance:
-  - Start with medium difficulty
-  - Increase difficulty after correct answers
-  - Decrease difficulty after incorrect answers
-  - Track optimal challenge level for each learner
+2. **Learning Outcomes**
+   - Quiz performance comparison
+   - Knowledge retention tests
 
-### 6. Implementation Phases
+3. **User Satisfaction**
+   - Subjective ratings from students and teachers
+   - Feature usage tracking
 
-#### Phase 1: Enhanced Text Formatting and Basic Imagery
-- Update lesson content schema
-- Implement advanced Markdown rendering
-- Add basic image generation for one illustration per lesson
-- Update client to render enhanced content
+## Future Enhancements
 
-#### Phase 2: Rich Media Integration
-- Implement full image generation pipeline
-- Add SVG diagram generation
-- Create age-appropriate visual themes
-- Implement interactive elements framework
-
-#### Phase 3: Interactive Components and Adaptive Content
-- Add interactive exercises within lessons
-- Implement adaptive difficulty for quizzes
-- Create subject-specific templates
-- Add content personalization based on learner history
-
-## Technical Implementation
-
-### Database Schema Changes
-
-```typescript
-// Add to the lessons table schema
-export const lessons = pgTable("lessons", {
-  // Existing fields...
-  
-  // New fields for enhanced content
-  enhancedSpec: json("enhanced_spec").$type<EnhancedLessonSpec>(),
-  mediaResources: json("media_resources").$type<MediaResource[]>(),
-  generationMetadata: json("generation_metadata").$type<{
-    promptsUsed: string[];
-    generationTime: number;
-    modelVersions: Record<string, string>;
-  }>(),
-});
-```
-
-### OpenAI Integration Service
-
-```typescript
-// New AI service
-export async function generateEnhancedLesson(gradeLevel: number, topic: string): Promise<EnhancedLessonSpec> {
-  if (!USE_AI) {
-    throw new Error('AI generation is disabled (USE_AI=0)');
-  }
-
-  try {
-    // 1. Generate the core lesson content structure
-    const structurePromise = generateLessonStructure(gradeLevel, topic);
-    
-    // 2. Generate the detailed lesson content 
-    const contentPromise = generateDetailedContent(gradeLevel, topic);
-    
-    // 3. Generate quiz questions
-    const questionsPromise = generateQuizQuestions(gradeLevel, topic, 8);
-    
-    // 4. Generate the knowledge graph
-    const graphPromise = generateKnowledgeGraph(topic, gradeLevel);
-    
-    // 5. Generate the main illustration
-    const mainImagePromise = generateLessonImage(
-      topic, 
-      gradeLevel, 
-      `Main educational illustration about ${topic} for grade ${gradeLevel}`
-    );
-    
-    // Wait for all to complete
-    const [structure, content, questions, graph, mainImage] = 
-      await Promise.all([structurePromise, contentPromise, questionsPromise, graphPromise, mainImagePromise]);
-    
-    // 6. Generate section illustrations (after we have section titles)
-    const sectionImagePromises = content.sections.map((section, index) => {
-      if (index < 3) { // Only generate images for the first 3 sections to avoid overloading
-        return generateLessonImage(topic, gradeLevel, `Illustration for "${section.title}" section`);
-      }
-      return null;
-    }).filter(Boolean);
-    
-    const sectionImages = await Promise.all(sectionImagePromises);
-    const allImages = [mainImage, ...sectionImages];
-    
-    // 7. Generate any diagrams needed
-    const diagramPromises = determineDiagramsNeeded(topic, content).map(
-      diagramSpec => generateSvgDiagram(topic, gradeLevel, diagramSpec.type)
-    );
-    
-    const diagrams = await Promise.all(diagramPromises);
-    
-    // 8. Assemble the complete enhanced lesson
-    return assembleEnhancedLesson(
-      topic,
-      gradeLevel,
-      structure,
-      content,
-      questions,
-      graph,
-      allImages,
-      diagrams
-    );
-  } catch (error) {
-    console.error('Error generating enhanced lesson:', error);
-    throw error;
-  }
-}
-```
-
-## Client-Side Rendering Improvements
-
-- Update the React Native renderer to support new content types
-- Implement progressive loading of images and heavy content
-- Create specialized components for different interactive elements
-- Add animations and transitions for engaging presentation
-- Support offline caching of lesson content and resources
-
-## Conclusion
-
-By implementing these enhancements, we will transform our educational content from simple text-based lessons to rich, engaging, interactive learning experiences. This will significantly improve learner engagement, comprehension, and knowledge retention while providing a more enjoyable and effective educational platform.
+- Interactive elements (drag-and-drop, simple simulations)
+- Audio narration of content
+- Personalized image generation based on user preferences
+- Dynamic difficulty adjustment based on user performance
