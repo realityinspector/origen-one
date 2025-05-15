@@ -121,7 +121,13 @@ export class DatabaseStorage implements IStorage {
 
   // Lesson operations
   async createLesson(lesson: InsertLesson): Promise<Lesson> {
-    const result = await db.insert(lessons).values(lesson).returning();
+    // Make sure we have a UUID for the id field to prevent not-null constraint violations
+    const lessonWithId = {
+      ...lesson,
+      id: crypto.randomUUID()
+    };
+    
+    const result = await db.insert(lessons).values(lessonWithId).returning();
     const newLesson = Array.isArray(result) ? result[0] : result;
     return newLesson as Lesson;
   }
