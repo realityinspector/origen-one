@@ -23,6 +23,7 @@ const CreateLessonPage = ({ navigation }: any) => {
   const [gradeLevel, setGradeLevel] = useState('5');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationStep, setGenerationStep] = useState('');
+  const [useEnhanced, setUseEnhanced] = useState(true);
 
   // Grade level options for elementary education
   const gradeLevels = [
