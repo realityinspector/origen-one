@@ -31,6 +31,7 @@ const LearnersPage: React.FC = () => {
   const [subjects, setSubjects] = useState<string[]>([]);
   const [recommendedSubjects, setRecommendedSubjects] = useState<string[]>([]);
   const [strugglingAreas, setStrugglingAreas] = useState<string[]>([]);
+  const [graph, setGraph] = useState<{nodes: any[], edges: any[]}>({nodes: [], edges: []});
   const [error, setError] = useState('');
 
   // Fetch learners
@@ -217,21 +218,7 @@ const LearnersPage: React.FC = () => {
       return;
     }
     
-    // A simple graph structure for demo purposes
-    // In a real application, this would be more sophisticated
-    const graph = {
-      nodes: [
-        { id: 'math', label: 'Mathematics' },
-        { id: 'algebra', label: 'Algebra' },
-        { id: 'geometry', label: 'Geometry' },
-        { id: 'reading', label: 'Reading' }
-      ],
-      edges: [
-        { source: 'math', target: 'algebra' },
-        { source: 'math', target: 'geometry' },
-      ]
-    };
-    
+    // Use the current graph state
     updateGraphMutation.mutate({
       userId: currentEditLearner.id,
       graph
@@ -251,6 +238,23 @@ const LearnersPage: React.FC = () => {
   const openGraphModal = (learner: any, profile: any) => {
     setCurrentEditLearner(learner);
     setCurrentProfile(profile);
+    // Initialize with existing graph or default
+    if (profile && profile.graph) {
+      setGraph(profile.graph);
+    } else {
+      setGraph({
+        nodes: [
+          { id: 'math', label: 'Mathematics' },
+          { id: 'algebra', label: 'Algebra' },
+          { id: 'geometry', label: 'Geometry' },
+          { id: 'reading', label: 'Reading' }
+        ],
+        edges: [
+          { source: 'math', target: 'algebra' },
+          { source: 'math', target: 'geometry' },
+        ]
+      });
+    }
     setGraphModalVisible(true);
   };
 
@@ -699,6 +703,29 @@ const LearnersPage: React.FC = () => {
                     graph editor where you can create nodes for subjects and connect 
                     related topics.
                   </Text>
+                  
+                  {/* Display current graph structure */}
+                  <View style={styles.graphDataContainer}>
+                    <Text style={styles.graphDataHeading}>Current Knowledge Connections:</Text>
+                    {graph.nodes.map((node, index) => (
+                      <Text key={`node-${index}`} style={styles.graphNodeText}>
+                        • {node.label}
+                      </Text>
+                    ))}
+                    
+                    <Text style={styles.graphDataHeading}>Connections:</Text>
+                    {graph.edges.map((edge, index) => {
+                      // Find the source and target nodes
+                      const sourceNode = graph.nodes.find(n => n.id === edge.source);
+                      const targetNode = graph.nodes.find(n => n.id === edge.target);
+                      
+                      return (
+                        <Text key={`edge-${index}`} style={styles.graphEdgeText}>
+                          {sourceNode?.label} → {targetNode?.label}
+                        </Text>
+                      );
+                    })}
+                  </View>
                 </View>
               </View>
 
