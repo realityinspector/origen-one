@@ -279,36 +279,25 @@ const AuthPage = () => {
               </View>
               
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>I am a:</Text>
+                <Text style={styles.label}>You are registering as:</Text>
                 <View style={styles.roleSelector}>
                   <TouchableOpacity
                     style={[
                       styles.roleOption,
-                      regRole === 'PARENT' ? styles.selectedRole : null,
+                      styles.selectedRole
                     ]}
                     onPress={() => setRegRole('PARENT')}
                   >
-                    <User size={20} color={regRole === 'PARENT' ? colors.onPrimary : colors.primary} />
+                    <User size={20} color={colors.onPrimary} />
                     <Text style={[
                       styles.roleText,
-                      regRole === 'PARENT' ? styles.selectedRoleText : null,
+                      styles.selectedRoleText
                     ]}>Parent</Text>
                   </TouchableOpacity>
-                  
-                  <TouchableOpacity
-                    style={[
-                      styles.roleOption,
-                      regRole === 'ADMIN' ? styles.selectedRole : null,
-                    ]}
-                    onPress={() => setRegRole('ADMIN')}
-                  >
-                    <Shield size={20} color={regRole === 'ADMIN' ? colors.onPrimary : colors.primary} />
-                    <Text style={[
-                      styles.roleText,
-                      regRole === 'ADMIN' ? styles.selectedRoleText : null,
-                    ]}>Admin</Text>
-                  </TouchableOpacity>
                 </View>
+                <Text style={styles.noteText}>
+                  As a parent, you can create and manage children's learning accounts.
+                </Text>
               </View>
               
               <View style={styles.checkboxContainer}>
