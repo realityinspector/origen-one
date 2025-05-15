@@ -277,6 +277,40 @@ export class DatabaseStorage implements IStorage {
     const configs = Array.isArray(result) ? result : [result];
     return configs.length > 0 ? configs[0] as DbSyncConfig : undefined;
   }
+  
+  // Delete a user and all associated data
+  async deleteUser(id: number): Promise<boolean> {
+    try {
+      // First, check if this is a learner and delete their profile if it exists
+      const user = await this.getUser(id);
+      if (!user) return false;
+      
+      if (user.role === "LEARNER") {
+        // Delete the learner profile if it exists
+        const profile = await this.getLearnerProfile(id);
+        if (profile) {
+          await db.delete(learnerProfiles).where(eq(learnerProfiles.userId, id));
+        }
+        
+        // Delete any lessons associated with this learner
+        await db.delete(lessons).where(eq(lessons.learnerId, id));
+        
+        // Delete any achievements associated with this learner
+        await db.delete(achievements).where(eq(achievements.learnerId, id));
+      }
+      
+      // Now delete the user
+      try {
+        const result = await db.delete(users).where(eq(users.id, id));
+        return true; // If we get here without error, the deletion was successful
+      } catch {
+        return false;
+      }
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      return false;
+    }
+  }
 }
 
 export const storage = new DatabaseStorage();
