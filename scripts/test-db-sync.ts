@@ -53,12 +53,14 @@ async function setupTestEnvironment() {
     } else {
       // Create parent user
       const hashedPassword = await hashPassword(TEST_PARENT.password);
-      const [parent] = await db.insert(schema.users).values({
+      const insertResult = await db.insert(schema.users).values({
         ...TEST_PARENT,
         password: hashedPassword,
         parentId: null,
         createdAt: new Date()
       }).returning();
+      
+      const parent = insertResult[0];
       
       parentId = parent.id;
       console.log(`Created test parent user with ID ${parentId}`);
