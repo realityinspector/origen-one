@@ -38,29 +38,29 @@ export function registerRoutes(app: Express): Server {
   app.post("/login", (req: Request, res: Response) => {
     // Forward the request to the real API endpoint
     console.log("Proxy: Forwarding login request to /api/login");
-    req.url = "/api/login";
-    app._router.handle(req, res);
+    // Just redirect to the API endpoint
+    res.redirect(307, "/api/login");
   });
   
   app.post("/register", (req: Request, res: Response) => {
     // Forward the request to the real API endpoint
     console.log("Proxy: Forwarding register request to /api/register");
-    req.url = "/api/register";
-    app._router.handle(req, res);
+    // Simply redirect to the API endpoint
+    res.redirect(307, "/api/register");
   });
   
   app.post("/logout", (req: Request, res: Response) => {
     // Forward the request to the real API endpoint
     console.log("Proxy: Forwarding logout request to /api/logout");
-    req.url = "/api/logout";
-    app._router.handle(req, res);
+    // Simply redirect to the API endpoint
+    res.redirect(307, "/api/logout");
   });
   
   app.get("/user", (req: Request, res: Response) => {
     // Forward the request to the real API endpoint
     console.log("Proxy: Forwarding user request to /api/user");
-    req.url = "/api/user";
-    app._router.handle(req, res);
+    // Simply redirect to the API endpoint
+    res.redirect(307, "/api/user");
   });
   
   // Get all parent accounts (Admin only)
