@@ -97,10 +97,15 @@ export async function generateLesson(gradeLevel: number, topic?: string): Promis
         // Wait for all to complete
         const [content, questions, graph] = await Promise.all([contentPromise, questionsPromise, graphPromise]);
         
+        // Check if content is a string (from legacy generator) or an EnhancedLessonSpec (from enhanced generator)
+        const formattedContent = typeof content === 'string' 
+          ? content 
+          : formatEnhancedContentForStandardSpec(content);
+        
         // Return the lesson spec
         return {
           title: `${selectedTopic} for ${safeGradeLevel === 0 ? 'Kindergarten' : `Grade ${safeGradeLevel}`}`,
-          content: content,
+          content: formattedContent,
           questions: questions,
           graph: graph
         };
