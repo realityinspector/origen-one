@@ -137,19 +137,10 @@ export function LearnerSelector({ onToggle }: LearnerSelectorProps) {
                 
                 <TextInput
                   style={styles.input}
-                  placeholder="Email"
-                  value={newLearner.email}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  onChangeText={(text) => setNewLearner({ ...newLearner, email: text })}
-                />
-                
-                <TextInput
-                  style={styles.input}
-                  placeholder="Password"
-                  value={newLearner.password}
-                  secureTextEntry
-                  onChangeText={(text) => setNewLearner({ ...newLearner, password: text })}
+                  placeholder="Grade Level (1-12)"
+                  value={newLearner.gradeLevel}
+                  keyboardType="numeric"
+                  onChangeText={(text) => setNewLearner({ ...newLearner, gradeLevel: text })}
                 />
                 
                 <View style={styles.modalButtons}>
@@ -269,19 +260,10 @@ export function LearnerSelector({ onToggle }: LearnerSelectorProps) {
             
             <TextInput
               style={styles.input}
-              placeholder="Email"
-              value={newLearner.email}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              onChangeText={(text) => setNewLearner({ ...newLearner, email: text })}
-            />
-            
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              value={newLearner.password}
-              secureTextEntry
-              onChangeText={(text) => setNewLearner({ ...newLearner, password: text })}
+              placeholder="Grade Level (1-12)"
+              value={newLearner.gradeLevel}
+              keyboardType="numeric"
+              onChangeText={(text) => setNewLearner({ ...newLearner, gradeLevel: text })}
             />
             
             <View style={styles.modalButtons}>
