@@ -8,6 +8,7 @@ import {
   RefreshControl,
   ActivityIndicator,
   Image,
+  Modal,
 } from 'react-native';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Link, useLocation } from 'wouter';
@@ -16,7 +17,8 @@ import { apiRequest, queryClient } from '../lib/queryClient';
 import { colors, typography, commonStyles } from '../styles/theme';
 import LessonCard from '../components/LessonCard';
 import KnowledgeGraph from '../components/KnowledgeGraph';
-import { Book, Award, BarChart2, User, Compass, Zap, ChevronDown, Plus } from 'react-feather';
+import SubjectSelector from '../components/SubjectSelector';
+import { Book, Award, BarChart2, User, Compass, Zap, ChevronDown, Plus, X } from 'react-feather';
 import { useMode } from '../context/ModeContext';
 
 const LearnerSwitcher = () => {
@@ -87,6 +89,7 @@ const LearnerHome = () => {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const [refreshing, setRefreshing] = useState(false);
+  const [subjectSelectorVisible, setSubjectSelectorVisible] = useState(false);
 
   // Fetch active lesson
   const {
