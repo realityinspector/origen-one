@@ -156,14 +156,28 @@ const LearnerHome = () => {
     setRefreshing(false);
   }, [user?.id]);
 
-  const handleGenerateLesson = () => {
+  const handleGenerateLesson = (subject?: { name: string; category: string; difficulty: 'beginner' | 'intermediate' | 'advanced' }) => {
     if (!user || !profile) return;
     
+    // Only pass the basic properties required by the API
     generateLessonMutation.mutate({
       learnerId: user.id,
-      topic: '', // Empty for auto-selection
-      gradeLevel: profile.gradeLevel,
+      topic: subject?.name || '', // Use selected subject or empty for auto-selection
+      gradeLevel: profile.gradeLevel
     });
+  };
+  
+  const handleOpenSubjectSelector = () => {
+    setSubjectSelectorVisible(true);
+  };
+  
+  const handleCloseSubjectSelector = () => {
+    setSubjectSelectorVisible(false);
+  };
+  
+  const handleSelectSubject = (subject: { name: string; category: string; difficulty: 'beginner' | 'intermediate' | 'advanced' }) => {
+    setSubjectSelectorVisible(false);
+    handleGenerateLesson(subject);
   };
 
   const handleViewLesson = () => {
@@ -177,6 +191,30 @@ const LearnerHome = () => {
 
   return (
     <View style={commonStyles.container}>
+      {/* Subject Selector Modal */}
+      <Modal
+        visible={subjectSelectorVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCloseSubjectSelector}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Choose a Subject</Text>
+              <TouchableOpacity 
+                style={styles.closeButton}
+                onPress={handleCloseSubjectSelector}
+              >
+                <X size={24} color={colors.textPrimary} />
+              </TouchableOpacity>
+            </View>
+            
+            <SubjectSelector onSelectSubject={handleSelectSubject} />
+          </View>
+        </View>
+      </Modal>
+      
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
@@ -249,15 +287,27 @@ const LearnerHome = () => {
                   <Text style={styles.emptyStateText}>
                     You don't have an active lesson
                   </Text>
-                  <TouchableOpacity
-                    style={styles.generateButton}
-                    onPress={handleGenerateLesson}
-                  >
-                    <Text style={styles.generateButtonText}>
-                      Generate New Lesson
-                    </Text>
-                    <Zap size={16} color={colors.onPrimary} />
-                  </TouchableOpacity>
+                  <View style={styles.emptyStateActions}>
+                    <TouchableOpacity
+                      style={styles.selectSubjectButton}
+                      onPress={handleOpenSubjectSelector}
+                    >
+                      <Text style={styles.selectSubjectButtonText}>
+                        Select a Subject
+                      </Text>
+                      <Book size={16} color={colors.primary} />
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity
+                      style={styles.generateButton}
+                      onPress={() => handleGenerateLesson()}
+                    >
+                      <Text style={styles.generateButtonText}>
+                        Random Lesson
+                      </Text>
+                      <Zap size={16} color={colors.onPrimary} />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               )}
             </View>
@@ -297,6 +347,57 @@ const LearnerHome = () => {
 };
 
 const styles = StyleSheet.create({
+  // Subject Selector Modal Styles
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  modalContent: {
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    padding: 20,
+    width: '100%',
+    maxHeight: '90%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    ...typography.h3,
+  },
+  closeButton: {
+    padding: 8,
+  },
+  emptyStateActions: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    marginTop: 8,
+  },
+  selectSubjectButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.surfaceColor,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+    marginHorizontal: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  selectSubjectButtonText: {
+    ...typography.button,
+    color: colors.primary,
+    marginRight: 8,
+  },
   // Learner Switcher Styles
   learnerSwitcherContainer: {
     position: 'relative',
