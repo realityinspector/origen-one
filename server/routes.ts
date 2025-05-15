@@ -301,8 +301,12 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ error: "AI lesson generation is currently disabled" });
       }
       
-      // By default, we try to generate an enhanced lesson (this can fallback to standard)
-      const lessonSpec = await generateLesson(gradeLevel, topic);
+      // Check if enhanced format is explicitly requested
+      const useEnhanced = req.body.enhanced !== false; // Default to true if not specified
+      console.log(`Generating ${useEnhanced ? 'enhanced' : 'standard'} lesson for "${topic}" (Grade ${gradeLevel})`);
+      
+      // Generate the lesson with the specified format
+      const lessonSpec = await generateLesson(gradeLevel, topic, useEnhanced);
       
       // Create the lesson
       const newLesson = await storage.createLesson({
