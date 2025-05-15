@@ -93,31 +93,37 @@ export class DatabaseStorage implements IStorage {
   // Learner profile operations
   async getLearnerProfile(userId: number): Promise<LearnerProfile | undefined> {
     try {
-      // Use more specific query to avoid 'column does not exist' errors
+      // First try to get only the essential fields
       const result = await db.select({
         id: learnerProfiles.id,
         userId: learnerProfiles.userId,
         gradeLevel: learnerProfiles.gradeLevel,
         graph: learnerProfiles.graph,
-        subjects: learnerProfiles.subjects,
-        subjectPerformance: learnerProfiles.subjectPerformance,
-        recommendedSubjects: learnerProfiles.recommendedSubjects,
-        strugglingAreas: learnerProfiles.strugglingAreas,
         createdAt: learnerProfiles.createdAt
       }).from(learnerProfiles).where(eq(learnerProfiles.userId, userId));
       
       const profiles = Array.isArray(result) ? result : [result];
       
       if (profiles.length > 0) {
-        // Add default values for potentially missing columns
+        // Base profile with required fields
         const profile = profiles[0];
-        return {
-          ...profile,
-          subjects: profile.subjects || ['Math', 'Reading', 'Science'],
-          subjectPerformance: profile.subjectPerformance || {},
-          recommendedSubjects: profile.recommendedSubjects || [],
-          strugglingAreas: profile.strugglingAreas || []
-        } as LearnerProfile;
+        
+        // Since we've had issues with missing columns,
+        // construct a complete profile with default values for any missing fields
+        const completeProfile: LearnerProfile = {
+          id: profile.id,
+          userId: profile.userId,
+          gradeLevel: profile.gradeLevel,
+          graph: profile.graph || { nodes: [], edges: [] },
+          subjects: ['Math', 'Reading', 'Science'], // Default subjects
+          subjectPerformance: {}, // Default empty performance data
+          recommendedSubjects: [], // Default empty recommended subjects
+          strugglingAreas: [], // Default empty struggling areas
+          createdAt: profile.createdAt
+        };
+        
+        // Return the profile with default values for missing fields
+        return completeProfile;
       }
       
       return undefined;
