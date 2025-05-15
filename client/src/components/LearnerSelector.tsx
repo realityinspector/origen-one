@@ -25,7 +25,7 @@ export function LearnerSelector({ onToggle }: LearnerSelectorProps) {
   const queryClient = useQueryClient();
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [createModalVisible, setCreateModalVisible] = useState(false);
-  const [newLearner, setNewLearner] = useState({ name: '', email: '', password: '' });
+  const [newLearner, setNewLearner] = useState({ name: '', gradeLevel: '5' });
   const [error, setError] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
@@ -38,7 +38,7 @@ export function LearnerSelector({ onToggle }: LearnerSelectorProps) {
   const openCreateModal = () => {
     setCreateModalVisible(true);
     setError('');
-    setNewLearner({ name: '', email: '', password: '' });
+    setNewLearner({ name: '', gradeLevel: '5' });
   };
 
   const closeCreateModal = () => {
@@ -46,15 +46,20 @@ export function LearnerSelector({ onToggle }: LearnerSelectorProps) {
   };
 
   const handleCreateLearner = async () => {
-    if (!newLearner.name || !newLearner.email || !newLearner.password) {
-      setError('Please fill all required fields');
+    if (!newLearner.name) {
+      setError('Please enter a learner name');
       return;
     }
 
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(newLearner.email)) {
-      setError('Please enter a valid email address');
+    if (!newLearner.gradeLevel) {
+      setError('Please select a grade level');
+      return;
+    }
+
+    // Validate grade level (should be a number from 1-12)
+    const gradeNum = parseInt(newLearner.gradeLevel);
+    if (isNaN(gradeNum) || gradeNum < 1 || gradeNum > 12) {
+      setError('Grade level should be a number between 1 and 12');
       return;
     }
 
