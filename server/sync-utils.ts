@@ -97,10 +97,18 @@ export async function synchronizeToExternalDatabase(parentId: number, syncConfig
     
     // Update the sync status to COMPLETED in the database
     try {
-      await storage.updateSyncConfig(syncConfig.id, {
+      console.log(`Updating sync config with ID: ${syncConfig.id}, current status: ${syncConfig.syncStatus}`);
+      
+      const updatedConfig = await storage.updateSyncConfig(syncConfig.id, {
         syncStatus: 'COMPLETED',
         lastSyncAt: new Date()
       });
+      
+      if (updatedConfig) {
+        console.log(`Sync config updated successfully: ${updatedConfig.id}, new status: ${updatedConfig.syncStatus}`);
+      } else {
+        console.error(`Failed to update sync config: No config found with ID ${syncConfig.id}`);
+      }
     } catch (updateError) {
       console.error('Error updating sync status:', updateError);
       // Don't throw here, as the sync itself was successful
@@ -116,10 +124,19 @@ export async function synchronizeToExternalDatabase(parentId: number, syncConfig
     
     // Update the sync status to FAILED
     try {
-      await storage.updateSyncConfig(syncConfig.id, {
+      console.log(`Updating sync config to FAILED with ID: ${syncConfig.id}, current status: ${syncConfig.syncStatus}`);
+      
+      const updatedConfig = await storage.updateSyncConfig(syncConfig.id, {
         syncStatus: 'FAILED',
-        lastSyncAt: new Date()
+        lastSyncAt: new Date(),
+        errorMessage: error.message || 'Synchronization failed'
       });
+      
+      if (updatedConfig) {
+        console.log(`Sync config updated to FAILED: ${updatedConfig.id}, new status: ${updatedConfig.syncStatus}`);
+      } else {
+        console.error(`Failed to update sync config to FAILED: No config found with ID ${syncConfig.id}`);
+      }
     } catch (updateError) {
       console.error('Error updating sync failure status:', updateError);
     }
