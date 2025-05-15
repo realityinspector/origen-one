@@ -330,6 +330,10 @@ export function registerRoutes(app: Express): Server {
             userId,
             gradeLevel: 5,  // Default to grade 5
             graph: { nodes: [], edges: [] },
+            subjects: ['Math', 'Reading', 'Science'],
+            subjectPerformance: {},
+            recommendedSubjects: [],
+            strugglingAreas: []
           });
         } else if (!profile) {
           return res.status(404).json({ error: "Learner profile not found" });
