@@ -87,34 +87,38 @@ export function registerRoutes(app: Express): Server {
   
   // Create a new learner account
   app.post("/api/learners", hasRole(["PARENT", "ADMIN"]), asyncHandler(async (req: AuthRequest, res) => {
-    const { name, email, password, role = "LEARNER" } = req.body;
+    const { name, role = "LEARNER" } = req.body;
     
-    if (!name || !email || !password) {
-      return res.status(400).json({ error: "Missing required fields: name, email, password" });
-    }
-    
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({ error: "Invalid email format" });
+    if (!name) {
+      return res.status(400).json({ error: "Missing required field: name" });
     }
     
     try {
-      // Check if email already exists - first check by username (which can be email)
-      const existingUserByUsername = await storage.getUserByUsername(email);
-      if (existingUserByUsername) {
-        return res.status(409).json({ error: "Email already in use as a username" });
-      }
-      
-      // Also check the email field directly to prevent database constraint violations
-      try {
-        const emailCheckResult = await db.select().from(users).where(sql`LOWER(email) = LOWER(${email})`);
-        if (emailCheckResult.length > 0) {
-          return res.status(409).json({ error: "Email already in use" });
+      // For backward compatibility, check email if provided
+      if (req.body.email) {
+        const email = req.body.email;
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+          return res.status(400).json({ error: "Invalid email format" });
         }
-      } catch (emailCheckError) {
-        console.error("Error checking email existence:", emailCheckError);
-        // Continue with the operation - if there's a duplicate, it will be caught by the database constraint
+        
+        // Check if email already exists - first check by username
+        const existingUserByUsername = await storage.getUserByUsername(email);
+        if (existingUserByUsername) {
+          return res.status(409).json({ error: "Email already in use as a username" });
+        }
+        
+        // Also check the email field directly to prevent database constraint violations
+        try {
+          const emailCheckResult = await db.select().from(users).where(sql`LOWER(email) = LOWER(${email})`);
+          if (emailCheckResult.length > 0) {
+            return res.status(409).json({ error: "Email already in use" });
+          }
+        } catch (emailCheckError) {
+          console.error("Error checking email existence:", emailCheckError);
+          // Continue with the operation
+        }
       }
       
       // Set parent ID based on the user's role
@@ -143,23 +147,53 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ error: "Learner accounts must have a parent" });
       }
       
-      // Create the new user
-      const newUser = await storage.createUser({
-        email,
-        username: email, // Use email as username
-        password, // This will be hashed in the storage layer
+      // Generate a unique username based on name and timestamp
+      const timestamp = Date.now().toString().slice(-6);
+      const username = `${name.toLowerCase().replace(/\s+/g, '-')}-${timestamp}`;
+      
+      // Create the user object with only required fields
+      const userObj: any = {
+        username,
         name,
         role,
         parentId,
-      });
+      };
       
-      // If it's a learner, create their profile automatically
+      // Add email and password if provided (for backward compatibility)
+      if (req.body.email) {
+        userObj.email = req.body.email;
+      }
+      
+      if (req.body.password) {
+        userObj.password = req.body.password;
+      }
+      
+      // Create the new user
+      const newUser = await storage.createUser(userObj);
+      
+      // Create the learner profile first to avoid constraint issues
       if (newUser.role === "LEARNER") {
-        await storage.createLearnerProfile({
-          userId: newUser.id,
-          gradeLevel: req.body.gradeLevel || 5, // Default to grade 5 if not specified
-          graph: { nodes: [], edges: [] },
-        });
+        try {
+          // Parse grade level, default to 5 if not provided or invalid
+          let gradeLevel = 5;
+          if (req.body.gradeLevel !== undefined) {
+            gradeLevel = typeof req.body.gradeLevel === 'string' ? 
+              parseInt(req.body.gradeLevel) : req.body.gradeLevel;
+            
+            if (isNaN(gradeLevel)) {
+              gradeLevel = 5;
+            }
+          }
+          
+          await storage.createLearnerProfile({
+            userId: newUser.id,
+            gradeLevel,
+            graph: { nodes: [], edges: [] },
+          });
+        } catch (profileError) {
+          console.error('Error creating learner profile:', profileError);
+          // Continue so we can return the user object even if profile creation fails
+        }
       }
       
       // Return the created user without password

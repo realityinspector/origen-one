@@ -9,11 +9,11 @@ export const syncStatusEnum = pgEnum("sync_status", ["IDLE", "IN_PROGRESS", "FAI
 // Users table
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  email: text("email").notNull().unique(),
+  email: text("email").unique(), // Made optional for learners
   username: text("username").notNull().unique(),
   name: text("name").notNull(),
   role: userRoleEnum("role").notNull(),
-  password: text("password").notNull(),
+  password: text("password"), // Made optional for learners
   parentId: integer("parent_id").references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow(),
 });
