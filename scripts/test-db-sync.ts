@@ -120,7 +120,7 @@ async function setupTestEnvironment() {
     
     if (!existingLesson) {
       const lessonResult = await db.insert(schema.lessons).values({
-        id: generateId(6),
+        id: generateId(36), // Full UUID
         learnerId: learnerId,
         moduleId: 'test-module',
         status: 'DONE',
@@ -224,7 +224,7 @@ async function testDatabaseSync(parentId: number) {
     } else {
       // Create sync configuration
       const syncConfigResult = await db.insert(schema.dbSyncConfigs).values({
-        id: generateId(8),
+        id: generateId(36), // Full UUID
         parentId: parentId,
         targetDbUrl: externalDbUrl,
         lastSyncAt: null,
