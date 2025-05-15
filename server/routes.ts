@@ -9,6 +9,7 @@ import { InsertDbSyncConfig } from "../shared/schema";
 import { USE_AI } from "./config/flags";
 import { db } from "./db";
 import { sql } from "drizzle-orm";
+import crypto from "crypto";
 import { users } from "../shared/schema";
 
 // Use our imported middleware functions for authentication
@@ -248,6 +249,7 @@ export function registerRoutes(app: Express): Server {
             }
             
             await storage.createLearnerProfile({
+              id: crypto.randomUUID(),
               userId: newUser.id,
               gradeLevel,
               graph: { nodes: [], edges: [] },
@@ -289,8 +291,9 @@ export function registerRoutes(app: Express): Server {
         // If no profile exists and it's the current user, create one
         if (!profile && req.user?.id === userId) {
           console.log(`Creating learner profile for user ${userId}`);
-          // Create a default profile with grade level 5
+          // Create a default profile with grade level 5 and a generated ID
           profile = await storage.createLearnerProfile({
+            id: crypto.randomUUID(), // Add a UUID for the ID field
             userId,
             gradeLevel: 5,  // Default to grade 5
             graph: { nodes: [], edges: [] },
