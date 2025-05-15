@@ -138,7 +138,7 @@ export class DatabaseStorage implements IStorage {
         return user as User;
       } else {
         // Create new user
-        const [user] = await db
+        const result = await db
           .insert(users)
           .values({
             ...userData,
@@ -146,6 +146,7 @@ export class DatabaseStorage implements IStorage {
             updatedAt: new Date()
           })
           .returning();
+        const user = Array.isArray(result) ? result[0] : result;
         return user as User;
       }
     } catch (error) {
