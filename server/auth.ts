@@ -56,11 +56,6 @@ export function setupAuth(app: Express) {
         return res.status(400).json({ error: "Missing required fields" });
       }
       
-      // Verify role is valid
-      if (!["ADMIN", "PARENT", "LEARNER"].includes(role)) {
-        return res.status(400).json({ error: "Invalid role" });
-      }
-      
       // Check if username already exists
       const existingUser = await withRetry(() => storage.getUserByUsername(username));
       if (existingUser) {
@@ -70,6 +65,17 @@ export function setupAuth(app: Express) {
       // Check if this is the first user being registered
       const userCountResult = await withRetry(() => db.select({ count: count() }).from(users));
       const isFirstUser = userCountResult[0].count === 0;
+      
+      // Verify role is valid and prevent ADMIN registration (unless it's the first user)
+      if (role === "ADMIN" && !isFirstUser) {
+        return res.status(403).json({ 
+          error: "Admin registration is not allowed. Contact an existing admin for access." 
+        });
+      }
+      
+      if (!["ADMIN", "PARENT", "LEARNER"].includes(role)) {
+        return res.status(400).json({ error: "Invalid role" });
+      }
       
       // If this is the first user, make them an admin regardless of the requested role
       const effectiveRole = isFirstUser ? "ADMIN" : role;
