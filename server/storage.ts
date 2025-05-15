@@ -163,13 +163,74 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateLearnerProfile(userId: number, data: Partial<InsertLearnerProfile>): Promise<LearnerProfile | undefined> {
-    const result = await db
-      .update(learnerProfiles)
-      .set(data)
-      .where(eq(learnerProfiles.userId, userId))
-      .returning();
-    const profiles = Array.isArray(result) ? result : [result];
-    return profiles.length > 0 ? profiles[0] as LearnerProfile : undefined;
+    try {
+      // First check if profile exists
+      const existingProfile = await this.getLearnerProfile(userId);
+      if (!existingProfile) {
+        console.error(`Cannot update profile for user ${userId}: profile does not exist`);
+        return undefined;
+      }
+
+      // Update with supplied data
+      const result = await db
+        .update(learnerProfiles)
+        .set(data)
+        .where(eq(learnerProfiles.userId, userId))
+        .returning({
+          id: learnerProfiles.id,
+          userId: learnerProfiles.userId,
+          gradeLevel: learnerProfiles.gradeLevel,
+          graph: learnerProfiles.graph,
+          subjects: learnerProfiles.subjects,
+          subjectPerformance: learnerProfiles.subjectPerformance,
+          recommendedSubjects: learnerProfiles.recommendedSubjects,
+          strugglingAreas: learnerProfiles.strugglingAreas,
+          createdAt: learnerProfiles.createdAt
+        });
+      
+      const profiles = Array.isArray(result) ? result : [result];
+      
+      if (profiles.length > 0) {
+        // Make sure we add default values for any missing fields
+        const updatedProfile = profiles[0];
+        return {
+          ...updatedProfile,
+          subjects: updatedProfile.subjects || existingProfile.subjects || ['Math', 'Reading', 'Science'],
+          subjectPerformance: updatedProfile.subjectPerformance || existingProfile.subjectPerformance || {},
+          recommendedSubjects: updatedProfile.recommendedSubjects || existingProfile.recommendedSubjects || [],
+          strugglingAreas: updatedProfile.strugglingAreas || existingProfile.strugglingAreas || []
+        } as LearnerProfile;
+      }
+      
+      return undefined;
+    } catch (error) {
+      console.error('Error in updateLearnerProfile:', error);
+      
+      // Try a more basic update if we encounter database structure issues
+      if (error.message && error.message.includes('column') && error.message.includes('does not exist')) {
+        console.log('Falling back to basic profile update');
+        
+        try {
+          // Update only the core fields
+          const updateResult = await db
+            .update(learnerProfiles)
+            .set({
+              gradeLevel: data.gradeLevel,
+              graph: data.graph
+            })
+            .where(eq(learnerProfiles.userId, userId))
+            .returning();
+            
+          // Get the updated profile
+          return this.getLearnerProfile(userId);
+        } catch (fallbackError) {
+          console.error('Fallback update also failed:', fallbackError);
+          return undefined;
+        }
+      }
+      
+      return undefined;
+    }
   }
 
   // Lesson operations
