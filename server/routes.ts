@@ -214,11 +214,60 @@ export function registerRoutes(app: Express): Server {
         return res.status(409).json({ 
           error: "This username is already taken. Please choose a different username."
         });
+      } else if (error.code === '23502' && error.column === 'email') {
+        // Not-null constraint for email - we need to generate a temporary email
+        console.log('Email not-null constraint error - creating user with generated email');
+        
+        // Create a random email for the user (temporary solution until migration is complete)
+        const timestamp = Date.now();
+        const randomEmail = `learner-${timestamp}@example.org`;
+        
+        try {
+          // Create a new user object with the generated email
+          const retryUserObj = {
+            username: req.body.name.toLowerCase().replace(/\s+/g, '-') + '-' + timestamp.toString().slice(-6),
+            name: req.body.name,
+            role: req.body.role || "LEARNER",
+            parentId: req.user?.id,
+            email: randomEmail,
+            password: req.body.password || "temppass" + timestamp.toString().slice(-6)
+          };
+          
+          const newUser = await storage.createUser(retryUserObj);
+          
+          // Create the learner profile
+          if (newUser.role === "LEARNER") {
+            let gradeLevel = 5;
+            if (req.body.gradeLevel !== undefined) {
+              gradeLevel = typeof req.body.gradeLevel === 'string' ? 
+                parseInt(req.body.gradeLevel) : req.body.gradeLevel;
+              
+              if (isNaN(gradeLevel)) {
+                gradeLevel = 5;
+              }
+            }
+            
+            await storage.createLearnerProfile({
+              userId: newUser.id,
+              gradeLevel,
+              graph: { nodes: [], edges: [] },
+            });
+          }
+          
+          // Return the created user without password
+          const { password: _, ...userResponse } = newUser;
+          return res.status(201).json(userResponse);
+        } catch (retryError) {
+          console.error('Retry failed:', retryError);
+          return res.status(500).json({
+            error: "Failed to create learner account. Please try again."
+          });
+        }
       }
       
       // Default error response
       res.status(500).json({ 
-        error: "Failed to create learner account. Please try again with a different email address."
+        error: "Failed to create learner account. Please try again."
       });
     }
   }));
