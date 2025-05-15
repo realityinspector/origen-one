@@ -130,8 +130,8 @@ const LearnersPage: React.FC = () => {
   const handleAddLearner = async () => {
     try {
       setError('');
-      if (!newLearner.name || !newLearner.email || !newLearner.password) {
-        setError('All fields are required');
+      if (!newLearner.name) {
+        setError('Name is required');
         return;
       }
 
@@ -148,15 +148,13 @@ const LearnersPage: React.FC = () => {
       // A more complete implementation would allow admins to select the parent from a list
       await apiRequest('POST', '/api/learners', {
         name: newLearner.name,
-        email: newLearner.email,
-        password: newLearner.password,
         role: 'LEARNER',
         parentId: user?.id, // Use the current user's ID as the parent ID
         gradeLevel: gradeLevelNum, // Add grade level
       });
 
       // Reset form and close modal
-      setNewLearner({ name: '', email: '', password: '', gradeLevel: '5' });
+      setNewLearner({ name: '', gradeLevel: '5' });
       setModalVisible(false);
 
       // Refresh learners list and profiles
@@ -320,24 +318,7 @@ const LearnersPage: React.FC = () => {
                 placeholder={user?.role === 'ADMIN' ? "Enter learner's name" : "Enter child's name"}
               />
 
-              <Text style={styles.inputLabel}>Email</Text>
-              <TextInput
-                style={styles.input}
-                value={newLearner.email}
-                onChangeText={(text) => setNewLearner({ ...newLearner, email: text })}
-                placeholder="Enter email"
-                keyboardType="email-address"
-                autoCapitalize="none"
-              />
-
-              <Text style={styles.inputLabel}>Password</Text>
-              <TextInput
-                style={styles.input}
-                value={newLearner.password}
-                onChangeText={(text) => setNewLearner({ ...newLearner, password: text })}
-                placeholder="Create password"
-                secureTextEntry
-              />
+              {/* Email and password fields removed as they're no longer required for learners */}
               
               <Text style={styles.inputLabel}>Grade Level</Text>
               <View style={styles.gradeLevelContainer}>
@@ -387,7 +368,7 @@ const LearnersPage: React.FC = () => {
                   style={styles.cancelButton}
                   onPress={() => {
                     setModalVisible(false);
-                    setNewLearner({ name: '', email: '', password: '', gradeLevel: '5' });
+                    setNewLearner({ name: '', gradeLevel: '5' });
                     setError('');
                   }}
                 >
