@@ -38,6 +38,15 @@ export const learnerProfiles = pgTable("learner_profiles", {
   userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   gradeLevel: integer("grade_level").notNull(),
   graph: json("graph").$type<{ nodes: any[], edges: any[] }>(),
+  subjects: json("subjects").$type<string[]>().default(['Math', 'Science']),
+  subjectPerformance: json("subject_performance").$type<Record<string, {
+    score: number,
+    lessonCount: number,
+    lastAttempted: string,
+    masteryLevel: 'beginner' | 'intermediate' | 'advanced'
+  }>>().default({}),
+  recommendedSubjects: json("recommended_subjects").$type<string[]>().default([]),
+  strugglingAreas: json("struggling_areas").$type<string[]>().default([]),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -122,6 +131,14 @@ export const lessons = pgTable("lessons", {
   learnerId: integer("learner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   moduleId: text("module_id").notNull(),
   status: lessonStatusEnum("status").notNull().default("QUEUED"),
+  subject: text("subject"),
+  category: text("category"),
+  difficulty: text("difficulty", { enum: ["beginner", "intermediate", "advanced"] }).default("beginner"),
+  imagePaths: json("image_paths").$type<{
+    path: string;
+    alt: string;
+    description: string;
+  }[]>(),
   spec: json("spec").$type<{
     title: string;
     content: string;
