@@ -503,6 +503,12 @@ const styles = StyleSheet.create({
   selectedRoleText: {
     color: colors.onPrimary,
   },
+  noteText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    marginTop: 8,
+    fontStyle: 'italic',
+  },
   button: {
     ...commonStyles.button,
     marginTop: 8,
