@@ -67,6 +67,7 @@ export type LessonImage = {
   base64Data?: string;
   svgData?: string;
   promptUsed: string;
+  path?: string; // Local filesystem path for persistent storage
 };
 
 // Define diagram type
