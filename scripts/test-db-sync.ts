@@ -272,12 +272,27 @@ async function testDatabaseSync(parentId: number) {
     }
     
     // Update sync config to indicate sync is in progress
-    await db.update(schema.dbSyncConfigs)
+    console.log(`Updating sync config status to IN_PROGRESS for ID: ${syncConfigId}`);
+    const updateResult = await db.update(schema.dbSyncConfigs)
       .set({
         syncStatus: 'IN_PROGRESS',
         updatedAt: new Date()
       })
-      .where(eq(schema.dbSyncConfigs.id, syncConfigId));
+      .where(eq(schema.dbSyncConfigs.id, syncConfigId))
+      .returning();
+    
+    console.log(`Update result: ${updateResult.length} rows affected`);
+    
+    // Check if the config still exists
+    const checkConfig = await db.query.dbSyncConfigs.findFirst({
+      where: eq(schema.dbSyncConfigs.id, syncConfigId)
+    });
+    
+    if (checkConfig) {
+      console.log(`Sync config exists in database with ID: ${checkConfig.id}, status: ${checkConfig.syncStatus}`);
+    } else {
+      console.error(`⚠️ Sync config with ID ${syncConfigId} not found in database after creation`);
+    }
     
     console.log('Starting synchronization...');
     
