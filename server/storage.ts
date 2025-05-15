@@ -65,7 +65,23 @@ export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: string): Promise<User | undefined> {
     try {
-      const result = await db.select().from(users).where(eq(users.id, id));
+      // Use specific fields instead of select() to avoid any column issues
+      const result = await db
+        .select({
+          id: users.id,
+          email: users.email,
+          username: users.username,
+          name: users.name,
+          role: users.role,
+          password: users.password,
+          parentId: users.parentId,
+          createdAt: users.createdAt,
+          updatedAt: users.updatedAt,
+          profileImageUrl: users.profileImageUrl
+        })
+        .from(users)
+        .where(eq(users.id, id));
+      
       const users_found = Array.isArray(result) ? result : [result];
       return users_found.length > 0 ? users_found[0] as User : undefined;
     } catch (error) {
@@ -77,7 +93,25 @@ export class DatabaseStorage implements IStorage {
   async getUserByUsername(username: string): Promise<User | undefined> {
     try {
       return await withRetry(async () => {
-        const result = await db.select().from(users).where(eq(users.username, username));
+        // Log the SQL query being executed for debugging
+        console.log(`Looking for user with username: ${username}`);
+        // Use specific fields instead of select() to avoid any column issues
+        const result = await db
+          .select({
+            id: users.id,
+            email: users.email,
+            username: users.username,
+            name: users.name,
+            role: users.role,
+            password: users.password,
+            parentId: users.parentId,
+            createdAt: users.createdAt,
+            updatedAt: users.updatedAt,
+            profileImageUrl: users.profileImageUrl
+          })
+          .from(users)
+          .where(eq(users.username, username));
+        
         const users_found = Array.isArray(result) ? result : [result];
         return users_found.length > 0 ? users_found[0] as User : undefined;
       });
