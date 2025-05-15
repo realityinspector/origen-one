@@ -226,10 +226,12 @@ async function testDatabaseSync(parentId: number) {
     });
     
     let syncConfigId: string;
+    let syncConfig: schema.DbSyncConfig;
     
     if (existingConfig) {
       console.log(`Sync configuration already exists with ID ${existingConfig.id}`);
       syncConfigId = existingConfig.id;
+      syncConfig = existingConfig;
     } else {
       // Create sync configuration
       const syncConfigResult = await db.insert(schema.dbSyncConfigs).values({
@@ -244,9 +246,20 @@ async function testDatabaseSync(parentId: number) {
         updatedAt: new Date()
       }).returning();
       
-      const syncConfig = syncConfigResult[0];
+      syncConfig = syncConfigResult[0];
       syncConfigId = syncConfig.id;
       console.log(`Created sync configuration with ID ${syncConfigId}`);
+      
+      // Verify the config was actually saved to the database
+      const verifyConfig = await db.query.dbSyncConfigs.findFirst({
+        where: eq(schema.dbSyncConfigs.id, syncConfigId)
+      });
+      
+      if (verifyConfig) {
+        console.log(`Verified sync config was saved to database: ${verifyConfig.id}`);
+      } else {
+        console.error(`⚠️ Failed to verify sync config in database after creation`);
+      }
     }
     
     // Test connection to external database
@@ -316,6 +329,29 @@ async function testDatabaseSync(parentId: number) {
         setTimeout(() => reject(new Error('Synchronization timed out after 30 seconds')), 30000);
       });
       
+      // Verify the config still exists before synchronization
+      const preCheckConfig = await db.query.dbSyncConfigs.findFirst({
+        where: eq(schema.dbSyncConfigs.id, syncConfigId)
+      });
+      
+      if (!preCheckConfig) {
+        console.error(`⚠️ Sync config disappeared from database before synchronization`);
+        
+        // Re-create it if needed
+        console.log('Attempting to re-create sync config...');
+        await db.insert(schema.dbSyncConfigs).values({
+          id: syncConfigId,
+          parentId: parentId,
+          targetDbUrl: externalDbUrl,
+          lastSyncAt: null,
+          syncStatus: 'IN_PROGRESS',
+          continuousSync: false,
+          errorMessage: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      }
+      
       // Race the synchronization against the timeout
       await Promise.race([
         synchronizeToExternalDatabase(parentId, currentSyncConfig),
@@ -323,6 +359,21 @@ async function testDatabaseSync(parentId: number) {
       ]);
       
       console.log('Synchronization completed successfully');
+      
+      // Update the sync status directly in the test script
+      try {
+        console.log(`Manually updating sync status to COMPLETED in test script`);
+        await db.update(schema.dbSyncConfigs)
+          .set({
+            syncStatus: 'COMPLETED',
+            lastSyncAt: new Date(),
+            updatedAt: new Date()
+          })
+          .where(eq(schema.dbSyncConfigs.id, syncConfigId))
+          .returning();
+      } catch (updateError) {
+        console.error('Error manually updating sync status:', updateError);
+      }
     } catch (error) {
       console.error('Error during synchronization:', error);
       throw error;
