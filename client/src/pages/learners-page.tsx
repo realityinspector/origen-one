@@ -23,8 +23,14 @@ const LearnersPage: React.FC = () => {
   const [, navigate] = useLocation();
   const [modalVisible, setModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
+  const [subjectsModalVisible, setSubjectsModalVisible] = useState(false); 
+  const [graphModalVisible, setGraphModalVisible] = useState(false);
   const [currentEditLearner, setCurrentEditLearner] = useState<any>(null);
+  const [currentProfile, setCurrentProfile] = useState<any>(null);
   const [newLearner, setNewLearner] = useState({ name: '', gradeLevel: '5' });
+  const [subjects, setSubjects] = useState<string[]>([]);
+  const [recommendedSubjects, setRecommendedSubjects] = useState<string[]>([]);
+  const [strugglingAreas, setStrugglingAreas] = useState<string[]>([]);
   const [error, setError] = useState('');
 
   // Fetch learners
@@ -103,6 +109,70 @@ const LearnersPage: React.FC = () => {
     },
   });
   
+  // Update subjects mutation
+  const updateSubjectsMutation = useMutation({
+    mutationFn: ({ 
+      userId, 
+      subjects, 
+      recommendedSubjects, 
+      strugglingAreas 
+    }: { 
+      userId: number, 
+      subjects: string[], 
+      recommendedSubjects: string[], 
+      strugglingAreas: string[] 
+    }) =>
+      apiRequest('PUT', `/api/learner-profile/${userId}`, {
+        subjects,
+        recommendedSubjects,
+        strugglingAreas
+      }).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/learner-profiles', learners] });
+      setSubjectsModalVisible(false);
+      setCurrentProfile(null);
+      setError('');
+    },
+    onError: (err: any) => {
+      // Try to extract a meaningful error message
+      let errorMessage = 'Failed to update subjects. Please try again.';
+      
+      if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+    },
+  });
+  
+  // Update knowledge graph mutation
+  const updateGraphMutation = useMutation({
+    mutationFn: ({ userId, graph }: { userId: number, graph: any }) =>
+      apiRequest('PUT', `/api/learner-profile/${userId}`, {
+        graph
+      }).then(res => res.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/learner-profiles', learners] });
+      setGraphModalVisible(false);
+      setCurrentProfile(null);
+      setError('');
+    },
+    onError: (err: any) => {
+      // Try to extract a meaningful error message
+      let errorMessage = 'Failed to update knowledge graph. Please try again.';
+      
+      if (err.response?.data?.error) {
+        errorMessage = err.response.data.error;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
+    },
+  });
+  
   const handleUpdateGradeLevel = () => {
     if (!currentEditLearner) {
       setError('No learner selected for editing');
@@ -125,6 +195,63 @@ const LearnersPage: React.FC = () => {
       userId: currentEditLearner.id,
       gradeLevel: newLearner.gradeLevel
     });
+  };
+  
+  const handleUpdateSubjects = () => {
+    if (!currentProfile || !currentEditLearner) {
+      setError('No learner selected for editing');
+      return;
+    }
+    
+    updateSubjectsMutation.mutate({
+      userId: currentEditLearner.id,
+      subjects,
+      recommendedSubjects,
+      strugglingAreas
+    });
+  };
+  
+  const handleUpdateGraph = () => {
+    if (!currentProfile || !currentEditLearner) {
+      setError('No learner selected for editing');
+      return;
+    }
+    
+    // A simple graph structure for demo purposes
+    // In a real application, this would be more sophisticated
+    const graph = {
+      nodes: [
+        { id: 'math', label: 'Mathematics' },
+        { id: 'algebra', label: 'Algebra' },
+        { id: 'geometry', label: 'Geometry' },
+        { id: 'reading', label: 'Reading' }
+      ],
+      edges: [
+        { source: 'math', target: 'algebra' },
+        { source: 'math', target: 'geometry' },
+      ]
+    };
+    
+    updateGraphMutation.mutate({
+      userId: currentEditLearner.id,
+      graph
+    });
+  };
+  
+  const openSubjectsModal = (learner: any, profile: any) => {
+    setCurrentEditLearner(learner);
+    setCurrentProfile(profile);
+    // Initialize state with current values
+    setSubjects(profile.subjects || ['Math', 'Reading', 'Science']);
+    setRecommendedSubjects(profile.recommendedSubjects || []);
+    setStrugglingAreas(profile.strugglingAreas || []);
+    setSubjectsModalVisible(true);
+  };
+  
+  const openGraphModal = (learner: any, profile: any) => {
+    setCurrentEditLearner(learner);
+    setCurrentProfile(profile);
+    setGraphModalVisible(true);
   };
 
   const handleAddLearner = async () => {
@@ -207,6 +334,24 @@ const LearnersPage: React.FC = () => {
             }}
           >
             <Text style={styles.actionButtonText}>Edit Grade</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.subjectsButton]}
+            onPress={() => {
+              openSubjectsModal(item, profile || {});
+            }}
+          >
+            <Edit size={16} color={colors.onPrimary} />
+            <Text style={styles.actionButtonText}>Subjects</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.actionButton, styles.graphButton]}
+            onPress={() => {
+              openGraphModal(item, profile || {});
+            }}
+          >
+            <Edit size={16} color={colors.onPrimary} />
+            <Text style={styles.actionButtonText}>Graph</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.actionButton, styles.progressButton]}
