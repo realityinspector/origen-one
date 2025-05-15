@@ -7,6 +7,9 @@ import { asyncHandler, authenticateJwt, hasRoleMiddleware, AuthRequest } from ".
 import { synchronizeToExternalDatabase } from "./sync-utils";
 import { InsertDbSyncConfig } from "../shared/schema";
 import { USE_AI } from "./config/flags";
+import { db } from "./db";
+import { sql } from "drizzle-orm";
+import { users } from "../shared/schema";
 
 // Use our imported middleware functions for authentication
 function isAuthenticated(req: Request, res: Response, next: NextFunction) {
@@ -97,10 +100,21 @@ export function registerRoutes(app: Express): Server {
     }
     
     try {
-      // Check if email already exists
-      const existingUser = await storage.getUserByUsername(email);
-      if (existingUser) {
-        return res.status(409).json({ error: "Email already in use" });
+      // Check if email already exists - first check by username (which can be email)
+      const existingUserByUsername = await storage.getUserByUsername(email);
+      if (existingUserByUsername) {
+        return res.status(409).json({ error: "Email already in use as a username" });
+      }
+      
+      // Also check the email field directly to prevent database constraint violations
+      try {
+        const emailCheckResult = await db.select().from(users).where(sql`LOWER(email) = LOWER(${email})`);
+        if (emailCheckResult.length > 0) {
+          return res.status(409).json({ error: "Email already in use" });
+        }
+      } catch (emailCheckError) {
+        console.error("Error checking email existence:", emailCheckError);
+        // Continue with the operation - if there's a duplicate, it will be caught by the database constraint
       }
       
       // Set parent ID based on the user's role
@@ -154,7 +168,24 @@ export function registerRoutes(app: Express): Server {
       
     } catch (error) {
       console.error('Error creating new learner:', error);
-      res.status(500).json({ error: "Failed to create learner account" });
+      
+      // Provide more specific error messages based on the error type
+      if (error.code === '23505' && error.constraint === 'users_email_key') {
+        // Duplicate email error - this means our earlier check missed it
+        return res.status(409).json({ 
+          error: "This email is already registered. Please use a different email address."
+        });
+      } else if (error.code === '23505' && error.constraint === 'users_username_key') {
+        // Duplicate username error
+        return res.status(409).json({ 
+          error: "This username is already taken. Please choose a different username."
+        });
+      }
+      
+      // Default error response
+      res.status(500).json({ 
+        error: "Failed to create learner account. Please try again with a different email address."
+      });
     }
   }));
   
