@@ -251,11 +251,25 @@ async function testDatabaseSync(parentId: number) {
     
     // Test connection to external database
     console.log('Testing connection to external database...');
-    const client = new Client({ connectionString: externalDbUrl });
-    await client.connect();
-    const result = await client.query('SELECT NOW()');
-    console.log(`External database connection successful. Server time: ${result.rows[0].now}`);
-    await client.end();
+    console.log(`Using connection string: ${externalDbUrl.replace(/:[^:@]+@/, ':****@')}`);
+    
+    const client = new Client({ 
+      connectionString: externalDbUrl,
+      // Add a connection timeout
+      connectionTimeoutMillis: 5000
+    });
+    
+    try {
+      await client.connect();
+      console.log('Connected to external database');
+      
+      const result = await client.query('SELECT NOW()');
+      console.log(`External database connection successful. Server time: ${result.rows[0].now}`);
+      await client.end();
+    } catch (error) {
+      console.error('Error connecting to external database:', error);
+      throw error;
+    }
     
     // Update sync config to indicate sync is in progress
     await db.update(schema.dbSyncConfigs)
@@ -279,10 +293,25 @@ async function testDatabaseSync(parentId: number) {
       throw new Error(`Sync configuration with ID ${syncConfigId} not found`);
     }
     
-    // Execute the synchronization
-    await synchronizeToExternalDatabase(parentId, currentSyncConfig);
-    
-    console.log('Synchronization completed successfully');
+    // Execute the synchronization with a timeout
+    console.log('Executing synchronization...');
+    try {
+      // Create a promise that will reject after 30 seconds
+      const timeout = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Synchronization timed out after 30 seconds')), 30000);
+      });
+      
+      // Race the synchronization against the timeout
+      await Promise.race([
+        synchronizeToExternalDatabase(parentId, currentSyncConfig),
+        timeout
+      ]);
+      
+      console.log('Synchronization completed successfully');
+    } catch (error) {
+      console.error('Error during synchronization:', error);
+      throw error;
+    }
     
     // Verify synchronization was marked as completed
     const updatedConfig = await db.query.dbSyncConfigs.findFirst({

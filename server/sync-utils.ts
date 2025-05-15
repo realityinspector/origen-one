@@ -95,12 +95,33 @@ export async function synchronizeToExternalDatabase(parentId: number, syncConfig
     await targetClient.query('COMMIT');
     console.log(`Synchronization completed successfully for sync: ${syncConfig.id}`);
     
+    // Update the sync status to COMPLETED in the database
+    try {
+      await storage.updateSyncConfig(syncConfig.id, {
+        syncStatus: 'COMPLETED',
+        lastSyncAt: new Date()
+      });
+    } catch (updateError) {
+      console.error('Error updating sync status:', updateError);
+      // Don't throw here, as the sync itself was successful
+    }
+    
   } catch (error) {
     // Rollback the transaction if there was an error
     try {
       await targetClient.query('ROLLBACK');
     } catch (rollbackError) {
       console.error('Error rolling back transaction:', rollbackError);
+    }
+    
+    // Update the sync status to FAILED
+    try {
+      await storage.updateSyncConfig(syncConfig.id, {
+        syncStatus: 'FAILED',
+        lastSyncAt: new Date()
+      });
+    } catch (updateError) {
+      console.error('Error updating sync failure status:', updateError);
     }
     
     console.error('Error synchronizing data:', error);
