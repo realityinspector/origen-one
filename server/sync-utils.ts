@@ -1,6 +1,8 @@
 import { Pool, Client } from 'pg';
 import { storage } from './storage';
-import { DbSyncConfig, User, LearnerProfile, Lesson, Achievement } from '../shared/schema';
+import { DbSyncConfig, User, LearnerProfile, Lesson, Achievement, dbSyncConfigs } from '../shared/schema';
+import { db } from './db';
+import { eq } from 'drizzle-orm';
 
 /**
  * Synchronize a parent's data to an external database
@@ -99,10 +101,16 @@ export async function synchronizeToExternalDatabase(parentId: number, syncConfig
     try {
       console.log(`Updating sync config with ID: ${syncConfig.id}, current status: ${syncConfig.syncStatus}`);
       
-      // Use the db object directly from the imported schema
-      const { db } = await import('./db');
-      const { dbSyncConfigs } = await import('../shared/schema');
-      const { eq } = await import('drizzle-orm');
+      // First, check if the config exists
+      const checkConfig = await db.query.dbSyncConfigs.findFirst({
+        where: eq(dbSyncConfigs.id, syncConfig.id)
+      });
+      
+      if (checkConfig) {
+        console.log(`Sync config found in database before update: ${checkConfig.id}, status: ${checkConfig.syncStatus}`);
+      } else {
+        console.error(`⚠️ Sync config with ID ${syncConfig.id} not found in database before update`);
+      }
       
       const updateResult = await db.update(dbSyncConfigs)
         .set({
@@ -135,10 +143,16 @@ export async function synchronizeToExternalDatabase(parentId: number, syncConfig
     try {
       console.log(`Updating sync config to FAILED with ID: ${syncConfig.id}, current status: ${syncConfig.syncStatus}`);
       
-      // Use the db object directly from the imported schema
-      const { db } = await import('./db');
-      const { dbSyncConfigs } = await import('../shared/schema');
-      const { eq } = await import('drizzle-orm');
+      // First, check if the config exists
+      const checkConfig = await db.query.dbSyncConfigs.findFirst({
+        where: eq(dbSyncConfigs.id, syncConfig.id)
+      });
+      
+      if (checkConfig) {
+        console.log(`Sync config found in database before failure update: ${checkConfig.id}, status: ${checkConfig.syncStatus}`);
+      } else {
+        console.error(`⚠️ Sync config with ID ${syncConfig.id} not found in database before failure update`);
+      }
       
       const updateResult = await db.update(dbSyncConfigs)
         .set({
