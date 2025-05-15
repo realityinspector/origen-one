@@ -24,7 +24,7 @@ const LearnersPage: React.FC = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [currentEditLearner, setCurrentEditLearner] = useState<any>(null);
-  const [newLearner, setNewLearner] = useState({ name: '', email: '', password: '', gradeLevel: '5' });
+  const [newLearner, setNewLearner] = useState({ name: '', gradeLevel: '5' });
   const [error, setError] = useState('');
 
   // Fetch learners
