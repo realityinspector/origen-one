@@ -334,21 +334,64 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateLessonStatus(id: string, status: "QUEUED" | "ACTIVE" | "DONE", score?: number): Promise<Lesson | undefined> {
-    const updateData: Partial<InsertLesson> = { status };
-    
-    if (status === "DONE" && score !== undefined) {
-      updateData.score = score;
-      updateData.completedAt = new Date();
+    try {
+      const updateData: Partial<InsertLesson> = { status };
+      
+      if (status === "DONE" && score !== undefined) {
+        updateData.score = score;
+        updateData.completedAt = new Date();
+      }
+      
+      // Try to update only the specific fields we know exist in the database
+      try {
+        const result = await db
+          .update(lessons)
+          .set(updateData)
+          .where(eq(lessons.id, id))
+          .returning({
+            id: lessons.id,
+            learnerId: lessons.learnerId,
+            moduleId: lessons.moduleId,
+            status: lessons.status,
+            spec: lessons.spec,
+            score: lessons.score,
+            createdAt: lessons.createdAt,
+            completedAt: lessons.completedAt,
+          });
+        
+        const lessonList = Array.isArray(result) ? result : [result];
+        
+        if (lessonList.length > 0) {
+          // Return a lesson with default values for potentially missing columns
+          const baseLesson = lessonList[0];
+          const fullLesson = {
+            ...baseLesson,
+            enhancedSpec: null,
+            subject: null,
+            category: null,
+            difficulty: 'beginner' as const,
+            imagePaths: null
+          };
+          return fullLesson as Lesson;
+        }
+      } catch (e) {
+        console.error('Error updating lesson status with full returning:', e);
+        
+        // Fallback: Update without returning all fields
+        await db
+          .update(lessons)
+          .set(updateData)
+          .where(eq(lessons.id, id));
+          
+        // Fetch the updated lesson separately
+        return this.getLessonById(id);
+      }
+      
+      return undefined;
+    } catch (error) {
+      console.error('Error in updateLessonStatus:', error);
+      return undefined;
     }
-    
-    const result = await db
-      .update(lessons)
-      .set(updateData)
-      .where(eq(lessons.id, id))
-      .returning();
-    
-    const lessonList = Array.isArray(result) ? result : [result];
-    return lessonList.length > 0 ? lessonList[0] as Lesson : undefined;
   }
 
   // Achievement operations
