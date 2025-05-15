@@ -423,7 +423,15 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).json({ error: "Unauthorized" });
     }
     
-    const { topic = '', gradeLevel, learnerId, enhanced = true } = req.body;
+    const { 
+      topic = '', 
+      gradeLevel, 
+      learnerId, 
+      enhanced = true,
+      subject = '',
+      category = '',
+      difficulty = 'beginner'
+    } = req.body;
     
     if (!gradeLevel || !learnerId) {
       return res.status(400).json({ error: "Missing required fields: gradeLevel, learnerId" });
@@ -445,26 +453,106 @@ export function registerRoutes(app: Express): Server {
       }
     }
     
-    // Generate the customized lesson
     try {
-      // Simplified approach - just create a basic lesson
-      console.log(`Generating lesson for "${topic}" (Grade ${gradeLevel})`);
-      console.log("AI lesson generation is disabled, using basic lesson");
+      // Get learner profile
+      const learnerProfile = await storage.getLearnerProfile(targetLearnerId);
+      if (!learnerProfile) {
+        return res.status(404).json({ error: "Learner profile not found" });
+      }
+      
+      // Determine the subject if not provided
+      let finalSubject = subject;
+      if (!finalSubject && learnerProfile.subjects && learnerProfile.subjects.length > 0) {
+        // Use a subject from the learner's profile
+        finalSubject = learnerProfile.subjects[Math.floor(Math.random() * learnerProfile.subjects.length)];
+      }
+      
+      // Get subject category if not provided
+      let finalCategory = category;
+      if (!finalCategory && finalSubject) {
+        // Import on demand to avoid circular dependencies
+        const { getSubjectCategory } = await import('./services/subject-recommendation');
+        finalCategory = getSubjectCategory(finalSubject);
+      }
+      
+      console.log(`Generating lesson for "${topic}" (Grade ${gradeLevel}), Subject: ${finalSubject}, Category: ${finalCategory}`);
+      
+      let lessonSpec;
+      let imagePaths = [];
+      
+      if (USE_AI && enhanced) {
+        try {
+          // Import on demand to avoid circular dependencies
+          const { generateEnhancedLesson } = await import('./services/enhanced-lesson-service');
+          
+          // Generate enhanced lesson with images
+          const enhancedSpec = await generateEnhancedLesson(
+            gradeLevel, 
+            topic, 
+            true, // always with images
+            finalSubject,
+            difficulty as 'beginner' | 'intermediate' | 'advanced'
+          );
+          
+          if (enhancedSpec) {
+            // Extract image paths from the enhanced spec for storage
+            if (enhancedSpec.images) {
+              imagePaths = enhancedSpec.images
+                .filter(img => img.path)
+                .map(img => ({
+                  path: img.path,
+                  alt: img.alt || img.description,
+                  description: img.description
+                }));
+            }
+            
+            // Create a regular spec from the enhanced one for backward compatibility
+            lessonSpec = {
+              title: enhancedSpec.title,
+              content: `# ${enhancedSpec.title}\n\n${enhancedSpec.summary}\n\n${enhancedSpec.sections.map(s => 
+                `## ${s.title}\n\n${s.content}`).join('\n\n')}`,
+              questions: enhancedSpec.questions,
+              graph: enhancedSpec.graph
+            };
+            
+            // Create the lesson with enhanced spec
+            const newLesson = await storage.createLesson({
+              learnerId: targetLearnerId,
+              moduleId: `custom-${Date.now()}`,
+              status: "ACTIVE",
+              subject: finalSubject,
+              category: finalCategory,
+              difficulty,
+              spec: lessonSpec,
+              enhancedSpec,
+              imagePaths
+            });
+            
+            return res.json(newLesson);
+          }
+        } catch (enhancedError) {
+          console.error('Error creating enhanced lesson:', enhancedError);
+          // Fall back to basic lesson if enhanced fails
+        }
+      }
+      
+      // Fallback to basic lesson if enhanced fails or is disabled
+      console.log("AI enhanced lesson generation unavailable, using basic lesson");
       
       // Create a simple lesson without enhanced spec
-      const lessonSpec = {
-        title: topic || "Sample Lesson",
-        content: "# Sample Lesson Content\n\nThis is a sample lesson for testing purposes.",
+      lessonSpec = {
+        title: topic || `${finalSubject || 'Sample'} Lesson`,
+        content: `# ${topic || finalSubject || 'Sample'} Lesson\n\nThis is a lesson about ${topic || finalSubject || 'a sample topic'}.`,
         questions: [{
-          text: "What is this lesson?",
+          text: `What is this lesson about?`,
           options: [
-            "A real lesson",
-            "A sample lesson",
-            "A complex lesson",
+            `${topic || finalSubject || 'A sample topic'}`,
+            "Something else",
+            "I don't know",
             "None of the above"
           ],
-          correctIndex: 1,
-          explanation: "This is a test lesson."
+          correctIndex: 0,
+          explanation: "This lesson is designed to teach you about the selected topic."
         }]
       };
       
@@ -473,7 +561,11 @@ export function registerRoutes(app: Express): Server {
         learnerId: targetLearnerId,
         moduleId: `custom-${Date.now()}`,
         status: "ACTIVE",
-        spec: lessonSpec
+        subject: finalSubject,
+        category: finalCategory,
+        difficulty,
+        spec: lessonSpec,
+        imagePaths
       });
       
       res.json(newLesson);
