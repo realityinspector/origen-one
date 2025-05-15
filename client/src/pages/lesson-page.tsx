@@ -14,6 +14,7 @@ import { colors, typography, commonStyles } from '../styles/theme';
 import { ChevronRight, ArrowLeft } from 'react-feather';
 import Markdown from 'react-native-markdown-display';
 import OrigenHeader from '../components/OrigenHeader';
+import EnhancedLessonContent from '../components/EnhancedLessonContent';
 
 const LessonPage = ({ route, navigation }: any) => {
   const { lessonId } = route.params;
@@ -107,9 +108,15 @@ const LessonPage = ({ route, navigation }: any) => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.lessonContent}>
           <Text style={styles.lessonTitle}>{lesson.spec.title}</Text>
-          <Markdown style={markdownStyles}>
-            {lesson.spec.content}
-          </Markdown>
+          
+          {/* Check if we have enhanced content */}
+          {lesson.spec.enhancedSpec ? (
+            <EnhancedLessonContent enhancedSpec={lesson.spec.enhancedSpec} />
+          ) : (
+            <Markdown style={markdownStyles}>
+              {lesson.spec.content}
+            </Markdown>
+          )}
         </View>
 
         <View style={styles.quizPrompt}>
