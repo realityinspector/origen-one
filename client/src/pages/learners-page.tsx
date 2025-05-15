@@ -1192,12 +1192,12 @@ const styles = StyleSheet.create({
   graphPlaceholder: {
     height: 200,
     borderWidth: 1,
-    borderColor: colors.outline,
+    borderColor: colors.divider,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceColor,
   },
   graphPlaceholderText: {
     fontSize: 16,
