@@ -1,0 +1,69 @@
+No valid token found, user is not authenticated
+use-auth.tsx:170 Auth query: Received invalid user data, treating as unauthenticated
+2auth-page.tsx:66 Auth page: User is not authenticated, showing login/register form
+use-auth.tsx:170 Auth query: Received invalid user data, treating as unauthenticated
+use-auth.tsx:186 Sending login request to server: {url: '/api/login', username: 'realityinspector', passwordLength: 16}
+use-auth.tsx:194 Using current domain for authentication: https://f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev
+use-auth.tsx:213 Attempting login via endpoint: https://f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev/login
+index.js:24 props.pointerEvents is deprecated. Use style.pointerEvents
+Id @ index.js:24
+x3 @ index.js:805
+es @ index.js:23
+View @ index.js:111
+react-stack-bottom-frame @ react-dom-client.development.js:23863
+Hp @ react-dom-client.development.js:5529
+xN @ react-dom-client.development.js:8645
+Tg @ react-dom-client.development.js:10861
+Ue @ react-dom-client.development.js:1519
+dw @ react-dom-client.development.js:15140
+cw @ react-dom-client.development.js:14956
+zg @ react-dom-client.development.js:14936
+aw @ react-dom-client.development.js:14419
+Cw @ react-dom-client.development.js:16231
+Rc @ react-dom-client.development.js:16079
+Ig @ react-dom-client.development.js:16116
+(anonymous) @ react-dom-client.development.js:16250Understand this warning
+use-auth.tsx:215 
+            
+            
+           POST https://f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev/login 401 (Unauthorized)
+mutationFn @ use-auth.tsx:215
+fn @ mutation.js:67
+E @ retryer.js:80
+start @ retryer.js:121
+execute @ mutation.js:102
+await in execute
+mutate @ mutationObserver.js:61
+(anonymous) @ useMutation.js:29
+K @ auth-page.tsx:89
+onClick @ PressResponder.js:314
+Jf @ react-dom-client.development.js:16368
+Ue @ react-dom-client.development.js:1519
+jw @ react-dom-client.development.js:16418
+(anonymous) @ react-dom-client.development.js:17016
+gf @ react-dom-client.development.js:3262
+Wg @ react-dom-client.development.js:16572
+ab @ react-dom-client.development.js:20658
+qO @ react-dom-client.development.js:20626Understand this error
+use-auth.tsx:228 Successfully received JSON response from endpoint: /login
+use-auth.tsx:311 Login request failed: {message: 'Login failed with status: 401 Unauthorized', responseData: undefined, status: undefined, isTransient: false}
+mutationFn @ use-auth.tsx:311
+await in mutationFn
+fn @ mutation.js:67
+E @ retryer.js:80
+start @ retryer.js:121
+execute @ mutation.js:102
+await in execute
+mutate @ mutationObserver.js:61
+(anonymous) @ useMutation.js:29
+K @ auth-page.tsx:89
+onClick @ PressResponder.js:314
+Jf @ react-dom-client.development.js:16368
+Ue @ react-dom-client.development.js:1519
+jw @ react-dom-client.development.js:16418
+(anonymous) @ react-dom-client.development.js:17016
+gf @ react-dom-client.development.js:3262
+Wg @ react-dom-client.development.js:16572
+ab @ react-dom-client.development.js:20658
+qO @ react-dom-client.development.js:20626Understand this error
+use-auth.tsx:388 Login mutation error: {message: 'Login failed with status: 401 Unauthorized', stack: 'Error: Login failed with status: 401 Unauthorized\n…ock.replit.dev/assets/index-DQAGVPRF.js:291:6496)', name: 'Error'}
