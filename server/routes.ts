@@ -349,25 +349,52 @@ export function registerRoutes(app: Express): Server {
     return res.status(403).json({ error: "Forbidden" });
   }));
   
-  // Update learner profile (supports updating grade level)
+  // Update learner profile (supports updating grade level and subjects)
   app.put("/api/learner-profile/:userId", hasRole(["PARENT", "ADMIN"]), asyncHandler(async (req: AuthRequest, res) => {
     const userId = parseInt(req.params.userId);
-    const { gradeLevel } = req.body;
+    const { gradeLevel, subjects, recommendedSubjects, strugglingAreas, graph } = req.body;
     
-    // Validate grade level
-    if (gradeLevel === undefined) {
-      return res.status(400).json({ error: "Grade level is required" });
+    // Build update object for the profile
+    const updateData: any = {};
+    
+    // Process grade level if present
+    if (gradeLevel !== undefined) {
+      // Convert 'K' to 0 for Kindergarten
+      let gradeLevelNum: number;
+      if (gradeLevel === 'K') {
+        gradeLevelNum = 0; // Kindergarten
+      } else {
+        gradeLevelNum = parseInt(gradeLevel);
+        if (isNaN(gradeLevelNum) || gradeLevelNum < 0 || gradeLevelNum > 12) {
+          return res.status(400).json({ error: "Grade level must be between K and 12" });
+        }
+      }
+      updateData.gradeLevel = gradeLevelNum;
     }
     
-    // Convert 'K' to 0 for Kindergarten
-    let gradeLevelNum: number;
-    if (gradeLevel === 'K') {
-      gradeLevelNum = 0; // Kindergarten
-    } else {
-      gradeLevelNum = parseInt(gradeLevel);
-      if (isNaN(gradeLevelNum) || gradeLevelNum < 0 || gradeLevelNum > 12) {
-        return res.status(400).json({ error: "Grade level must be between K and 12" });
-      }
+    // Process subjects if present
+    if (subjects !== undefined && Array.isArray(subjects)) {
+      updateData.subjects = subjects;
+    }
+    
+    // Process recommended subjects if present
+    if (recommendedSubjects !== undefined && Array.isArray(recommendedSubjects)) {
+      updateData.recommendedSubjects = recommendedSubjects;
+    }
+    
+    // Process struggling areas if present
+    if (strugglingAreas !== undefined && Array.isArray(strugglingAreas)) {
+      updateData.strugglingAreas = strugglingAreas;
+    }
+    
+    // Process knowledge graph if present
+    if (graph !== undefined && typeof graph === 'object') {
+      updateData.graph = graph;
+    }
+    
+    // If no valid update data was provided
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: "No valid update data provided" });
     }
     
     // Check authorization for parents
@@ -383,9 +410,7 @@ export function registerRoutes(app: Express): Server {
     
     // Update the profile
     try {
-      const updatedProfile = await storage.updateLearnerProfile(userId, { 
-        gradeLevel: gradeLevelNum 
-      });
+      const updatedProfile = await storage.updateLearnerProfile(userId, updateData);
       
       if (!updatedProfile) {
         return res.status(404).json({ error: "Learner profile not found" });
