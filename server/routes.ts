@@ -274,6 +274,39 @@ export function registerRoutes(app: Express): Server {
     }
   }));
   
+  // Delete a learner account
+  app.delete("/api/learners/:id", hasRole(["PARENT", "ADMIN"]), asyncHandler(async (req: AuthRequest, res) => {
+    const learnerId = parseInt(req.params.id);
+    
+    // Verify the learner exists
+    const learner = await storage.getUser(learnerId);
+    if (!learner) {
+      return res.status(404).json({ error: "Learner not found" });
+    }
+    
+    // Verify this is actually a learner account
+    if (learner.role !== "LEARNER") {
+      return res.status(400).json({ error: "Can only delete learner accounts" });
+    }
+    
+    // Check authorization (parents can only delete their own learners)
+    if (req.user?.role === "PARENT") {
+      // Check if the learner belongs to this parent
+      if (learner.parentId !== req.user.id) {
+        return res.status(403).json({ error: "Not authorized to delete this learner" });
+      }
+    }
+    
+    // Delete the learner
+    const success = await storage.deleteUser(learnerId);
+    
+    if (success) {
+      return res.json({ success: true, message: "Learner deleted successfully" });
+    } else {
+      return res.status(500).json({ error: "Failed to delete learner" });
+    }
+  }));
+  
   // Get learner profile (create if needed)
   app.get("/api/learner-profile/:userId", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
     const userId = parseInt(req.params.userId);
@@ -414,16 +447,50 @@ export function registerRoutes(app: Express): Server {
     
     // Generate the customized lesson
     try {
-      if (!USE_AI) {
-        return res.status(400).json({ error: "AI lesson generation is currently disabled" });
-      }
-      
       // Check if enhanced format is explicitly requested
       const useEnhanced = req.body.enhanced !== false; // Default to true if not specified
       console.log(`Generating ${useEnhanced ? 'enhanced' : 'standard'} lesson for "${topic}" (Grade ${gradeLevel})`);
       
-      // Generate the lesson with the specified format
-      const lessonSpec = await generateLesson(gradeLevel, topic, useEnhanced);
+      // Generate the lesson with the specified format or use a fallback if AI is disabled
+      let lessonSpec;
+      if (USE_AI) {
+        lessonSpec = await generateLesson(gradeLevel, topic, useEnhanced);
+      } else {
+        // Provide a simple demo lesson when AI is disabled
+        console.log("AI lesson generation is disabled, using demo lesson");
+        lessonSpec = {
+          title: topic || "Sample Lesson",
+          content: "# Sample Lesson Content\n\nThis is a sample lesson created when AI generation is disabled. Please enable AI for full functionality.",
+          questions: [
+            {
+              question: "What is this lesson?",
+              options: [
+                "A real AI-generated lesson",
+                "A sample lesson for testing",
+                "A complex math lesson",
+                "None of the above"
+              ],
+              correctAnswer: 1
+            }
+          ]
+        };
+        
+        // Add enhanced spec fields if requested
+        if (useEnhanced) {
+          lessonSpec.enhanced = true;
+          lessonSpec.sections = [
+            {
+              title: "Introduction",
+              content: "This is a sample lesson created when AI generation is disabled."
+            },
+            {
+              title: "Main Content",
+              content: "Please enable AI for full functionality."
+            }
+          ];
+          lessonSpec.imagePrompts = [];
+        }
+      }
       
       // Create the lesson
       const newLesson = await storage.createLesson({
