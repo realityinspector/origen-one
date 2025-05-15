@@ -447,85 +447,33 @@ export function registerRoutes(app: Express): Server {
     
     // Generate the customized lesson
     try {
-      // Check if enhanced format is explicitly requested
-      const useEnhanced = req.body.enhanced !== false; // Default to true if not specified
-      console.log(`Generating ${useEnhanced ? 'enhanced' : 'standard'} lesson for "${topic}" (Grade ${gradeLevel})`);
+      // Simplified approach - just create a basic lesson
+      console.log(`Generating lesson for "${topic}" (Grade ${gradeLevel})`);
+      console.log("AI lesson generation is disabled, using basic lesson");
       
-      // Generate the lesson with the specified format or use a fallback if AI is disabled
-      let lessonSpec;
-      let enhancedSpec = null; // Initialize enhanced spec as null
+      // Create a simple lesson without enhanced spec
+      const lessonSpec = {
+        title: topic || "Sample Lesson",
+        content: "# Sample Lesson Content\n\nThis is a sample lesson for testing purposes.",
+        questions: [{
+          text: "What is this lesson?",
+          options: [
+            "A real lesson",
+            "A sample lesson",
+            "A complex lesson",
+            "None of the above"
+          ],
+          correctIndex: 1,
+          explanation: "This is a test lesson."
+        }]
+      };
       
-      if (USE_AI) {
-        lessonSpec = await generateLesson(gradeLevel, topic, useEnhanced);
-      } else {
-        // Provide a simple demo lesson when AI is disabled
-        console.log("AI lesson generation is disabled, using demo lesson");
-        lessonSpec = {
-          title: topic || "Sample Lesson",
-          content: "# Sample Lesson Content\n\nThis is a sample lesson created when AI generation is disabled. Please enable AI for full functionality.",
-          questions: [
-            {
-              question: "What is this lesson?",
-              options: [
-                "A real AI-generated lesson",
-                "A sample lesson for testing",
-                "A complex math lesson",
-                "None of the above"
-              ],
-              correctIndex: 1, // Fixed from correctAnswer to correctIndex to match schema
-              explanation: "This is a demo lesson for testing the application."
-            }
-          ]
-        };
-        
-        // Create a separate enhanced spec object if enhanced mode is requested
-        if (useEnhanced) {
-          enhancedSpec = {
-            title: topic || "Sample Lesson",
-            targetGradeLevel: gradeLevel,
-            summary: "This is a sample lesson created when AI generation is disabled.",
-            sections: [
-              {
-                title: "Introduction",
-                content: "This is a sample lesson created when AI generation is disabled.",
-                type: "introduction" as const
-              },
-              {
-                title: "Main Content",
-                content: "Please enable AI for full functionality.",
-                type: "key_concepts" as const
-              }
-            ],
-            images: [],
-            diagrams: [],
-            questions: [
-              {
-                text: "What is this lesson?",
-                options: [
-                  "A real AI-generated lesson",
-                  "A sample lesson for testing",
-                  "A complex math lesson", 
-                  "None of the above"
-                ],
-                correctIndex: 1,
-                explanation: "This is a demo lesson for testing the application."
-              }
-            ],
-            keywords: ["sample", "demo", "test"],
-            relatedTopics: [],
-            estimatedDuration: 10,
-            difficultyLevel: "beginner" as const
-          };
-        }
-      }
-      
-      // Create the lesson with both standard and enhanced specs
+      // Create the lesson with basic spec
       const newLesson = await storage.createLesson({
         learnerId: targetLearnerId,
         moduleId: `custom-${Date.now()}`,
         status: "ACTIVE",
-        spec: lessonSpec,
-        enhancedSpec: enhancedSpec, // Add the enhanced spec when applicable
+        spec: lessonSpec
       });
       
       res.json(newLesson);

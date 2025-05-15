@@ -142,6 +142,7 @@ export class DatabaseStorage implements IStorage {
           moduleId: lessons.moduleId,
           status: lessons.status,
           spec: lessons.spec,
+          enhancedSpec: lessons.enhancedSpec,
           score: lessons.score,
           createdAt: lessons.createdAt,
           completedAt: lessons.completedAt
