@@ -55,19 +55,28 @@ function formatEnhancedContentForStandardSpec(enhancedSpec: EnhancedLessonSpec):
 }
 
 // Function to generate a lesson based on grade level and topic
-export async function generateLesson(gradeLevel: number, topic?: string): Promise<InsertLesson['spec']> {
+export async function generateLesson(
+  gradeLevel: number, 
+  topic?: string, 
+  useEnhanced: boolean = true
+): Promise<InsertLesson['spec']> {
   // Check if we should use AI or static content based on feature flag
+  if (!USE_AI) {
+    // Use static content when USE_AI is disabled
+    console.log('Using static lesson content (USE_AI=0)');
+    return generateStaticLesson(gradeLevel, topic);
+  }
 
-  if (USE_AI) {
-    try {
-      // Default to grade 3 if outside of range (0 = Kindergarten, 1-12 = grades 1-12)
-      const safeGradeLevel = gradeLevel >= 0 && gradeLevel <= 12 ? gradeLevel : 3;
-      
-      // Select a random topic if none provided
-      const availableTopics = gradeTopics[safeGradeLevel];
-      const selectedTopic = topic || availableTopics[Math.floor(Math.random() * availableTopics.length)];
+  try {
+    // Default to grade 3 if outside of range (0 = Kindergarten, 1-12 = grades 1-12)
+    const safeGradeLevel = gradeLevel >= 0 && gradeLevel <= 12 ? gradeLevel : 3;
+    
+    // Select a random topic if none provided
+    const availableTopics = gradeTopics[safeGradeLevel];
+    const selectedTopic = topic || availableTopics[Math.floor(Math.random() * availableTopics.length)];
 
-      // Try to generate an enhanced lesson first
+    // If enhanced lessons are requested, try to generate one
+    if (useEnhanced) {
       try {
         console.log(`Attempting to generate enhanced lesson for "${selectedTopic}" (Grade ${safeGradeLevel})`);
         const enhancedSpec = await generateEnhancedLesson(safeGradeLevel, selectedTopic);
@@ -88,36 +97,34 @@ export async function generateLesson(gradeLevel: number, topic?: string): Promis
         // Log the error but don't give up - fall back to standard generation
         console.error('Error generating enhanced lesson:', enhancedError);
         console.log('Falling back to standard lesson generation');
-        
-        // Create async calls for both content and questions using standard methods
-        const contentPromise = generateLessonContent(safeGradeLevel, selectedTopic);
-        const questionsPromise = aiGenerateQuizQuestions(safeGradeLevel, selectedTopic, 5);
-        const graphPromise = generateKnowledgeGraph(selectedTopic, safeGradeLevel);
-        
-        // Wait for all to complete
-        const [content, questions, graph] = await Promise.all([contentPromise, questionsPromise, graphPromise]);
-        
-        // Check if content is a string (from legacy generator) or an EnhancedLessonSpec (from enhanced generator)
-        const formattedContent = typeof content === 'string' 
-          ? content 
-          : formatEnhancedContentForStandardSpec(content);
-        
-        // Return the lesson spec
-        return {
-          title: `${selectedTopic} for ${safeGradeLevel === 0 ? 'Kindergarten' : `Grade ${safeGradeLevel}`}`,
-          content: formattedContent,
-          questions: questions,
-          graph: graph
-        };
       }
-    } catch (error) {
-      console.error('Error generating lesson with AI:', error);
-      // Fall back to static content in case of AI service failure
-      return generateStaticLesson(gradeLevel, topic);
+    } else {
+      console.log('Standard lesson format requested, skipping enhanced generation');
     }
-  } else {
-    // Use static content when USE_AI is disabled
-    console.log('Using static lesson content (USE_AI=0)');
+    
+    // Create async calls for both content and questions using standard methods
+    const contentPromise = generateLessonContent(safeGradeLevel, selectedTopic);
+    const questionsPromise = aiGenerateQuizQuestions(safeGradeLevel, selectedTopic, 5);
+    const graphPromise = generateKnowledgeGraph(selectedTopic, safeGradeLevel);
+    
+    // Wait for all to complete
+    const [content, questions, graph] = await Promise.all([contentPromise, questionsPromise, graphPromise]);
+    
+    // Check if content is a string (from legacy generator) or an EnhancedLessonSpec (from enhanced generator)
+    const formattedContent = typeof content === 'string' 
+      ? content 
+      : formatEnhancedContentForStandardSpec(content);
+    
+    // Return the lesson spec
+    return {
+      title: `${selectedTopic} for ${safeGradeLevel === 0 ? 'Kindergarten' : `Grade ${safeGradeLevel}`}`,
+      content: formattedContent,
+      questions: questions,
+      graph: graph
+    };
+  } catch (error) {
+    console.error('Error generating lesson with AI:', error);
+    // Fall back to static content in case of AI service failure
     return generateStaticLesson(gradeLevel, topic);
   }
 }
