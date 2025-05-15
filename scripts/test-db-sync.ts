@@ -7,8 +7,15 @@ import { Client } from 'pg';
 import { exit } from 'process';
 import { hashPassword } from '../server/middleware/auth';
 
-// Use crypto.randomBytes instead of nanoid
+// Generate UUID v4 for database compatibility
 function generateId(size: number = 6): string {
+  // For UUID, we need a proper UUID v4 format
+  if (size >= 32) {
+    // Full UUID format: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+    const hex = randomBytes(16).toString('hex');
+    return `${hex.substring(0, 8)}-${hex.substring(8, 12)}-4${hex.substring(13, 16)}-${parseInt(hex.substring(16, 17), 16) & 0x3 | 0x8}${hex.substring(17, 20)}-${hex.substring(20, 32)}`;
+  }
+  // For shorter IDs, just use hex
   return randomBytes(size).toString('hex').slice(0, size);
 }
 
