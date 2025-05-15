@@ -1,21 +1,40 @@
 import { relations } from "drizzle-orm";
-import { integer, pgEnum, pgTable, serial, text, timestamp, uuid, json, boolean } from "drizzle-orm/pg-core";
+import { 
+  integer, pgEnum, pgTable, serial, text, timestamp, uuid, json, boolean, 
+  varchar, jsonb, index 
+} from "drizzle-orm/pg-core";
 
 // Enums
 export const userRoleEnum = pgEnum("user_role", ["ADMIN", "PARENT", "LEARNER"]);
 export const lessonStatusEnum = pgEnum("lesson_status", ["QUEUED", "ACTIVE", "DONE"]);
 export const syncStatusEnum = pgEnum("sync_status", ["IDLE", "IN_PROGRESS", "FAILED", "COMPLETED"]);
 
+// Session storage table.
+// This table is mandatory for Replit Auth
+export const sessions = pgTable(
+  "sessions",
+  {
+    sid: varchar("sid").primaryKey(),
+    sess: jsonb("sess").notNull(),
+    expire: timestamp("expire").notNull(),
+  },
+  (table) => [index("IDX_session_expire").on(table.expire)],
+);
+
 // Users table
 export const users = pgTable("users", {
-  id: serial("id").primaryKey(),
-  email: text("email").unique(), // Made optional for learners
-  username: text("username").notNull().unique(),
-  name: text("name").notNull(),
-  role: userRoleEnum("role").notNull(),
-  password: text("password"), // Made optional for learners
-  parentId: integer("parent_id").references(() => users.id, { onDelete: "cascade" }),
+  id: varchar("id").primaryKey().notNull(), // Store Replit user ID as string
+  email: varchar("email").unique(),
+  firstName: varchar("first_name"),
+  lastName: varchar("last_name"),
+  profileImageUrl: varchar("profile_image_url"),
+  username: text("username").unique(),
+  name: text("name"),
+  role: userRoleEnum("role").default("LEARNER"),
+  password: text("password"), // For non-Replit auth users
+  parentId: varchar("parent_id").references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -35,7 +54,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 // Learner Profiles table
 export const learnerProfiles = pgTable("learner_profiles", {
   id: uuid("id").defaultRandom().primaryKey(),
-  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   gradeLevel: integer("grade_level").notNull(),
   graph: json("graph").$type<{ nodes: any[], edges: any[] }>(),
   subjects: json("subjects").$type<string[]>().default(['Math', 'Science']),
@@ -129,7 +148,7 @@ export type EnhancedLessonSpec = {
 // Lessons table
 export const lessons = pgTable("lessons", {
   id: uuid("id").defaultRandom().primaryKey(),
-  learnerId: integer("learner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  learnerId: varchar("learner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   moduleId: text("module_id").notNull(),
   status: lessonStatusEnum("status").notNull().default("QUEUED"),
   subject: text("subject"),
@@ -176,7 +195,7 @@ export const lessonsRelations = relations(lessons, ({ one }) => ({
 // Achievements table
 export const achievements = pgTable("achievements", {
   id: uuid("id").defaultRandom().primaryKey(),
-  learnerId: integer("learner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  learnerId: varchar("learner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   type: text("type").notNull(),
   payload: json("payload").$type<{
     title: string;
@@ -196,7 +215,7 @@ export const achievementsRelations = relations(achievements, ({ one }) => ({
 // Database Sync Configurations table
 export const dbSyncConfigs = pgTable("db_sync_configs", {
   id: uuid("id").defaultRandom().primaryKey(),
-  parentId: integer("parent_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  parentId: varchar("parent_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   targetDbUrl: text("target_db_url").notNull(),
   lastSyncAt: timestamp("last_sync_at"),
   syncStatus: syncStatusEnum("sync_status").notNull().default("IDLE"),

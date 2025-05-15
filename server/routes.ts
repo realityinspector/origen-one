@@ -83,7 +83,7 @@ export function registerRoutes(app: Express): Server {
       let learners;
       if (req.user?.role === "ADMIN" && req.query.parentId) {
         console.log(`Admin getting learners for parent ID: ${req.query.parentId}`);
-        learners = await storage.getUsersByParentId(Number(req.query.parentId));
+        learners = await storage.getUsersByParentId(req.query.parentId as string);
       } else if (req.user?.role === "PARENT") {
         console.log(`Parent ${req.user.id} getting their learners`);
         learners = await storage.getUsersByParentId(req.user.id);
@@ -137,7 +137,7 @@ export function registerRoutes(app: Express): Server {
       }
       
       // Set parent ID based on the user's role
-      let parentId: number | null = null;
+      let parentId: string | null = null;
       
       // For PARENT users, the parent is the user themselves
       if (req.user?.role === "PARENT") {
@@ -147,7 +147,7 @@ export function registerRoutes(app: Express): Server {
       else if (req.user?.role === "ADMIN") {
         // If parentId was provided in the request body, use that
         if (req.body.parentId) {
-          parentId = Number(req.body.parentId);
+          parentId = req.body.parentId as string;
         } 
         // If creating a LEARNER as an ADMIN but no parentId specified,
         // use the admin as the parent (this is our fallback solution)
@@ -290,7 +290,7 @@ export function registerRoutes(app: Express): Server {
   
   // Delete a learner account
   app.delete("/api/learners/:id", hasRole(["PARENT", "ADMIN"]), asyncHandler(async (req: AuthRequest, res) => {
-    const learnerId = parseInt(req.params.id);
+    const learnerId = req.params.id;
     
     // Verify the learner exists
     const learner = await storage.getUser(learnerId);
@@ -323,7 +323,7 @@ export function registerRoutes(app: Express): Server {
   
   // Get learner profile (create if needed)
   app.get("/api/learner-profile/:userId", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
-    const userId = parseInt(req.params.userId);
+    const userId = req.params.userId;
     
     // Admins can view any profile, parents can view their children, learners can view their own
     if (
@@ -365,7 +365,7 @@ export function registerRoutes(app: Express): Server {
   
   // Update learner profile (supports updating grade level and subjects)
   app.put("/api/learner-profile/:userId", hasRole(["PARENT", "ADMIN"]), asyncHandler(async (req: AuthRequest, res) => {
-    const userId = parseInt(req.params.userId);
+    const userId = req.params.userId;
     const { gradeLevel, subjects, recommendedSubjects, strugglingAreas, graph } = req.body;
     
     // Build update object for the profile
@@ -481,7 +481,7 @@ export function registerRoutes(app: Express): Server {
     }
     
     // Validate user permissions
-    const targetLearnerId = Number(learnerId);
+    const targetLearnerId = learnerId as string;
     
     // Self-create for learners
     if (req.user.role === "LEARNER" && req.user.id !== targetLearnerId) {
@@ -649,12 +649,12 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).json({ error: "Unauthorized" });
     }
     
-    let learnerId: number;
+    let learnerId: string;
     
     if (req.user.role === "LEARNER") {
       learnerId = req.user.id;
     } else if (req.query.learnerId) {
-      learnerId = Number(req.query.learnerId);
+      learnerId = req.query.learnerId as string;
       
       // Check if user is authorized to view this learner's lessons
       if (req.user.role === "PARENT") {
@@ -787,12 +787,12 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).json({ error: "Unauthorized" });
     }
     
-    let learnerId: number;
+    let learnerId: string;
     
     if (req.user.role === "LEARNER") {
       learnerId = req.user.id;
     } else if (req.query.learnerId) {
-      learnerId = Number(req.query.learnerId);
+      learnerId = req.query.learnerId as string;
       
       // Check if user is authorized to view this learner's achievements
       if (req.user.role === "PARENT") {
@@ -819,7 +819,7 @@ export function registerRoutes(app: Express): Server {
       return res.status(400).json({ error: "learnerId is required" });
     }
     
-    const learnerId = Number(req.query.learnerId);
+    const learnerId = req.query.learnerId as string;
     
     // Verify parent has access to this learner
     if (req.user.role === "PARENT") {
