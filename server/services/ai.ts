@@ -1,12 +1,19 @@
 /**
  * AI Service Adapter
  *
- * This module provides a unified interface for the OpenRouter AI provider
- * with Llama models.
+ * This module provides a unified interface for AI services including:
+ * - OpenRouter for text generation
+ * - Stability AI for image generation
+ * - Enhanced lesson generation
  */
 
 import { USE_AI } from '../config/flags';
 import axios from "axios";
+import { generateEnhancedLesson } from './enhanced-lesson-service';
+import { LessonSection, LessonDiagram, LessonImage, EnhancedLessonSpec } from '../../shared/schema';
+
+// Re-export the enhanced lesson generator
+export { generateEnhancedLesson };
 
 // Re-export the message type
 export type Message = { 
@@ -21,7 +28,7 @@ export type ChatOptions = {
   max_tokens?: number;
   response_format?: {
     type: 'json_schema';
-    json_schema: any;
+    schema: any;
   };
 };
 
@@ -55,77 +62,6 @@ const HEADERS = (key: string) => ({
 });
 
 /**
- * Returns grade-specific guidance for AI content generation
- * based on educational standards and cognitive development
- */
-function getGradeSpecificGuidance(gradeLevel: number): string {
-  // Ensure grade level is within 0-12 range (0 = Kindergarten)
-  const grade = Math.max(0, Math.min(12, gradeLevel));
-  
-  // Grade bands with appropriate guidance
-  if (grade === 0) {
-    return `
-      For Kindergarten (ages 4-6):
-      - Use extremely simple language and very short sentences
-      - Focus on basic concrete concepts only
-      - Include many visual learning cues ([picture of X])
-      - Limit text blocks to 1-2 sentences
-      - Use familiar everyday vocabulary with explanations
-      - Include interactive elements like counting, colors, shapes
-      - Use frequent praise and encouragement
-    `;
-  }
-  else if (grade <= 2) {
-    return `
-      For grades K-2 (ages 5-8):
-      - Use very simple language and short sentences
-      - Focus on concrete concepts rather than abstract ideas
-      - Include visual learning cues ([picture of X])
-      - Limit text blocks to 2-3 sentences
-      - Use basic vocabulary with definitions for new words
-      - Include interactive elements like counting or identifying
-      - Celebrate small achievements with encouraging language
-    `;
-  } 
-  else if (grade <= 5) {
-    return `
-      For grades 3-5 (ages 8-11):
-      - Use clear, straightforward language
-      - Begin introducing some abstract concepts with concrete examples
-      - Keep explanations brief with supporting examples
-      - Introduce subject-specific vocabulary with simple definitions
-      - Use analogies related to everyday experiences
-      - Include opportunities for critical thinking through "why" questions
-      - Maintain an encouraging, positive tone
-    `;
-  }
-  else if (grade <= 8) {
-    return `
-      For grades 6-8 (ages 11-14):
-      - Use more complex sentence structures
-      - Introduce abstract concepts with real-world applications
-      - Connect new knowledge to existing concepts
-      - Use discipline-specific vocabulary with context
-      - Encourage analytical thinking through comparisons
-      - Present multiple perspectives on topics where appropriate
-      - Challenge students with deeper "how" and "why" questions
-    `;
-  }
-  else {
-    return `
-      For grades 9-12 (ages 14-18):
-      - Use academic language appropriate for high school level
-      - Address complex, abstract concepts
-      - Make connections across different subject areas
-      - Introduce specialized vocabulary and terminology
-      - Encourage critical analysis and evaluation
-      - Present multiple theories or interpretations where relevant
-      - Promote higher-order thinking through synthesis and evaluation questions
-    `;
-  }
-}
-
-/**
  * Makes a request to the OpenRouter API
  */
 export async function chat(
@@ -137,8 +73,8 @@ export async function chat(
   }
 
   const { 
-    model = "openai/gpt-4o", 
-    temperature = 0.8, 
+    model = "anthropic/claude-3-haiku", 
+    temperature = 0.7, 
     max_tokens, 
     response_format 
   } = options;
@@ -158,6 +94,7 @@ export async function chat(
 
 /**
  * Generate a lesson for a specific grade level and topic
+ * This is the legacy function that calls the new enhanced lesson generator
  */
 export async function generateLessonContent(gradeLevel: number, topic: string): Promise<string> {
   if (!USE_AI) {
@@ -165,44 +102,22 @@ export async function generateLessonContent(gradeLevel: number, topic: string): 
   }
 
   try {
-    // Ensure grade level is within valid range (0 = Kindergarten, 1-12 = grades 1-12)
-    const safeGradeLevel = Math.max(0, Math.min(12, gradeLevel));
-    const gradeSpecificGuidance = getGradeSpecificGuidance(safeGradeLevel);
-    
-    const systemPrompt = `You are an educational assistant creating a lesson for ${safeGradeLevel === 0 ? 'Kindergarten' : `grade ${safeGradeLevel}`} students on the topic of "${topic}".
+    const systemPrompt = `You are an educational assistant creating a lesson for grade ${gradeLevel} students on the topic of "${topic}".
       Create a comprehensive, age-appropriate lesson with clear explanations, examples, and engaging content.
-      Format the lesson with markdown headings, bullet points, and emphasis where appropriate.
-      
-      ${gradeSpecificGuidance}
-      
-      For ${safeGradeLevel === 0 ? 'Kindergarten' : `grade ${safeGradeLevel}`} students:
-      - Keep paragraphs ${safeGradeLevel === 0 ? 'extremely short (1-2 sentences maximum)' :
-                         safeGradeLevel <= 2 ? 'very short (2-3 sentences)' : 
-                         safeGradeLevel <= 5 ? 'brief (3-5 sentences)' : 
-                         'appropriately sized for their reading level'}
-      - Use ${safeGradeLevel === 0 ? 'very basic vocabulary with simple explanations' :
-             safeGradeLevel <= 3 ? 'simple vocabulary with definitions for new terms' : 
-             safeGradeLevel <= 6 ? 'grade-appropriate vocabulary with context' : 
-             'appropriate academic language with clear explanations'}
-      - Include ${safeGradeLevel === 0 ? 'many visual cues, familiar objects, and interactive elements' :
-                safeGradeLevel <= 3 ? 'many concrete examples and visual descriptions' : 
-                safeGradeLevel <= 6 ? 'relatable examples and real-world applications' : 
-                'diverse examples and cross-curricular connections'}
-      - Structure with ${safeGradeLevel === 0 ? 'very simple sections and frequent visual references' :
-                        safeGradeLevel <= 2 ? 'clear sections and visual elements' : 
-                        safeGradeLevel <= 6 ? 'organized sections with headings' : 
-                        'logical progression of ideas and supporting details'}`;
-    
-    const userPrompt = `Please create a lesson about ${topic} suitable for ${safeGradeLevel === 0 ? 'Kindergarten' : `grade ${safeGradeLevel}`} students.`;
-    
+      Format the lesson with markdown headings, bullet points, and emphasis where appropriate.`;
+
     const messages: Message[] = [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt }
+      { role: "system", content: systemPrompt },
+      { role: "user", content: `Create an educational lesson about "${topic}" for grade ${gradeLevel} students.` }
     ];
-    
-    return await chat(messages, { temperature: 0.7 });
+
+    return await chat(messages, {
+      model: "anthropic/claude-3-haiku",
+      temperature: 0.7,
+      max_tokens: 1500
+    });
   } catch (error) {
-    console.error('Failed to generate lesson content:', error);
+    console.error("Error generating lesson content:", error);
     throw error;
   }
 }
@@ -216,60 +131,43 @@ export async function generateQuizQuestions(gradeLevel: number, topic: string, q
   }
 
   try {
-    // Ensure grade level is within valid range (0 = Kindergarten, 1-12 = grades 1-12)
-    const safeGradeLevel = Math.max(0, Math.min(12, gradeLevel));
-    const gradeSpecificGuidance = getGradeSpecificGuidance(safeGradeLevel);
-    
-    const systemPrompt = `You are an educational quiz creator making questions for ${safeGradeLevel === 0 ? 'Kindergarten' : `grade ${safeGradeLevel}`} students on "${topic}".
-      Create ${questionCount} multiple-choice questions with ${safeGradeLevel === 0 ? '3' : '4'} options each. Each question should have one correct answer.
-      Return the questions as a JSON array where each question has: text, options (array of strings), correctIndex (0-${safeGradeLevel === 0 ? '2' : '3'}), and explanation.
-      
-      ${gradeSpecificGuidance}
-      
-      For ${safeGradeLevel === 0 ? 'Kindergarten' : `grade ${safeGradeLevel}`} students:
-      - Create questions at the appropriate ${safeGradeLevel === 0 ? 'pre-K/Kindergarten' : 
-                                           safeGradeLevel <= 2 ? 'early elementary' : 
-                                           safeGradeLevel <= 5 ? 'elementary' : 
-                                           safeGradeLevel <= 8 ? 'middle school' : 'high school'} difficulty level
-      - Use ${safeGradeLevel === 0 ? 'extremely simple vocabulary and very short sentences' : 
-              safeGradeLevel <= 3 ? 'simple vocabulary and short sentences' : 
-              safeGradeLevel <= 6 ? 'grade-appropriate vocabulary' : 
-              'appropriate academic terminology'} 
-      - ${safeGradeLevel === 0 ? 'Focus only on recognition, matching, and extremely basic recall' :
-          safeGradeLevel <= 2 ? 'Focus on recall and basic understanding' : 
-          safeGradeLevel <= 5 ? 'Include some application questions' : 
-          safeGradeLevel <= 8 ? 'Incorporate analysis questions' : 
-          'Include evaluation and analysis questions'}`;
-    
-    const userPrompt = `Create ${questionCount} quiz questions about ${topic} suitable for ${safeGradeLevel === 0 ? 'Kindergarten' : `grade ${safeGradeLevel}`} students.`;
-    
-    const messages: Message[] = [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt }
-    ];
-    
-    const jsonSchema = {
+    const systemPrompt = `You are an expert educational content creator specializing in creating age-appropriate quiz questions for children. Create multiple-choice questions that are clear, engaging, and appropriate for grade ${gradeLevel} students.`;
+
+    const userPrompt = `Create ${questionCount} multiple-choice quiz questions about "${topic}". For each question, provide 4 options with one correct answer. The correct answer should be indicated with the index (0-3).`;
+
+    // Define the JSON schema
+    const schema = {
       type: 'array',
       items: {
         type: 'object',
         properties: {
           text: { type: 'string' },
           options: { type: 'array', items: { type: 'string' } },
-          correctIndex: { type: 'integer', minimum: 0, maximum: 3 },
+          correctIndex: { type: 'integer' },
           explanation: { type: 'string' }
         },
-        required: ['text', 'options', 'correctIndex']
+        required: ['text', 'options', 'correctIndex', 'explanation']
       }
     };
-    
-    const response = await chat(messages, { 
-      temperature: 0.7,
-      response_format: { type: 'json_schema', json_schema: jsonSchema }
+
+    const messages: Message[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userPrompt }
+    ];
+
+    const response = await chat(messages, {
+      model: "anthropic/claude-3-haiku", 
+      temperature: 0.5,
+      response_format: {
+        type: 'json_schema',
+        schema
+      }
     });
-    
+
+    // Parse the JSON response
     return JSON.parse(response);
   } catch (error) {
-    console.error('Failed to generate quiz questions:', error);
+    console.error("Error generating quiz questions:", error);
     throw error;
   }
 }
@@ -283,46 +181,32 @@ export async function generateFeedback(quizQuestions: any[], userAnswers: number
   }
 
   try {
-    // Get grade information from the questions
-    let gradeLevel = 0;
-    // Try to extract grade level from the first question's content or fallback to grade 3
-    const questionText = quizQuestions[0]?.text || '';
-    const gradeMatch = questionText.match(/grade\s*(\d+)/i);
-    if (gradeMatch && gradeMatch[1]) {
-      gradeLevel = parseInt(gradeMatch[1], 10);
-    } else {
-      gradeLevel = 3; // Default grade level
-    }
-    
-    const gradeSpecificGuidance = getGradeSpecificGuidance(gradeLevel);
-    
-    const systemPrompt = `You are an educational assistant providing feedback on a ${gradeLevel === 0 ? 'Kindergarten' : `grade ${gradeLevel}`} student's quiz performance.
-      The student scored ${score}% on a quiz. Analyze their answers and provide constructive, supportive feedback.
-      Focus on areas of improvement while celebrating correct answers. Format using markdown with headings and bullet points.
-      
-      ${gradeSpecificGuidance}
-      
-      Adapt your feedback to be encouraging, understandable, and appropriate for a ${gradeLevel === 0 ? 'Kindergarten' : `grade ${gradeLevel}`} student.`;
-    
-    // Construct a detailed prompt with the questions and answers
-    let userPrompt = `Please provide personalized feedback on this quiz result:\n\n`;
-    quizQuestions.forEach((question, index) => {
-      const isCorrect = userAnswers[index] === question.correctIndex;
-      userPrompt += `Question ${index + 1}: ${question.text}\n`;
-      userPrompt += `Student's answer: ${question.options[userAnswers[index]]}\n`;
-      userPrompt += `Correct answer: ${question.options[question.correctIndex]}\n`;
-      userPrompt += `Result: ${isCorrect ? 'Correct' : 'Incorrect'}\n\n`;
+    // Prepare the data for the AI
+    const questionsWithAnswers = quizQuestions.map((q, i) => {
+      const userAnswerCorrect = userAnswers[i] === q.correctIndex;
+      return {
+        question: q.text,
+        userAnswer: q.options[userAnswers[i]],
+        correctAnswer: q.options[q.correctIndex],
+        isCorrect: userAnswerCorrect,
+        explanation: q.explanation
+      };
     });
-    
+
+    const systemPrompt = `You are an encouraging educational assistant providing feedback to a student based on their quiz performance. The student scored ${score}% on their quiz. Review their answers and provide personalized, constructive feedback that emphasizes what they did well and suggests areas for improvement.`;
+
     const messages: Message[] = [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt }
+      { role: "system", content: systemPrompt },
+      { role: "user", content: `Here are the student's answers:\n${JSON.stringify(questionsWithAnswers, null, 2)}\nPlease provide personalized feedback based on these results.` }
     ];
-    
-    return await chat(messages, { temperature: 0.7 });
+
+    return await chat(messages, {
+      model: "anthropic/claude-3-haiku",
+      temperature: 0.7
+    });
   } catch (error) {
-    console.error('Failed to generate feedback:', error);
-    throw error;
+    console.error("Error generating feedback:", error);
+    return "Great effort on your quiz! Keep practicing to improve your understanding of the topic.";
   }
 }
 
@@ -335,32 +219,9 @@ export async function generateKnowledgeGraph(topic: string, gradeLevel: number):
   }
 
   try {
-    // Ensure grade level is within a valid range (0 = Kindergarten, 1-12 = grades 1-12)
-    const safeGradeLevel = Math.max(0, Math.min(12, gradeLevel));
-    const gradeSpecificGuidance = getGradeSpecificGuidance(safeGradeLevel);
-    
-    const systemPrompt = `You are an educational knowledge graph creator for grade ${safeGradeLevel} students.
-      Create a simple knowledge graph about "${topic}" with key concepts as nodes and their relationships as edges.
-      Return a JSON object with two arrays: 'nodes' (each with id and label) and 'edges' (each with source and target node ids).
-      
-      ${gradeSpecificGuidance}
-      
-      Ensure the concepts and their relationships are appropriate for the cognitive development and curriculum level of grade ${safeGradeLevel} students.
-      
-      For grade ${safeGradeLevel === 0 ? 'Kindergarten' : safeGradeLevel}:
-      - Include ${safeGradeLevel === 0 ? '2-3' : safeGradeLevel <= 2 ? '3-5' : safeGradeLevel <= 5 ? '5-8' : '8-12'} main concepts
-      - Use ${safeGradeLevel === 0 ? 'extremely simple, everyday language' : safeGradeLevel <= 5 ? 'simple, concrete terminology' : 'appropriate academic terminology'}
-      - Make relationships ${safeGradeLevel === 0 ? 'extremely basic and visual' : safeGradeLevel <= 3 ? 'very clear and direct' : 'appropriately complex'}
-      - ${safeGradeLevel === 0 ? 'Focus exclusively on familiar objects and ideas from a child\'s immediate experience' : ''}`;
-    
-    const userPrompt = `Create a knowledge graph about ${topic} suitable for ${safeGradeLevel === 0 ? 'Kindergarten' : `grade ${safeGradeLevel}`} students.`;
-    
-    const messages: Message[] = [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt }
-    ];
-    
-    const jsonSchema = {
+    const systemPrompt = `You are an expert educational content creator designing a knowledge graph about "${topic}" for grade ${gradeLevel} students. Create a graph with nodes representing key concepts and edges representing relationships between them.`;
+
+    const schema = {
       type: 'object',
       properties: {
         nodes: {
@@ -388,15 +249,42 @@ export async function generateKnowledgeGraph(topic: string, gradeLevel: number):
       },
       required: ['nodes', 'edges']
     };
-    
-    const response = await chat(messages, { 
-      temperature: 0.7,
-      response_format: { type: 'json_schema', json_schema: jsonSchema }
+
+    const messages: Message[] = [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: `Create a knowledge graph about "${topic}" for grade ${gradeLevel} students. The graph should include key concepts as nodes and relationships between concepts as edges.` }
+    ];
+
+    const response = await chat(messages, {
+      model: "anthropic/claude-3-haiku",
+      temperature: 0.5,
+      response_format: {
+        type: 'json_schema',
+        schema
+      }
     });
-    
+
+    // Parse the JSON response
     return JSON.parse(response);
   } catch (error) {
-    console.error('Failed to generate knowledge graph:', error);
-    throw error;
+    console.error("Error generating knowledge graph:", error);
+    
+    // Return a simple fallback graph
+    return {
+      nodes: [
+        { id: "main", label: topic },
+        { id: "sub1", label: `Basic ${topic}` },
+        { id: "sub2", label: `Advanced ${topic}` },
+        { id: "related1", label: "Related Concept 1" },
+        { id: "related2", label: "Related Concept 2" }
+      ],
+      edges: [
+        { source: "main", target: "sub1" },
+        { source: "main", target: "sub2" },
+        { source: "main", target: "related1" },
+        { source: "main", target: "related2" },
+        { source: "sub1", target: "related1" }
+      ]
+    };
   }
 }
