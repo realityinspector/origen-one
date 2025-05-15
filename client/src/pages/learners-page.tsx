@@ -157,13 +157,19 @@ const LearnersPage: React.FC = () => {
       apiRequest('PUT', `/api/learner-profile/${userId}`, {
         graph
       }).then(res => res.data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/learner-profiles', learners] });
+    onSuccess: (data) => {
+      console.log('Graph updated successfully:', data);
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['/api/learner-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/learners'] });
+      // Provide user feedback and close modal
+      alert('Knowledge graph updated successfully!');
       setGraphModalVisible(false);
       setCurrentProfile(null);
       setError('');
     },
     onError: (err: any) => {
+      console.error('Error updating graph:', err);
       // Try to extract a meaningful error message
       let errorMessage = 'Failed to update knowledge graph. Please try again.';
       
@@ -269,6 +275,38 @@ const LearnersPage: React.FC = () => {
     // Clear the inputs
     setNewEdgeSource('');
     setNewEdgeTarget('');
+    setError('');
+  };
+  
+  const handleDeleteNode = (nodeId: string) => {
+    // Check if node has any connections
+    const hasConnections = graph.edges.some(
+      edge => edge.source === nodeId || edge.target === nodeId
+    );
+    
+    if (hasConnections) {
+      setError('Cannot delete a subject that has connections. Remove the connections first.');
+      return;
+    }
+    
+    // Remove the node
+    setGraph({
+      ...graph,
+      nodes: graph.nodes.filter(node => node.id !== nodeId)
+    });
+    
+    setError('');
+  };
+  
+  const handleDeleteEdge = (sourceId: string, targetId: string) => {
+    // Remove the edge
+    setGraph({
+      ...graph,
+      edges: graph.edges.filter(
+        edge => !(edge.source === sourceId && edge.target === targetId)
+      )
+    });
+    
     setError('');
   };
   
@@ -936,10 +974,26 @@ const LearnersPage: React.FC = () => {
                           paddingHorizontal: 12,
                           paddingVertical: 6,
                           margin: 4,
+                          flexDirection: 'row',
+                          alignItems: 'center',
                         }}>
                           <Text style={{ color: colors.textPrimary }}>
                             {node.label}
                           </Text>
+                          <TouchableOpacity
+                            onPress={() => handleDeleteNode(node.id)}
+                            style={{
+                              marginLeft: 8,
+                              backgroundColor: colors.error,
+                              width: 18,
+                              height: 18,
+                              borderRadius: 9,
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>×</Text>
+                          </TouchableOpacity>
                         </View>
                       ))}
                     </View>
@@ -958,14 +1012,33 @@ const LearnersPage: React.FC = () => {
                       const targetNode = graph.nodes.find(n => n.id === edge.target);
                       
                       return (
-                        <Text key={`edge-${index}`} style={{
-                          fontSize: 14,
-                          color: colors.textSecondary,
+                        <View key={`edge-${index}`} style={{
+                          flexDirection: 'row',
+                          alignItems: 'center',
                           marginLeft: 8,
                           marginBottom: 4,
                         }}>
-                          {sourceNode?.label} → {targetNode?.label}
-                        </Text>
+                          <Text style={{
+                            fontSize: 14,
+                            color: colors.textSecondary,
+                          }}>
+                            {sourceNode?.label} → {targetNode?.label}
+                          </Text>
+                          <TouchableOpacity
+                            onPress={() => handleDeleteEdge(edge.source, edge.target)}
+                            style={{
+                              marginLeft: 8,
+                              backgroundColor: colors.error,
+                              width: 18,
+                              height: 18,
+                              borderRadius: 9,
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                            }}
+                          >
+                            <Text style={{ color: 'white', fontSize: 12, fontWeight: 'bold' }}>×</Text>
+                          </TouchableOpacity>
+                        </View>
                       );
                     })}
                   </View>
