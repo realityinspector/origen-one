@@ -11,32 +11,45 @@ import { db, withRetry, checkDatabaseConnection } from "./db";
 import { eq, and, desc } from "drizzle-orm";
 import { pool } from "./db";
 
+// Type for upserting users from Replit auth
+export interface UpsertUser {
+  id: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  profileImageUrl?: string;
+  username?: string;
+  name?: string;
+  role?: "ADMIN" | "PARENT" | "LEARNER";
+}
+
 export interface IStorage {
   // User operations
-  getUser(id: number): Promise<User | undefined>;
+  getUser(id: string): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(insertUser: InsertUser): Promise<User>;
-  getUsersByParentId(parentId: number): Promise<User[]>;
+  getUsersByParentId(parentId: string): Promise<User[]>;
   getAllParents(): Promise<User[]>;
+  upsertUser(userData: UpsertUser): Promise<User>;
   
   // Learner profile operations
-  getLearnerProfile(userId: number): Promise<LearnerProfile | undefined>;
+  getLearnerProfile(userId: string): Promise<LearnerProfile | undefined>;
   createLearnerProfile(profile: InsertLearnerProfile): Promise<LearnerProfile>;
-  updateLearnerProfile(userId: number, data: Partial<InsertLearnerProfile>): Promise<LearnerProfile | undefined>;
+  updateLearnerProfile(userId: string, data: Partial<InsertLearnerProfile>): Promise<LearnerProfile | undefined>;
   
   // Lesson operations
   createLesson(lesson: InsertLesson): Promise<Lesson>;
   getLessonById(id: string): Promise<Lesson | undefined>;
-  getActiveLesson(learnerId: number): Promise<Lesson | undefined>;
-  getLessonHistory(learnerId: number, limit?: number): Promise<Lesson[]>;
+  getActiveLesson(learnerId: string): Promise<Lesson | undefined>;
+  getLessonHistory(learnerId: string, limit?: number): Promise<Lesson[]>;
   updateLessonStatus(id: string, status: "QUEUED" | "ACTIVE" | "DONE", score?: number): Promise<Lesson | undefined>;
   
   // Achievement operations
   createAchievement(achievement: InsertAchievement): Promise<Achievement>;
-  getAchievements(learnerId: number): Promise<Achievement[]>;
+  getAchievements(learnerId: string): Promise<Achievement[]>;
   
   // Database sync operations
-  getSyncConfigsByParentId(parentId: number): Promise<DbSyncConfig[]>;
+  getSyncConfigsByParentId(parentId: string): Promise<DbSyncConfig[]>;
   getSyncConfigById(id: string): Promise<DbSyncConfig | undefined>;
   createSyncConfig(config: InsertDbSyncConfig): Promise<DbSyncConfig>;
   updateSyncConfig(id: string, data: Partial<InsertDbSyncConfig>): Promise<DbSyncConfig | undefined>;
@@ -50,10 +63,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   // User operations
-  async getUser(id: number): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.id, id));
-    const users_found = Array.isArray(result) ? result : [result];
-    return users_found.length > 0 ? users_found[0] as User : undefined;
+  async getUser(id: string): Promise<User | undefined> {
+    try {
+      const result = await db.select().from(users).where(eq(users.id, id));
+      const users_found = Array.isArray(result) ? result : [result];
+      return users_found.length > 0 ? users_found[0] as User : undefined;
+    } catch (error) {
+      console.error(`Error in getUser for id "${id}":`, error);
+      return undefined;
+    }
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
@@ -80,18 +98,84 @@ export class DatabaseStorage implements IStorage {
     return user as User;
   }
 
-  async getUsersByParentId(parentId: number): Promise<User[]> {
-    const result = await db.select().from(users).where(eq(users.parentId, parentId));
-    return Array.isArray(result) ? result.map(user => user as User) : [result as User];
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    try {
+      // Set default role if not provided
+      if (!userData.role) {
+        userData.role = "LEARNER";
+      }
+      
+      // Set a name if not provided but firstName is available
+      if (!userData.name && userData.firstName) {
+        userData.name = `${userData.firstName}${userData.lastName ? ' ' + userData.lastName : ''}`;
+      }
+      
+      // Set username if not provided
+      if (!userData.username && userData.email) {
+        // Use the email part before @ as username
+        userData.username = userData.email.split('@')[0];
+      }
+      
+      // If we still don't have a username, create one from firstName or id
+      if (!userData.username) {
+        const namePart = userData.firstName ? userData.firstName.toLowerCase() : 'user';
+        userData.username = `${namePart}-${userData.id.substring(0, 6)}`;
+      }
+      
+      // Check if user already exists
+      const existingUser = await this.getUser(userData.id);
+      
+      if (existingUser) {
+        // Update existing user
+        const [user] = await db
+          .update(users)
+          .set({
+            ...userData,
+            updatedAt: new Date()
+          })
+          .where(eq(users.id, userData.id))
+          .returning();
+        return user as User;
+      } else {
+        // Create new user
+        const [user] = await db
+          .insert(users)
+          .values({
+            ...userData,
+            createdAt: new Date(),
+            updatedAt: new Date()
+          })
+          .returning();
+        return user as User;
+      }
+    } catch (error) {
+      console.error('Error in upsertUser:', error);
+      throw error;
+    }
+  }
+
+  async getUsersByParentId(parentId: string): Promise<User[]> {
+    try {
+      const result = await db.select().from(users).where(eq(users.parentId, parentId));
+      return Array.isArray(result) ? result.map(user => user as User) : [result as User];
+    } catch (error) {
+      console.error(`Error in getUsersByParentId for parent ID "${parentId}":`, error);
+      return [];
+    }
   }
 
   async getAllParents(): Promise<User[]> {
-    const result = await db.select().from(users).where(eq(users.role, "PARENT"));
-    return Array.isArray(result) ? result.map(user => user as User) : [result as User];
+    try {
+      const result = await db.select().from(users).where(eq(users.role, "PARENT"));
+      return Array.isArray(result) ? result.map(user => user as User) : [result as User];
+    } catch (error) {
+      console.error('Error in getAllParents:', error);
+      return [];
+    }
   }
 
   // Learner profile operations
-  async getLearnerProfile(userId: number): Promise<LearnerProfile | undefined> {
+  async getLearnerProfile(userId: string): Promise<LearnerProfile | undefined> {
     try {
       // First try to get only the essential fields
       const result = await db.select({
@@ -168,7 +252,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async updateLearnerProfile(userId: number, data: Partial<InsertLearnerProfile>): Promise<LearnerProfile | undefined> {
+  async updateLearnerProfile(userId: string, data: Partial<InsertLearnerProfile>): Promise<LearnerProfile | undefined> {
     try {
       // First check if profile exists
       const existingProfile = await this.getLearnerProfile(userId);
@@ -313,7 +397,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getActiveLesson(learnerId: number): Promise<Lesson | undefined> {
+  async getActiveLesson(learnerId: string): Promise<Lesson | undefined> {
     try {
       // Try to get the full lesson first
       try {
@@ -367,7 +451,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getLessonHistory(learnerId: number, limit: number = 10): Promise<Lesson[]> {
+  async getLessonHistory(learnerId: string, limit: number = 10): Promise<Lesson[]> {
     try {
       // Try to get the full lesson history first
       try {
@@ -488,7 +572,7 @@ export class DatabaseStorage implements IStorage {
     return newAchievement as Achievement;
   }
 
-  async getAchievements(learnerId: number): Promise<Achievement[]> {
+  async getAchievements(learnerId: string): Promise<Achievement[]> {
     const result = await db
       .select()
       .from(achievements)
@@ -498,7 +582,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Database sync operations
-  async getSyncConfigsByParentId(parentId: number): Promise<DbSyncConfig[]> {
+  async getSyncConfigsByParentId(parentId: string): Promise<DbSyncConfig[]> {
     const result = await db
       .select()
       .from(dbSyncConfigs)
@@ -574,7 +658,7 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Delete a user and all associated data
-  async deleteUser(id: number): Promise<boolean> {
+  async deleteUser(id: string): Promise<boolean> {
     try {
       // First, check if this is a learner and delete their profile if it exists
       const user = await this.getUser(id);

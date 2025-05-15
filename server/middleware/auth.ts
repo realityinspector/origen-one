@@ -34,20 +34,24 @@ export function asyncHandler(fn: (req: Request, res: Response, next: NextFunctio
 
 // Define types
 export interface JwtPayload {
-  userId: number;
+  userId: string;
   role: string;
 }
 
 export interface AuthRequest extends Request {
   user?: {
-    id: number;
+    id: string;
     email: string;
     username: string;
     name: string;
     role: string;
     password: string;
-    parentId: number | null;
+    parentId: string | null;
+    firstName?: string;
+    lastName?: string;
+    profileImageUrl?: string;
     createdAt: Date;
+    updatedAt?: Date;
   };
 }
 
@@ -70,7 +74,7 @@ export async function comparePasswords(supplied: string, stored: string): Promis
 }
 
 // JWT functions
-export function generateToken(user: { id: number, role: string }): string {
+export function generateToken(user: { id: string, role: string }): string {
   const payload: JwtPayload = {
     userId: user.id,
     role: user.role

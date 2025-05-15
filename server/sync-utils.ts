@@ -8,7 +8,7 @@ import { eq } from 'drizzle-orm';
  * Synchronize a parent's data to an external database
  * This performs a one-way replication of the parent's data to the target database
  */
-export async function synchronizeToExternalDatabase(parentId: number, syncConfig: DbSyncConfig): Promise<void> {
+export async function synchronizeToExternalDatabase(parentId: string, syncConfig: DbSyncConfig): Promise<void> {
   // Create a client to connect to the target database
   const targetClient = new Client({
     connectionString: syncConfig.targetDbUrl
