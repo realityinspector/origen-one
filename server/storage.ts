@@ -195,7 +195,13 @@ export class DatabaseStorage implements IStorage {
 
   // Achievement operations
   async createAchievement(achievement: InsertAchievement): Promise<Achievement> {
-    const result = await db.insert(achievements).values(achievement).returning();
+    // Make sure we have a UUID for the id field to prevent not-null constraint violations
+    const achievementWithId = {
+      ...achievement,
+      id: crypto.randomUUID()
+    };
+    
+    const result = await db.insert(achievements).values(achievementWithId).returning();
     const newAchievement = Array.isArray(result) ? result[0] : result;
     return newAchievement as Achievement;
   }
