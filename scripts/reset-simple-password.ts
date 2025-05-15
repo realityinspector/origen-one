@@ -13,7 +13,16 @@ async function main() {
   try {
     // Find the user
     console.log(`Looking up user: ${username}`);
-    const userResults = await db.select().from(users).where(eq(users.username, username));
+    const userResults = await db.select({
+      id: users.id,
+      email: users.email,
+      username: users.username,
+      name: users.name,
+      role: users.role,
+      password: users.password,
+      parentId: users.parentId,
+      createdAt: users.createdAt,
+    }).from(users).where(eq(users.username, username));
     
     if (userResults.length === 0) {
       console.error(`Error: User "${username}" not found`);
@@ -38,7 +47,16 @@ async function main() {
       .where(eq(users.id, user.id));
     
     // Verify the password update
-    const updatedUserResults = await db.select().from(users).where(eq(users.id, user.id));
+    const updatedUserResults = await db.select({
+      id: users.id,
+      email: users.email,
+      username: users.username,
+      name: users.name,
+      role: users.role,
+      password: users.password,
+      parentId: users.parentId,
+      createdAt: users.createdAt,
+    }).from(users).where(eq(users.id, user.id));
     const updatedUser = updatedUserResults[0];
     
     const verifyResult = await comparePasswords(newPassword, updatedUser.password);
