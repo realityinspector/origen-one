@@ -534,6 +534,200 @@ const LearnersPage: React.FC = () => {
         </View>
       </Modal>
 
+      {/* Subjects Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={subjectsModalVisible}
+        onRequestClose={() => setSubjectsModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>
+              Manage Subjects
+            </Text>
+
+            <ScrollView style={styles.modalContent}>
+              <Text style={styles.editLearnerName}>
+                {currentEditLearner?.name}
+              </Text>
+              
+              <Text style={styles.inputLabel}>Active Subjects</Text>
+              <View style={styles.subjectsContainer}>
+                {subjects.map((subject, index) => (
+                  <View key={index} style={styles.subjectItem}>
+                    <Text style={styles.subjectText}>{subject}</Text>
+                    <TouchableOpacity 
+                      style={styles.removeButton}
+                      onPress={() => {
+                        setSubjects(subjects.filter((_, i) => i !== index));
+                      }}
+                    >
+                      <Text style={styles.removeButtonText}>x</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                <View style={styles.addSubjectContainer}>
+                  <TextInput
+                    style={styles.subjectInput}
+                    placeholder="Add new subject"
+                    onSubmitEditing={(e) => {
+                      const newSubject = e.nativeEvent.text.trim();
+                      if (newSubject && !subjects.includes(newSubject)) {
+                        setSubjects([...subjects, newSubject]);
+                        // Clear the input (would need a ref in a real implementation)
+                      }
+                    }}
+                  />
+                </View>
+              </View>
+              
+              <Text style={styles.inputLabel}>Recommended Subjects</Text>
+              <View style={styles.subjectsContainer}>
+                {recommendedSubjects.map((subject, index) => (
+                  <View key={index} style={styles.recommendedItem}>
+                    <Text style={styles.recommendedText}>{subject}</Text>
+                    <TouchableOpacity 
+                      style={styles.removeButton}
+                      onPress={() => {
+                        setRecommendedSubjects(recommendedSubjects.filter((_, i) => i !== index));
+                      }}
+                    >
+                      <Text style={styles.removeButtonText}>x</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                <View style={styles.addSubjectContainer}>
+                  <TextInput
+                    style={styles.subjectInput}
+                    placeholder="Add recommended subject"
+                    onSubmitEditing={(e) => {
+                      const newSubject = e.nativeEvent.text.trim();
+                      if (newSubject && !recommendedSubjects.includes(newSubject)) {
+                        setRecommendedSubjects([...recommendedSubjects, newSubject]);
+                      }
+                    }}
+                  />
+                </View>
+              </View>
+              
+              <Text style={styles.inputLabel}>Needs More Practice</Text>
+              <View style={styles.subjectsContainer}>
+                {strugglingAreas.map((subject, index) => (
+                  <View key={index} style={styles.strugglingItem}>
+                    <Text style={styles.strugglingText}>{subject}</Text>
+                    <TouchableOpacity 
+                      style={styles.removeButton}
+                      onPress={() => {
+                        setStrugglingAreas(strugglingAreas.filter((_, i) => i !== index));
+                      }}
+                    >
+                      <Text style={styles.removeButtonText}>x</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
+                <View style={styles.addSubjectContainer}>
+                  <TextInput
+                    style={styles.subjectInput}
+                    placeholder="Add subject that needs practice"
+                    onSubmitEditing={(e) => {
+                      const newSubject = e.nativeEvent.text.trim();
+                      if (newSubject && !strugglingAreas.includes(newSubject)) {
+                        setStrugglingAreas([...strugglingAreas, newSubject]);
+                      }
+                    }}
+                  />
+                </View>
+              </View>
+
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => {
+                    setSubjectsModalVisible(false);
+                    setCurrentProfile(null);
+                    setError('');
+                  }}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={handleUpdateSubjects}
+                >
+                  <Text style={styles.saveButtonText}>Save Changes</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Knowledge Graph Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={graphModalVisible}
+        onRequestClose={() => setGraphModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>
+              Knowledge Graph
+            </Text>
+
+            <ScrollView style={styles.modalContent}>
+              <Text style={styles.editLearnerName}>
+                {currentEditLearner?.name}
+              </Text>
+              
+              <View style={styles.graphContainer}>
+                <Text style={styles.graphText}>
+                  This feature allows you to visualize and edit the knowledge connections 
+                  for {currentEditLearner?.name}.
+                </Text>
+                
+                <View style={styles.graphPlaceholder}>
+                  <Text style={styles.graphPlaceholderText}>
+                    Knowledge Graph Visualization
+                  </Text>
+                  <Text style={styles.graphInstructions}>
+                    In a complete implementation, this would include an interactive 
+                    graph editor where you can create nodes for subjects and connect 
+                    related topics.
+                  </Text>
+                </View>
+              </View>
+
+              {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
+              <View style={styles.modalButtons}>
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => {
+                    setGraphModalVisible(false);
+                    setCurrentProfile(null);
+                    setError('');
+                  }}
+                >
+                  <Text style={styles.cancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.saveButton}
+                  onPress={handleUpdateGraph}
+                >
+                  <Text style={styles.saveButtonText}>Save Graph</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
       {/* Edit Grade Level Modal */}
       <Modal
         animationType="slide"
@@ -888,11 +1082,132 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 8,
   },
+  subjectsButton: {
+    backgroundColor: colors.secondaryLight,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  graphButton: {
+    backgroundColor: colors.tertiaryLight,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
   editLearnerName: {
     fontSize: 18,
     fontWeight: 'bold',
     color: colors.textPrimary,
     marginBottom: 15,
+    textAlign: 'center',
+  },
+  // Subject management styles
+  subjectsContainer: {
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.outline,
+    borderRadius: 4,
+    padding: 8,
+    backgroundColor: colors.surface,
+  },
+  subjectItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.primaryLight,
+    padding: 10,
+    borderRadius: 4,
+    marginBottom: 8,
+  },
+  subjectText: {
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  recommendedItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.secondaryLight,
+    padding: 10,
+    borderRadius: 4,
+    marginBottom: 8,
+  },
+  recommendedText: {
+    color: colors.textPrimary,
+    flex: 1,
+  },
+  strugglingItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.accent,
+    padding: 10,
+    borderRadius: 4,
+    marginBottom: 8,
+  },
+  strugglingText: {
+    color: colors.white,
+    flex: 1,
+  },
+  removeButton: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 12,
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  removeButtonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  addSubjectContainer: {
+    marginTop: 8,
+  },
+  subjectInput: {
+    borderWidth: 1,
+    borderColor: colors.outline,
+    borderRadius: 4,
+    padding: 10,
+    backgroundColor: colors.white,
+  },
+  // Knowledge graph styles
+  graphContainer: {
+    marginTop: 20,
+    paddingBottom: 20,
+  },
+  graphText: {
+    fontSize: 14,
+    color: colors.textPrimary,
+    marginBottom: 16,
+  },
+  graphPlaceholder: {
+    height: 200,
+    borderWidth: 1,
+    borderColor: colors.outline,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+    backgroundColor: colors.surface,
+  },
+  graphPlaceholderText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.textSecondary,
+    marginBottom: 8,
+  },
+  graphInstructions: {
+    fontSize: 14,
+    color: colors.textSecondary,
     textAlign: 'center',
   },
 });
