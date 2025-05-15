@@ -99,6 +99,10 @@ export class DatabaseStorage implements IStorage {
         userId: learnerProfiles.userId,
         gradeLevel: learnerProfiles.gradeLevel,
         graph: learnerProfiles.graph,
+        subjects: learnerProfiles.subjects,
+        subjectPerformance: learnerProfiles.subjectPerformance,
+        recommendedSubjects: learnerProfiles.recommendedSubjects,
+        strugglingAreas: learnerProfiles.strugglingAreas,
         createdAt: learnerProfiles.createdAt
       }).from(learnerProfiles).where(eq(learnerProfiles.userId, userId));
       
@@ -109,10 +113,10 @@ export class DatabaseStorage implements IStorage {
         const profile = profiles[0];
         return {
           ...profile,
-          subjects: ['Math', 'Reading', 'Science'],
-          subjectPerformance: {},
-          recommendedSubjects: [],
-          strugglingAreas: []
+          subjects: profile.subjects || ['Math', 'Reading', 'Science'],
+          subjectPerformance: profile.subjectPerformance || {},
+          recommendedSubjects: profile.recommendedSubjects || [],
+          strugglingAreas: profile.strugglingAreas || []
         } as LearnerProfile;
       }
       
