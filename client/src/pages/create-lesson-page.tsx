@@ -39,7 +39,7 @@ const CreateLessonPage = ({ navigation }: any) => {
 
   // Mutation for creating a new custom lesson
   const createLessonMutation = useMutation({
-    mutationFn: (params: { topic: string; gradeLevel: number; learnerId: number }) =>
+    mutationFn: (params: { topic: string; gradeLevel: number; learnerId: number; enhanced: boolean }) =>
       apiRequest('POST', '/api/lessons/create', params)
         .then(res => res.data),
     onSuccess: (data) => {
@@ -96,6 +96,7 @@ const CreateLessonPage = ({ navigation }: any) => {
             topic: topic.trim(),
             gradeLevel: parseInt(gradeLevel),
             learnerId: user.id,
+            enhanced: useEnhanced,
           });
         }, 1000);
       }, 1000);
@@ -157,6 +158,50 @@ const CreateLessonPage = ({ navigation }: any) => {
                   </Text>
                 </TouchableOpacity>
               ))}
+            </View>
+          </View>
+          
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Lesson Format</Text>
+            <View style={styles.enhancedToggleContainer}>
+              <TouchableOpacity
+                style={[
+                  styles.formatButton, 
+                  !useEnhanced && styles.formatButtonActive
+                ]}
+                onPress={() => setUseEnhanced(false)}
+                disabled={isGenerating}
+              >
+                <Text 
+                  style={[
+                    styles.formatButtonText,
+                    !useEnhanced && styles.formatButtonTextActive
+                  ]}
+                >
+                  Standard
+                </Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[
+                  styles.formatButton, 
+                  useEnhanced && styles.formatButtonActive
+                ]}
+                onPress={() => setUseEnhanced(true)}
+                disabled={isGenerating}
+              >
+                <Text 
+                  style={[
+                    styles.formatButtonText,
+                    useEnhanced && styles.formatButtonTextActive
+                  ]}
+                >
+                  Enhanced with Images
+                </Text>
+                <View style={styles.newFeatureBadge}>
+                  <Text style={styles.newFeatureText}>NEW</Text>
+                </View>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -296,6 +341,49 @@ const styles = StyleSheet.create({
     ...typography.body2,
     color: colors.textSecondary,
     textAlign: 'center',
+  },
+  enhancedToggleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 8,
+  },
+  formatButton: {
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 8,
+    padding: 12,
+    marginHorizontal: 4,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.inputBackground,
+    flexDirection: 'row',
+    position: 'relative',
+  },
+  formatButtonActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  formatButtonText: {
+    ...typography.button,
+    color: colors.textPrimary,
+  },
+  formatButtonTextActive: {
+    color: colors.onPrimary,
+  },
+  newFeatureBadge: {
+    position: 'absolute',
+    top: -10,
+    right: -10,
+    backgroundColor: colors.accent1,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  newFeatureText: {
+    fontSize: 10,
+    fontWeight: 'bold',
+    color: '#FFFFFF',
   },
 });
 
