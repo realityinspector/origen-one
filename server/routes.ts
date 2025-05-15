@@ -273,7 +273,7 @@ export function registerRoutes(app: Express): Server {
       return res.status(401).json({ error: "Unauthorized" });
     }
     
-    const { topic = '', gradeLevel, learnerId } = req.body;
+    const { topic = '', gradeLevel, learnerId, enhanced = true } = req.body;
     
     if (!gradeLevel || !learnerId) {
       return res.status(400).json({ error: "Missing required fields: gradeLevel, learnerId" });
@@ -301,6 +301,7 @@ export function registerRoutes(app: Express): Server {
         return res.status(400).json({ error: "AI lesson generation is currently disabled" });
       }
       
+      // By default, we try to generate an enhanced lesson (this can fallback to standard)
       const lessonSpec = await generateLesson(gradeLevel, topic);
       
       // Create the lesson
