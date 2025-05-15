@@ -32,6 +32,9 @@ const LearnersPage: React.FC = () => {
   const [recommendedSubjects, setRecommendedSubjects] = useState<string[]>([]);
   const [strugglingAreas, setStrugglingAreas] = useState<string[]>([]);
   const [graph, setGraph] = useState<{nodes: any[], edges: any[]}>({nodes: [], edges: []});
+  const [newNodeName, setNewNodeName] = useState('');
+  const [newEdgeSource, setNewEdgeSource] = useState('');
+  const [newEdgeTarget, setNewEdgeTarget] = useState('');
   const [error, setError] = useState('');
 
   // Fetch learners
@@ -210,6 +213,63 @@ const LearnersPage: React.FC = () => {
       recommendedSubjects,
       strugglingAreas
     });
+  };
+  
+  const handleAddNode = () => {
+    if (!newNodeName.trim()) {
+      setError('Please enter a node name');
+      return;
+    }
+    
+    // Generate a simple ID from the name
+    const nodeId = newNodeName.toLowerCase().replace(/\s+/g, '_');
+    
+    // Check if a node with this ID already exists
+    if (graph.nodes.some(node => node.id === nodeId)) {
+      setError('A node with this name already exists');
+      return;
+    }
+    
+    // Add the new node
+    setGraph({
+      ...graph,
+      nodes: [
+        ...graph.nodes,
+        { id: nodeId, label: newNodeName }
+      ]
+    });
+    
+    // Clear the input
+    setNewNodeName('');
+    setError('');
+  };
+  
+  const handleAddEdge = () => {
+    if (!newEdgeSource || !newEdgeTarget) {
+      setError('Please select both source and target nodes');
+      return;
+    }
+    
+    // Check if this edge already exists
+    if (graph.edges.some(edge => 
+        edge.source === newEdgeSource && edge.target === newEdgeTarget)) {
+      setError('This connection already exists');
+      return;
+    }
+    
+    // Add the new edge
+    setGraph({
+      ...graph,
+      edges: [
+        ...graph.edges,
+        { source: newEdgeSource, target: newEdgeTarget }
+      ]
+    });
+    
+    // Clear the inputs
+    setNewEdgeSource('');
+    setNewEdgeTarget('');
+    setError('');
   };
   
   const handleUpdateGraph = () => {
@@ -704,23 +764,206 @@ const LearnersPage: React.FC = () => {
                     related topics.
                   </Text>
                   
-                  {/* Display current graph structure */}
-                  <View style={styles.graphDataContainer}>
-                    <Text style={styles.graphDataHeading}>Current Knowledge Connections:</Text>
-                    {graph.nodes.map((node, index) => (
-                      <Text key={`node-${index}`} style={styles.graphNodeText}>
-                        • {node.label}
-                      </Text>
-                    ))}
+                  {/* Graph Editor UI */}
+                  <View style={{
+                    marginTop: 16,
+                    padding: 16,
+                    backgroundColor: colors.surfaceColor,
+                    borderWidth: 1,
+                    borderColor: colors.divider,
+                    borderRadius: 8,
+                    alignSelf: 'stretch',
+                  }}>
+                    {/* Add Subject/Node Section */}
+                    <Text style={{
+                      fontSize: 16,
+                      fontWeight: 'bold',
+                      color: colors.textPrimary,
+                      marginBottom: 8,
+                    }}>Add Knowledge Subject:</Text>
                     
-                    <Text style={styles.graphDataHeading}>Connections:</Text>
+                    <View style={{
+                      flexDirection: 'row',
+                      marginBottom: 16,
+                    }}>
+                      <TextInput
+                        value={newNodeName}
+                        onChangeText={setNewNodeName}
+                        placeholder="Enter subject (e.g. Fractions)"
+                        style={{
+                          flex: 1,
+                          borderWidth: 1,
+                          borderColor: colors.divider,
+                          borderRadius: 4,
+                          padding: 8,
+                          marginRight: 8,
+                        }}
+                      />
+                      <TouchableOpacity
+                        onPress={handleAddNode}
+                        style={{
+                          backgroundColor: colors.primary,
+                          paddingHorizontal: 16,
+                          paddingVertical: 8,
+                          borderRadius: 4,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text style={{ color: 'white', fontWeight: 'bold' }}>Add</Text>
+                      </TouchableOpacity>
+                    </View>
+                    
+                    {/* Add Connection/Edge Section */}
+                    <Text style={{
+                      fontSize: 16,
+                      fontWeight: 'bold',
+                      color: colors.textPrimary,
+                      marginTop: 8,
+                      marginBottom: 8,
+                    }}>Connect Subjects:</Text>
+                    
+                    <View style={{
+                      marginBottom: 16,
+                    }}>
+                      {/* Source dropdown */}
+                      <View style={{
+                        borderWidth: 1,
+                        borderColor: colors.divider,
+                        borderRadius: 4,
+                        padding: 8,
+                        marginBottom: 8,
+                      }}>
+                        <Text style={{ marginBottom: 4, color: colors.textSecondary }}>From:</Text>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                          {graph.nodes.map((node, idx) => (
+                            <TouchableOpacity
+                              key={`source-${idx}`}
+                              onPress={() => setNewEdgeSource(node.id)}
+                              style={{
+                                backgroundColor: newEdgeSource === node.id ? colors.primary : colors.surfaceColor,
+                                borderWidth: 1,
+                                borderColor: colors.divider,
+                                borderRadius: 20,
+                                paddingHorizontal: 12,
+                                paddingVertical: 6,
+                                margin: 4,
+                              }}
+                            >
+                              <Text style={{ 
+                                color: newEdgeSource === node.id ? 'white' : colors.textPrimary 
+                              }}>
+                                {node.label}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </View>
+                      
+                      {/* Target dropdown */}
+                      <View style={{
+                        borderWidth: 1,
+                        borderColor: colors.divider,
+                        borderRadius: 4,
+                        padding: 8,
+                        marginBottom: 8,
+                      }}>
+                        <Text style={{ marginBottom: 4, color: colors.textSecondary }}>To:</Text>
+                        <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
+                          {graph.nodes.map((node, idx) => (
+                            <TouchableOpacity
+                              key={`target-${idx}`}
+                              onPress={() => setNewEdgeTarget(node.id)}
+                              style={{
+                                backgroundColor: newEdgeTarget === node.id ? colors.primary : colors.surfaceColor,
+                                borderWidth: 1,
+                                borderColor: colors.divider,
+                                borderRadius: 20,
+                                paddingHorizontal: 12,
+                                paddingVertical: 6,
+                                margin: 4,
+                              }}
+                            >
+                              <Text style={{ 
+                                color: newEdgeTarget === node.id ? 'white' : colors.textPrimary 
+                              }}>
+                                {node.label}
+                              </Text>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      </View>
+                      
+                      <TouchableOpacity
+                        onPress={handleAddEdge}
+                        style={{
+                          backgroundColor: colors.secondary,
+                          paddingHorizontal: 16,
+                          paddingVertical: 8,
+                          borderRadius: 4,
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                        }}
+                      >
+                        <Text style={{ color: 'white', fontWeight: 'bold' }}>Connect Subjects</Text>
+                      </TouchableOpacity>
+                    </View>
+                    
+                    {/* Current graph visualization */}
+                    <Text style={{
+                      fontSize: 16,
+                      fontWeight: 'bold',
+                      color: colors.textPrimary,
+                      marginTop: 12,
+                      marginBottom: 8,
+                    }}>Current Knowledge Graph:</Text>
+                    
+                    {/* Nodes */}
+                    <Text style={{
+                      fontSize: 14,
+                      fontWeight: 'bold',
+                      color: colors.textSecondary,
+                      marginTop: 8,
+                      marginBottom: 4,
+                    }}>Subjects:</Text>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginBottom: 12 }}>
+                      {graph.nodes.map((node, index) => (
+                        <View key={`node-${index}`} style={{
+                          backgroundColor: colors.surfaceColor,
+                          borderWidth: 1,
+                          borderColor: colors.primary,
+                          borderRadius: 20,
+                          paddingHorizontal: 12,
+                          paddingVertical: 6,
+                          margin: 4,
+                        }}>
+                          <Text style={{ color: colors.textPrimary }}>
+                            {node.label}
+                          </Text>
+                        </View>
+                      ))}
+                    </View>
+                    
+                    {/* Edges */}
+                    <Text style={{
+                      fontSize: 14,
+                      fontWeight: 'bold',
+                      color: colors.textSecondary,
+                      marginTop: 8,
+                      marginBottom: 4,
+                    }}>Connections:</Text>
                     {graph.edges.map((edge, index) => {
                       // Find the source and target nodes
                       const sourceNode = graph.nodes.find(n => n.id === edge.source);
                       const targetNode = graph.nodes.find(n => n.id === edge.target);
                       
                       return (
-                        <Text key={`edge-${index}`} style={styles.graphEdgeText}>
+                        <Text key={`edge-${index}`} style={{
+                          fontSize: 14,
+                          color: colors.textSecondary,
+                          marginLeft: 8,
+                          marginBottom: 4,
+                        }}>
                           {sourceNode?.label} → {targetNode?.label}
                         </Text>
                       );
@@ -1236,6 +1479,35 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     textAlign: 'center',
+    marginBottom: 16,
+  },
+  graphDataContainer: {
+    marginTop: 16,
+    padding: 16,
+    backgroundColor: colors.surfaceColor,
+    borderWidth: 1,
+    borderColor: colors.divider,
+    borderRadius: 8,
+    alignSelf: 'stretch',
+  },
+  graphDataHeading: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: colors.textPrimary,
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  graphNodeText: {
+    fontSize: 14,
+    color: colors.textPrimary,
+    marginLeft: 8,
+    marginBottom: 4,
+  },
+  graphEdgeText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginLeft: 8,
+    marginBottom: 4,
   },
 });
 
