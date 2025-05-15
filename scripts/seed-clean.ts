@@ -30,6 +30,7 @@ async function main() {
   console.log('Creating admin user...');
   const adminPassword = await hashPassword('admin1234');
   const result = await db.insert(schema.users).values({
+    id: generateId(10),
     username: 'admin',
     email: 'admin@example.com',
     name: 'System Administrator',
@@ -43,6 +44,7 @@ async function main() {
   console.log('Creating parent user...');
   const parentPassword = await hashPassword('parent1234');
   const parentResult = await db.insert(schema.users).values({
+    id: generateId(10),
     username: 'parent',
     email: 'parent@example.com',
     name: 'Demo Parent',
@@ -56,6 +58,7 @@ async function main() {
   console.log('Creating learner user...');
   const learnerPassword = await hashPassword('learner1234');
   const learnerResult = await db.insert(schema.users).values({
+    id: generateId(10),
     username: 'learner',
     email: 'learner@example.com',
     name: 'Demo Student',
