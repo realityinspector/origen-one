@@ -75,15 +75,29 @@ export function registerRoutes(app: Express): Server {
   
   // Get learners for a parent (Parent only)
   app.get("/api/learners", hasRole(["PARENT", "ADMIN"]), asyncHandler(async (req: AuthRequest, res) => {
-    let learners;
-    if (req.user?.role === "ADMIN" && req.query.parentId) {
-      learners = await storage.getUsersByParentId(Number(req.query.parentId));
-    } else if (req.user?.role === "PARENT") {
-      learners = await storage.getUsersByParentId(req.user.id);
-    } else {
-      return res.status(400).json({ error: "Invalid request" });
+    try {
+      console.log('GET /api/learners request received');
+      console.log('User:', req.user);
+      console.log('Query params:', req.query);
+      
+      let learners;
+      if (req.user?.role === "ADMIN" && req.query.parentId) {
+        console.log(`Admin getting learners for parent ID: ${req.query.parentId}`);
+        learners = await storage.getUsersByParentId(Number(req.query.parentId));
+      } else if (req.user?.role === "PARENT") {
+        console.log(`Parent ${req.user.id} getting their learners`);
+        learners = await storage.getUsersByParentId(req.user.id);
+      } else {
+        console.log('Invalid request, missing parent ID or not a parent');
+        return res.status(400).json({ error: "Invalid request" });
+      }
+      
+      console.log(`Found ${learners.length} learners`);
+      res.json(learners);
+    } catch (error) {
+      console.error('Error in GET /api/learners:', error);
+      res.status(500).json({ error: "Internal server error", details: error.message });
     }
-    res.json(learners);
   }));
   
   // Create a new learner account
