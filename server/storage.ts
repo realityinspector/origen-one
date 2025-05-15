@@ -65,7 +65,7 @@ export class DatabaseStorage implements IStorage {
   // User operations
   async getUser(id: string): Promise<User | undefined> {
     try {
-      // Use specific fields instead of select() to avoid any column issues
+      // Use specific fields that exist in the database
       const result = await db
         .select({
           id: users.id,
@@ -76,8 +76,7 @@ export class DatabaseStorage implements IStorage {
           password: users.password,
           parentId: users.parentId,
           createdAt: users.createdAt,
-          updatedAt: users.updatedAt,
-          profileImageUrl: users.profileImageUrl
+          // Don't select updatedAt or profileImageUrl as they don't exist in the database
         })
         .from(users)
         .where(eq(users.id, id));
@@ -95,7 +94,7 @@ export class DatabaseStorage implements IStorage {
       return await withRetry(async () => {
         // Log the SQL query being executed for debugging
         console.log(`Looking for user with username: ${username}`);
-        // Use specific fields instead of select() to avoid any column issues
+        // Use specific fields that exist in the database
         const result = await db
           .select({
             id: users.id,
@@ -106,8 +105,7 @@ export class DatabaseStorage implements IStorage {
             password: users.password,
             parentId: users.parentId,
             createdAt: users.createdAt,
-            updatedAt: users.updatedAt,
-            profileImageUrl: users.profileImageUrl
+            // Don't select updatedAt or profileImageUrl as they don't exist in the database
           })
           .from(users)
           .where(eq(users.username, username));
@@ -166,8 +164,8 @@ export class DatabaseStorage implements IStorage {
         const [user] = await db
           .update(users)
           .set({
-            ...dbSafeUserData,
-            updatedAt: new Date()
+            ...dbSafeUserData
+            // Removed updatedAt as it doesn't exist in the database
           })
           .where(eq(users.id, userData.id))
           .returning();
@@ -178,8 +176,8 @@ export class DatabaseStorage implements IStorage {
           .insert(users)
           .values({
             ...dbSafeUserData,
-            createdAt: new Date(),
-            updatedAt: new Date()
+            createdAt: new Date()
+            // Removed updatedAt as it doesn't exist in the database
           })
           .returning();
         const user = Array.isArray(result) ? result[0] : result;
