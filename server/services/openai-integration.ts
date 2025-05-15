@@ -6,9 +6,18 @@
  */
 
 import OpenAI from "openai";
-import { nanoid } from "nanoid";
 import { USE_AI } from "../config/flags";
 import { chat, Message } from "./ai";
+
+// Create a simple ID generator
+function generateId(size: number = 10): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < size; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -88,7 +97,7 @@ export async function generateLessonImage(
     throw new Error('OPENAI_API_KEY is required for image generation');
   }
   
-  const imageId = nanoid(10);
+  const imageId = generateId(10);
   const prompt = createImageGenerationPrompt(topic, gradeLevel, description);
   
   try {
@@ -125,7 +134,7 @@ export async function generateFallbackSvgImage(
   gradeLevel: number, 
   description: string
 ): Promise<LessonImage> {
-  const imageId = nanoid(10);
+  const imageId = generateId(10);
   const prompt = `Create an SVG illustration about ${topic} for grade ${gradeLevel} students. ${description}`;
   
   try {
@@ -195,7 +204,7 @@ export async function generateSvgDiagram(
     throw new Error('AI generation is disabled (USE_AI=0)');
   }
   
-  const diagramId = nanoid(10);
+  const diagramId = generateId(10);
   
   try {
     const systemPrompt = `You are an expert educational diagram creator. 
