@@ -95,17 +95,26 @@ export async function synchronizeToExternalDatabase(parentId: number, syncConfig
     await targetClient.query('COMMIT');
     console.log(`Synchronization completed successfully for sync: ${syncConfig.id}`);
     
-    // Update the sync status to COMPLETED in the database
+    // Update the sync status to COMPLETED in the database using direct ORM operations
     try {
       console.log(`Updating sync config with ID: ${syncConfig.id}, current status: ${syncConfig.syncStatus}`);
       
-      const updatedConfig = await storage.updateSyncConfig(syncConfig.id, {
-        syncStatus: 'COMPLETED',
-        lastSyncAt: new Date()
-      });
+      // Use the db object directly from the imported schema
+      const { db } = await import('./db');
+      const { dbSyncConfigs } = await import('../shared/schema');
+      const { eq } = await import('drizzle-orm');
       
-      if (updatedConfig) {
-        console.log(`Sync config updated successfully: ${updatedConfig.id}, new status: ${updatedConfig.syncStatus}`);
+      const updateResult = await db.update(dbSyncConfigs)
+        .set({
+          syncStatus: 'COMPLETED',
+          lastSyncAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(dbSyncConfigs.id, syncConfig.id))
+        .returning();
+      
+      if (updateResult && updateResult.length > 0) {
+        console.log(`Sync config updated successfully: ${updateResult[0].id}, new status: ${updateResult[0].syncStatus}`);
       } else {
         console.error(`Failed to update sync config: No config found with ID ${syncConfig.id}`);
       }
@@ -122,18 +131,27 @@ export async function synchronizeToExternalDatabase(parentId: number, syncConfig
       console.error('Error rolling back transaction:', rollbackError);
     }
     
-    // Update the sync status to FAILED
+    // Update the sync status to FAILED using direct ORM operations
     try {
       console.log(`Updating sync config to FAILED with ID: ${syncConfig.id}, current status: ${syncConfig.syncStatus}`);
       
-      const updatedConfig = await storage.updateSyncConfig(syncConfig.id, {
-        syncStatus: 'FAILED',
-        lastSyncAt: new Date(),
-        errorMessage: error.message || 'Synchronization failed'
-      });
+      // Use the db object directly from the imported schema
+      const { db } = await import('./db');
+      const { dbSyncConfigs } = await import('../shared/schema');
+      const { eq } = await import('drizzle-orm');
       
-      if (updatedConfig) {
-        console.log(`Sync config updated to FAILED: ${updatedConfig.id}, new status: ${updatedConfig.syncStatus}`);
+      const updateResult = await db.update(dbSyncConfigs)
+        .set({
+          syncStatus: 'FAILED',
+          lastSyncAt: new Date(),
+          errorMessage: error.message || 'Synchronization failed',
+          updatedAt: new Date()
+        })
+        .where(eq(dbSyncConfigs.id, syncConfig.id))
+        .returning();
+      
+      if (updateResult && updateResult.length > 0) {
+        console.log(`Sync config updated to FAILED: ${updateResult[0].id}, new status: ${updateResult[0].syncStatus}`);
       } else {
         console.error(`Failed to update sync config to FAILED: No config found with ID ${syncConfig.id}`);
       }
