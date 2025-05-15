@@ -218,12 +218,22 @@ export class DatabaseStorage implements IStorage {
         
         try {
           // Update only the core fields
+          const updateData: any = {};
+          
+          // Only include fields that are actually being updated
+          if (data.gradeLevel !== undefined) updateData.gradeLevel = data.gradeLevel;
+          if (data.graph !== undefined) updateData.graph = data.graph;
+          
+          // Make sure we have something to update
+          if (Object.keys(updateData).length === 0) {
+            console.warn('No valid fields to update for userId:', userId);
+            // Return the current profile instead of trying to update
+            return this.getLearnerProfile(userId);
+          }
+          
           const updateResult = await db
             .update(learnerProfiles)
-            .set({
-              gradeLevel: data.gradeLevel,
-              graph: data.graph
-            })
+            .set(updateData)
             .where(eq(learnerProfiles.userId, userId))
             .returning();
             
