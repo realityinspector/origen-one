@@ -600,7 +600,31 @@ export function registerRoutes(app: Express): Server {
     try {
       const learnerProfile = await storage.getLearnerProfile(req.user.id);
       if (learnerProfile) {
-        const lessonSpec = await generateLesson(learnerProfile.gradeLevel);
+        // Create a simple fallback lesson if AI is disabled
+        let lessonSpec;
+        if (USE_AI) {
+          lessonSpec = await generateLesson(learnerProfile.gradeLevel);
+        } else {
+          // Fallback lesson when AI is disabled
+          console.log("AI lesson generation is disabled, using basic lesson for follow-up");
+          lessonSpec = {
+            title: "Follow-up Lesson",
+            content: "# Follow-up Lesson\n\nThis is a follow-up lesson created after completing your quiz.",
+            questions: [{
+              text: "Did you enjoy the previous lesson?",
+              options: [
+                "Yes, it was great!",
+                "It was okay",
+                "I didn't enjoy it",
+                "I'm not sure"
+              ],
+              correctIndex: 0,
+              explanation: "We're glad you're continuing to learn!"
+            }]
+          };
+        }
+        
+        // Create the new lesson with UUID
         await storage.createLesson({
           learnerId: req.user.id,
           moduleId: `generated-${Date.now()}`,
