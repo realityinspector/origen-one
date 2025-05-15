@@ -714,15 +714,15 @@ export function registerRoutes(app: Express): Server {
       await storage.updateSyncStatus(req.params.id, "IN_PROGRESS");
       
       // Start the synchronization process (handled by a separate function)
+      // Note: synchronizeToExternalDatabase now handles its own status updates
       synchronizeToExternalDatabase(req.user.id, syncConfig)
         .then(() => {
-          // Synchronization completed successfully
-          storage.updateSyncStatus(req.params.id, "COMPLETED");
+          console.log(`Synchronization process completed for config ID: ${req.params.id}`);
+          // The synchronizeToExternalDatabase function now updates the status internally
         })
         .catch((error) => {
-          // Synchronization failed
-          console.error('Error during synchronization:', error);
-          storage.updateSyncStatus(req.params.id, "FAILED", error.message);
+          // Just log the error - the function handles status updates itself
+          console.error('Error during synchronization (caught in route handler):', error);
         });
       
       // Return immediately to the client with a status indicating the sync has started
