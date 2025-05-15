@@ -1,4 +1,5 @@
 import { users, lessons, learnerProfiles, achievements, dbSyncConfigs } from "../shared/schema";
+import crypto from "crypto";
 import type { 
   User, InsertUser, 
   Lesson, InsertLesson, 
@@ -97,7 +98,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createLearnerProfile(profile: InsertLearnerProfile): Promise<LearnerProfile> {
-    const result = await db.insert(learnerProfiles).values(profile).returning();
+    // Make sure we have a UUID for the id field to prevent not-null constraint violations
+    const profileWithId = {
+      ...profile,
+      id: crypto.randomUUID()
+    };
+    
+    const result = await db.insert(learnerProfiles).values(profileWithId).returning();
     const learnerProfile = Array.isArray(result) ? result[0] : result;
     return learnerProfile as LearnerProfile;
   }
@@ -126,12 +133,29 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveLesson(learnerId: number): Promise<Lesson | undefined> {
-    const result = await db
-      .select()
-      .from(lessons)
-      .where(and(eq(lessons.learnerId, learnerId), eq(lessons.status, "ACTIVE")));
-    const lessonList = Array.isArray(result) ? result : [result];
-    return lessonList.length > 0 ? lessonList[0] as Lesson : undefined;
+    try {
+      // Use a more specific query that only selects known columns to avoid "column does not exist" errors
+      const result = await db
+        .select({
+          id: lessons.id,
+          learnerId: lessons.learnerId,
+          moduleId: lessons.moduleId,
+          status: lessons.status,
+          spec: lessons.spec,
+          score: lessons.score,
+          createdAt: lessons.createdAt,
+          completedAt: lessons.completedAt
+        })
+        .from(lessons)
+        .where(and(eq(lessons.learnerId, learnerId), eq(lessons.status, "ACTIVE")));
+      
+      const lessonList = Array.isArray(result) ? result : [result];
+      return lessonList.length > 0 ? lessonList[0] as Lesson : undefined;
+    } catch (error) {
+      // Log the error but don't crash
+      console.error("Error in getActiveLesson:", error);
+      return undefined;
+    }
   }
 
   async getLessonHistory(learnerId: number, limit: number = 10): Promise<Lesson[]> {
