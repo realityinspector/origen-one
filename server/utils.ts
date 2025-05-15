@@ -1,5 +1,10 @@
-import { Lesson, InsertLesson } from "../shared/schema";
-import { generateLessonContent, generateQuizQuestions as aiGenerateQuizQuestions, generateKnowledgeGraph } from "./services/ai";
+import { Lesson, InsertLesson, EnhancedLessonSpec } from "../shared/schema";
+import { 
+  generateLessonContent, 
+  generateQuizQuestions as aiGenerateQuizQuestions, 
+  generateKnowledgeGraph,
+  generateEnhancedLesson 
+} from "./services/ai";
 
 // Grade level topics for lesson generation
 const gradeTopics: Record<number, string[]> = {
@@ -20,6 +25,35 @@ const gradeTopics: Record<number, string[]> = {
 
 import { USE_AI } from './config/flags';
 
+/**
+ * Formats an enhanced lesson spec into a standard content format
+ * This allows enhanced lessons to be displayed in clients that don't support the full enhanced format
+ */
+function formatEnhancedContentForStandardSpec(enhancedSpec: EnhancedLessonSpec): string {
+  // Start with the title and summary
+  let formattedContent = `# ${enhancedSpec.title}\n\n`;
+  
+  if (enhancedSpec.subtitle) {
+    formattedContent += `## ${enhancedSpec.subtitle}\n\n`;
+  }
+  
+  formattedContent += `${enhancedSpec.summary}\n\n`;
+  
+  // Add each section
+  enhancedSpec.sections.forEach(section => {
+    formattedContent += `## ${section.title}\n\n${section.content}\n\n`;
+  });
+  
+  // Add metadata at the end
+  formattedContent += `---\n\n`;
+  formattedContent += `**Keywords:** ${enhancedSpec.keywords.join(', ')}\n\n`;
+  formattedContent += `**Related Topics:** ${enhancedSpec.relatedTopics.join(', ')}\n\n`;
+  formattedContent += `**Estimated Duration:** ${enhancedSpec.estimatedDuration} minutes | `;
+  formattedContent += `**Difficulty:** ${enhancedSpec.difficultyLevel}\n`;
+  
+  return formattedContent;
+}
+
 // Function to generate a lesson based on grade level and topic
 export async function generateLesson(gradeLevel: number, topic?: string): Promise<InsertLesson['spec']> {
   // Check if we should use AI or static content based on feature flag
@@ -33,21 +67,44 @@ export async function generateLesson(gradeLevel: number, topic?: string): Promis
       const availableTopics = gradeTopics[safeGradeLevel];
       const selectedTopic = topic || availableTopics[Math.floor(Math.random() * availableTopics.length)];
 
-      // Create async calls for both content and questions
-      const contentPromise = generateLessonContent(safeGradeLevel, selectedTopic);
-      const questionsPromise = aiGenerateQuizQuestions(safeGradeLevel, selectedTopic, 5);
-      const graphPromise = generateKnowledgeGraph(selectedTopic, safeGradeLevel);
-      
-      // Wait for all to complete
-      const [content, questions, graph] = await Promise.all([contentPromise, questionsPromise, graphPromise]);
-      
-      // Return the lesson spec
-      return {
-        title: `${selectedTopic} for ${safeGradeLevel === 0 ? 'Kindergarten' : `Grade ${safeGradeLevel}`}`,
-        content: content,
-        questions: questions,
-        graph: graph
-      };
+      // Try to generate an enhanced lesson first
+      try {
+        console.log(`Attempting to generate enhanced lesson for "${selectedTopic}" (Grade ${safeGradeLevel})`);
+        const enhancedSpec = await generateEnhancedLesson(safeGradeLevel, selectedTopic);
+        
+        // Create a standard spec from the enhanced spec
+        const standardSpec = {
+          title: enhancedSpec.title,
+          content: formatEnhancedContentForStandardSpec(enhancedSpec),
+          questions: enhancedSpec.questions,
+          graph: enhancedSpec.graph,
+          // Store the enhanced spec in the main spec for clients that support it
+          enhancedSpec: enhancedSpec
+        };
+        
+        console.log('Enhanced lesson generated successfully');
+        return standardSpec;
+      } catch (enhancedError) {
+        // Log the error but don't give up - fall back to standard generation
+        console.error('Error generating enhanced lesson:', enhancedError);
+        console.log('Falling back to standard lesson generation');
+        
+        // Create async calls for both content and questions using standard methods
+        const contentPromise = generateLessonContent(safeGradeLevel, selectedTopic);
+        const questionsPromise = aiGenerateQuizQuestions(safeGradeLevel, selectedTopic, 5);
+        const graphPromise = generateKnowledgeGraph(selectedTopic, safeGradeLevel);
+        
+        // Wait for all to complete
+        const [content, questions, graph] = await Promise.all([contentPromise, questionsPromise, graphPromise]);
+        
+        // Return the lesson spec
+        return {
+          title: `${selectedTopic} for ${safeGradeLevel === 0 ? 'Kindergarten' : `Grade ${safeGradeLevel}`}`,
+          content: content,
+          questions: questions,
+          graph: graph
+        };
+      }
     } catch (error) {
       console.error('Error generating lesson with AI:', error);
       // Fall back to static content in case of AI service failure

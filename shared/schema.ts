@@ -50,6 +50,72 @@ export const learnerProfilesRelations = relations(learnerProfiles, ({ one, many 
   achievements: many(achievements),
 }));
 
+// Define image type
+export type LessonImage = {
+  id: string;
+  description: string;
+  alt: string;
+  base64Data?: string;
+  svgData?: string;
+  promptUsed: string;
+};
+
+// Define diagram type
+export type LessonDiagram = {
+  id: string;
+  type: "flowchart" | "comparison" | "process" | "cycle" | "hierarchy";
+  title: string;
+  svgData: string;
+  description: string;
+};
+
+// Define section type
+export type LessonSection = {
+  title: string;
+  content: string;
+  type: "introduction" | "key_concepts" | "examples" | "practice" | "summary" | "fun_facts";
+  imageIds?: string[];
+};
+
+// Define enhanced lesson spec type
+export type EnhancedLessonSpec = {
+  title: string;
+  targetGradeLevel: number;
+  subtitle?: string;
+  summary: string;
+  sections: LessonSection[];
+  featuredImage?: string;
+  images: LessonImage[];
+  diagrams: LessonDiagram[];
+  questions: {
+    text: string;
+    options: string[];
+    correctIndex: number;
+    explanation: string;
+    difficulty?: "easy" | "medium" | "hard";
+    type?: "multiple_choice" | "true_false" | "image_based" | "sequence";
+    imageId?: string;
+  }[];
+  graph?: {
+    nodes: {
+      id: string;
+      label: string;
+      category?: string;
+      importance?: number;
+    }[];
+    edges: {
+      source: string;
+      target: string;
+      label?: string;
+      strength?: number;
+    }[];
+  };
+  keywords: string[];
+  relatedTopics: string[];
+  estimatedDuration: number;
+  difficultyLevel: "beginner" | "intermediate" | "advanced";
+};
+
 // Lessons table
 export const lessons = pgTable("lessons", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -76,6 +142,7 @@ export const lessons = pgTable("lessons", {
       }[];
     };
   }>(),
+  enhancedSpec: json("enhanced_spec").$type<EnhancedLessonSpec>(),
   score: integer("score"),
   createdAt: timestamp("created_at").defaultNow(),
   completedAt: timestamp("completed_at"),
