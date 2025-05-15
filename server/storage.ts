@@ -116,11 +116,13 @@ export class DatabaseStorage implements IStorage {
         userData.username = userData.email.split('@')[0];
       }
       
-      // If we still don't have a username, create one from firstName or id
+      // If we still don't have a username, create one from id
       if (!userData.username) {
-        const namePart = userData.firstName ? userData.firstName.toLowerCase() : 'user';
-        userData.username = `${namePart}-${userData.id.substring(0, 6)}`;
+        userData.username = `user-${userData.id.substring(0, 6)}`;
       }
+      
+      // Filter out fields that don't exist in the database schema
+      const { firstName, lastName, ...dbSafeUserData } = userData;
       
       // Check if user already exists
       const existingUser = await this.getUser(userData.id);
@@ -130,7 +132,7 @@ export class DatabaseStorage implements IStorage {
         const [user] = await db
           .update(users)
           .set({
-            ...userData,
+            ...dbSafeUserData,
             updatedAt: new Date()
           })
           .where(eq(users.id, userData.id))
@@ -141,7 +143,7 @@ export class DatabaseStorage implements IStorage {
         const result = await db
           .insert(users)
           .values({
-            ...userData,
+            ...dbSafeUserData,
             createdAt: new Date(),
             updatedAt: new Date()
           })
