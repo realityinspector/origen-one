@@ -1,0 +1,59 @@
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 4.00s
+React build successful!
+Starting the server...
+Client dist path: /home/runner/workspace/client/dist
+API server running on http://0.0.0.0:5000
+HTTP server running on http://0.0.0.0:8000
+Serving index from: /home/runner/workspace/client/dist/index.html
+Proxy: Forwarding login request to /api/login
+Database connection successful
+Login failed: User realityinspector not found
+Proxy: Forwarding register request to /api/register
+Database connection successful
+Generating token for user ID: 15 with role: ADMIN
+Using JWT_SECRET: iu2...sdf
+Token generated successfully, length: 164
+Registration completed for: realityinspector
+Token generation successful, token length: 164
+Registration response structure: {
+  hasToken: true,
+  tokenLength: 164,
+  hasUser: true,
+  userFields: [
+    'id',
+    'email',
+    'username',
+    'name',
+    'role',
+    'parentId',
+    'createdAt'
+  ],
+  userId: 15,
+  responseType: 'object'
+}
+Error creating new learner: error: duplicate key value violates unique constraint "users_email_key"
+    at /home/runner/workspace/node_modules/@neondatabase/serverless/index.js:1081:33
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-serverless/session.ts:142:18)
+    at async DatabaseStorage.createUser (/home/runner/workspace/server/storage.ts:77:20)
+    at async /home/runner/workspace/server/routes.ts:133:23 {
+  length: 210,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (email)=(sm@allonething.xyz) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'users',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'users_email_key',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
