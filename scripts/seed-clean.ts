@@ -3,6 +3,7 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import * as schema from '../shared/schema';
 import { hashPassword } from '../server/middleware/auth';
 import { randomBytes } from 'crypto';
+import crypto from 'crypto';
 import ws from 'ws';
 
 // Configure Neon to use ws instead of browser WebSocket
@@ -31,7 +32,7 @@ async function main() {
   console.log('Users schema fields:', Object.keys(schema.users));
   
   const adminUser = {
-    id: generateId(10),
+    // Don't specify id - let the database generate it as SERIAL
     username: 'admin',
     email: 'admin@example.com',
     name: 'System Administrator',
@@ -48,7 +49,6 @@ async function main() {
   console.log('Creating parent user...');
   const parentPassword = await hashPassword('parent1234');
   const parentResult = await db.insert(schema.users).values({
-    id: generateId(10),
     username: 'parent',
     email: 'parent@example.com',
     name: 'Demo Parent',
@@ -62,7 +62,6 @@ async function main() {
   console.log('Creating learner user...');
   const learnerPassword = await hashPassword('learner1234');
   const learnerResult = await db.insert(schema.users).values({
-    id: generateId(10),
     username: 'learner',
     email: 'learner@example.com',
     name: 'Demo Student',
@@ -75,9 +74,11 @@ async function main() {
 
   // Create learner profile
   console.log('Creating learner profile...');
+  console.log(`Creating profile for user ID: ${learner.id} (type: ${typeof learner.id})`);
+  
   const profileResult = await db.insert(schema.learnerProfiles).values({
-    id: crypto.randomUUID(),
-    userId: learner.id,
+    id: crypto.randomUUID(), // Explicitly generate a UUID
+    userId: Number(learner.id), // Ensure this is a number
     gradeLevel: 6,
     graph: { nodes: [], edges: [] }
   }).returning();
@@ -92,13 +93,23 @@ async function main() {
     const moduleId = `module-${generateId(6)}`;
     const lessonSpec = generateStaticLesson(6, topic);
     
-    const lessonResult = await db.insert(schema.lessons).values({
-      id: crypto.randomUUID(),
-      learnerId: learner.id,
-      moduleId,
-      status: 'QUEUED',
-      spec: lessonSpec,
-    }).returning();
+    console.log(`Creating lesson with learner ID: ${learner.id} (type: ${typeof learner.id})`);
+    
+    // Using raw SQL to avoid field name issues
+    const lessonResult = await pool.query(
+      `INSERT INTO lessons (id, learner_id, module_id, status, spec) 
+       VALUES ($1, $2, $3, $4, $5)
+       RETURNING *`,
+      [
+        crypto.randomUUID(),
+        learner.id,
+        moduleId,
+        'QUEUED',
+        JSON.stringify(lessonSpec)
+      ]
+    );
+    
+    const lesson = lessonResult.rows[0];
     const lesson = lessonResult[0];
     console.log(`Lesson created: ${topic} (ID: ${lesson.id})`);
   }
