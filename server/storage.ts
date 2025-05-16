@@ -38,6 +38,7 @@ export interface IStorage {
   createLesson(lesson: InsertLesson): Promise<Lesson>;
   getLessonById(id: string): Promise<Lesson | undefined>;
   getActiveLesson(learnerId: string): Promise<Lesson | undefined>;
+  getLearnerLessons(learnerId: string): Promise<Lesson[]>;
   getLessonHistory(learnerId: string, limit?: number): Promise<Lesson[]>;
   updateLessonStatus(id: string, status: "QUEUED" | "ACTIVE" | "DONE", score?: number): Promise<Lesson | undefined>;
   
