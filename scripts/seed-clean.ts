@@ -79,6 +79,7 @@ async function main() {
   // Create learner profile
   console.log('Creating learner profile...');
   const profileResult = await db.insert(schema.learnerProfiles).values({
+    id: crypto.randomUUID(),
     userId: learner.id,
     gradeLevel: 6,
     graph: { nodes: [], edges: [] }
@@ -95,6 +96,7 @@ async function main() {
     const lessonSpec = generateStaticLesson(6, topic);
     
     const lessonResult = await db.insert(schema.lessons).values({
+      id: crypto.randomUUID(),
       learnerId: learner.id,
       moduleId,
       status: 'QUEUED',

@@ -232,6 +232,7 @@ export function registerRoutes(app: Express): Server {
           }
           
           await storage.createLearnerProfile({
+            id: crypto.randomUUID(),
             userId: newUser.id,
             gradeLevel,
             graph: { nodes: [], edges: [] },
@@ -591,6 +592,7 @@ export function registerRoutes(app: Express): Server {
             
             // Create the lesson with enhanced spec
             const newLesson = await storage.createLesson({
+              id: crypto.randomUUID(),
               learnerId: targetLearnerId,
               moduleId: `custom-${Date.now()}`,
               status: "ACTIVE",
@@ -632,6 +634,7 @@ export function registerRoutes(app: Express): Server {
       
       // Create the lesson with basic spec
       const newLesson = await storage.createLesson({
+        id: crypto.randomUUID(),
         learnerId: targetLearnerId,
         moduleId: `custom-${Date.now()}`,
         status: "ACTIVE",
@@ -792,6 +795,7 @@ export function registerRoutes(app: Express): Server {
         
         // Create the new lesson with UUID
         await storage.createLesson({
+          id: crypto.randomUUID(),
           learnerId: req.user.id,
           moduleId: `generated-${Date.now()}`,
           status: "ACTIVE",
