@@ -14,7 +14,7 @@ import { colors, typography, commonStyles } from '../styles/theme';
 import { ChevronRight, ArrowLeft } from 'react-feather';
 import OrigenHeader from '../components/OrigenHeader';
 import EnhancedLessonContent from '../components/EnhancedLessonContent';
-import SimpleContentRenderer from '../components/SimpleContentRenderer';
+import DirectHtmlRenderer from '../components/DirectHtmlRenderer';
 
 const LessonPage = ({ route, navigation }: any) => {
   const { lessonId } = route.params;
@@ -113,7 +113,7 @@ const LessonPage = ({ route, navigation }: any) => {
           {lesson.spec.enhancedSpec ? (
             <EnhancedLessonContent enhancedSpec={lesson.spec.enhancedSpec} />
           ) : (
-            <SimpleContentRenderer 
+            <DirectHtmlRenderer 
               content={lesson.spec.content}
               images={lesson.spec.images}
             />
