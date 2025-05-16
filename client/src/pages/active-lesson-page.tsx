@@ -125,6 +125,7 @@ const ActiveLessonPage = () => {
           {/* Use SimpleMarkdownRenderer for markdown formatting */}
           <SimpleMarkdownRenderer 
             content={lesson.spec.content}
+            images={lesson.spec.images || []}
           />
         </View>
 
