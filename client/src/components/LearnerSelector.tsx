@@ -128,6 +128,7 @@ export function LearnerSelector({ onToggle }: LearnerSelectorProps) {
                 
                 {error ? <Text style={styles.errorText}>{error}</Text> : null}
                 
+                <Text style={styles.inputLabel}>Name</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Learner Name"
@@ -135,6 +136,7 @@ export function LearnerSelector({ onToggle }: LearnerSelectorProps) {
                   onChangeText={(text) => setNewLearner({ ...newLearner, name: text })}
                 />
                 
+                <Text style={styles.inputLabel}>Grade Level</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Grade Level (1-12)"
@@ -251,6 +253,7 @@ export function LearnerSelector({ onToggle }: LearnerSelectorProps) {
             
             {error ? <Text style={styles.errorText}>{error}</Text> : null}
             
+            <Text style={styles.inputLabel}>Name</Text>
             <TextInput
               style={styles.input}
               placeholder="Learner Name"
@@ -258,6 +261,7 @@ export function LearnerSelector({ onToggle }: LearnerSelectorProps) {
               onChangeText={(text) => setNewLearner({ ...newLearner, name: text })}
             />
             
+            <Text style={styles.inputLabel}>Grade Level</Text>
             <TextInput
               style={styles.input}
               placeholder="Grade Level (1-12)"
@@ -455,5 +459,11 @@ const styles = StyleSheet.create({
     color: '#EF4444',
     marginBottom: 16,
     fontSize: 14,
+  },
+  inputLabel: {
+    fontSize: 14,
+    color: '#4B5563',
+    fontWeight: '500',
+    marginBottom: 6,
   },
 });
