@@ -9,10 +9,12 @@ export default function ChangeLearnerSubjects() {
   const [_, setLocation] = useLocation();
   const queryClient = useQueryClient();
   
-  // Extract learner ID from URL params
-  const [, params] = useLocation();
-  const searchParams = new URLSearchParams(window.location.search);
-  const learnerId = searchParams.get('id');
+  // Extract learner ID from route params
+  const [location, params] = useLocation();
+  const learnerId = params?.id;
+  
+  console.log("Current location:", location);
+  console.log("Learner ID from URL params:", learnerId);
   
   // State for subject management
   const [subjects, setSubjects] = useState<string[]>([]);
@@ -24,8 +26,20 @@ export default function ChangeLearnerSubjects() {
   // Fetch the current learner profile
   const { data: learnerProfile, isLoading, isError } = useQuery({
     queryKey: ['/api/learner-profile', learnerId],
-    queryFn: () => apiRequest('GET', `/api/learner-profile/${learnerId}`).then(res => res.data),
+    queryFn: async () => {
+      try {
+        console.log("Fetching profile data for learner ID:", learnerId);
+        const response = await apiRequest('GET', `/api/learner-profile/${learnerId}`);
+        console.log("Profile data response:", response);
+        return response.data;
+      } catch (error) {
+        console.error("Error fetching learner profile:", error);
+        throw error;
+      }
+    },
     enabled: !!learnerId,
+    retry: 2, // Retry failed requests
+    refetchOnWindowFocus: false, // Don't refetch when window regains focus
   });
   
   // Update the local subjects state when the profile is loaded
