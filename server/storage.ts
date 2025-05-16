@@ -194,7 +194,7 @@ export class DatabaseStorage implements IStorage {
 
   async getUsersByParentId(parentId: string): Promise<User[]> {
     try {
-      const result = await db.select().from(users).where(eq(users.parentId, parentId));
+      const result = await db.select().from(users).where(eq(users.parentId, Number(Number(parentId))));
       return Array.isArray(result) ? result.map(user => user as User) : [result as User];
     } catch (error) {
       console.error(`Error in getUsersByParentId for parent ID "${parentId}":`, error);
@@ -213,7 +213,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Learner profile operations
-  async getLearnerProfile(userId: string | null | undefined): Promise<LearnerProfile | undefined> {
+  async getLearnerProfile(userId: string | number | null | undefined): Promise<LearnerProfile | undefined> {
     try {
       if (!userId) {
         console.error(`Invalid user ID: ${userId}`);
@@ -541,13 +541,13 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getActiveLesson(learnerId: string): Promise<Lesson | undefined> {
+  async getActiveLesson(learnerId: string | number): Promise<Lesson | undefined> {
     try {
       // Try to get the full lesson first
       try {
         const result = await db.select()
           .from(lessons)
-          .where(and(eq(lessons.learnerId, learnerId), eq(lessons.status, "ACTIVE")));
+          .where(and(eq(lessons.learnerId, Number(Number(learnerId))), eq(lessons.status, "ACTIVE")));
         const lessonList = Array.isArray(result) ? result : [result];
         if (lessonList.length > 0) {
           return lessonList[0] as Lesson;
@@ -569,7 +569,7 @@ export class DatabaseStorage implements IStorage {
           completedAt: lessons.completedAt,
         })
         .from(lessons)
-        .where(and(eq(lessons.learnerId, learnerId), eq(lessons.status, "ACTIVE")));
+        .where(and(eq(lessons.learnerId, Number(Number(learnerId))), eq(lessons.status, "ACTIVE")));
 
       const lessonList = Array.isArray(result) ? result : [result];
 
@@ -595,7 +595,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getLearnerLessons(learnerId: string): Promise<Lesson[]> {
+  async getLearnerLessons(learnerId: string | number): Promise<Lesson[]> {
     try {
       const learnerIdNum = parseInt(learnerId);
       if (isNaN(learnerIdNum)) {
@@ -607,7 +607,7 @@ export class DatabaseStorage implements IStorage {
       const result = await db
         .select()
         .from(lessons)
-        .where(eq(lessons.learnerId, learnerIdNum))
+        .where(eq(lessons.learnerId, Number(Number(learnerIdNum))))
         .orderBy(desc(lessons.createdAt));
 
       return Array.isArray(result) ? result.map(lesson => lesson as Lesson) : [result as Lesson];
@@ -617,14 +617,14 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getLessonHistory(learnerId: string, limit: number = 10): Promise<Lesson[]> {
+  async getLessonHistory(learnerId: string | number | number, limit: number = 10): Promise<Lesson[]> {
     try {
       // Try to get the full lesson history first
       try {
         const result = await db
           .select()
           .from(lessons)
-          .where(eq(lessons.learnerId, learnerId))
+          .where(eq(lessons.learnerId, Number(Number(learnerId))))
           .orderBy(desc(lessons.createdAt))
           .limit(limit);
         return Array.isArray(result) ? result.map(lesson => lesson as Lesson) : [result as Lesson];
@@ -650,7 +650,7 @@ export class DatabaseStorage implements IStorage {
           completedAt: lessons.completedAt,
         })
         .from(lessons)
-        .where(eq(lessons.learnerId, learnerId))
+        .where(eq(lessons.learnerId, Number(Number(learnerId))))
         .orderBy(desc(lessons.createdAt))
         .limit(limit);
 
@@ -747,7 +747,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .select()
       .from(achievements)
-      .where(eq(achievements.learnerId, learnerId))
+      .where(eq(achievements.learnerId, Number(Number(learnerId))))
       .orderBy(desc(achievements.awardedAt));
     return Array.isArray(result) ? result.map(achievement => achievement as Achievement) : [result as Achievement];
   }
@@ -757,7 +757,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .select()
       .from(dbSyncConfigs)
-      .where(eq(dbSyncConfigs.parentId, parentId));
+      .where(eq(dbSyncConfigs.parentId, Number(Number(parentId))));
     return Array.isArray(result) ? result.map(config => config as DbSyncConfig) : [result as DbSyncConfig];
   }
 
@@ -839,14 +839,14 @@ export class DatabaseStorage implements IStorage {
         // Delete the learner profile if it exists
         const profile = await this.getLearnerProfile(id);
         if (profile) {
-          await db.delete(learnerProfiles).where(eq(learnerProfiles.userId, id));
+          await db.delete(learnerProfiles).where(eq(learnerProfiles.userId, Number(Number(id))));
         }
 
         // Delete any lessons associated with this learner
-        await db.delete(lessons).where(eq(lessons.learnerId, id));
+        await db.delete(lessons).where(eq(lessons.learnerId, Number(Number(id))));
 
         // Delete any achievements associated with this learner
-        await db.delete(achievements).where(eq(achievements.learnerId, id));
+        await db.delete(achievements).where(eq(achievements.learnerId, Number(Number(id))));
       }
 
       // Now delete the user
