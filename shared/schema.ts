@@ -23,13 +23,13 @@ export const sessions = pgTable(
 
 // Users table
 export const users = pgTable("users", {
-  id: varchar("id").primaryKey().notNull(), // Store Replit user ID as string
+  id: text("id").primaryKey().notNull(), // Store ID as string
   email: varchar("email").unique(),
   username: text("username").unique(),
   name: text("name"),
   role: userRoleEnum("role").default("LEARNER"),
   password: text("password"), // For non-Replit auth users
-  parentId: varchar("parent_id").references(() => users.id, { onDelete: "cascade" }),
+  parentId: text("parent_id").references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -49,8 +49,8 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 
 // Learner Profiles table
 export const learnerProfiles = pgTable("learner_profiles", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  id: text("id").primaryKey().notNull(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   gradeLevel: integer("grade_level").notNull(),
   graph: json("graph").$type<{ nodes: any[], edges: any[] }>(),
   subjects: json("subjects").$type<string[]>().default(['Math', 'Science']),
@@ -143,8 +143,8 @@ export type EnhancedLessonSpec = {
 
 // Lessons table
 export const lessons = pgTable("lessons", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  learnerId: varchar("learner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  id: text("id").primaryKey().notNull(),
+  learnerId: text("learner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   moduleId: text("module_id").notNull(),
   status: lessonStatusEnum("status").notNull().default("QUEUED"),
   subject: text("subject"),
