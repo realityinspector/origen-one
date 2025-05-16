@@ -42,7 +42,7 @@
     "jsonwebtoken": "^9.0.2",
     "memoizee": "^0.4.17",
     "nanoid": "^5.1.5",
-    "openai": "^4.98.0",
+    "openai": "^4.99.0",
     "openid-client": "^6.5.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
