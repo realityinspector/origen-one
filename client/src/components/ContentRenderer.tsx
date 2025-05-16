@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, StyleProp, TextStyle, ViewStyle } from 'react-native';
 import Markdown from 'react-native-markdown-display';
 import { colors, typography } from '../styles/theme';
 import LessonImage from './LessonImage';
@@ -42,6 +42,7 @@ export const ContentRenderer: React.FC<ContentRendererProps> = ({
   );
 };
 
+// Define markdown styles with proper typing
 const markdownStyles = {
   body: {
     color: colors.textPrimary,
@@ -98,14 +99,14 @@ const markdownStyles = {
     marginVertical: 16,
   },
   strong: {
-    fontWeight: 'bold' as const,
+    fontWeight: 'bold',
   },
   em: {
-    fontStyle: 'italic' as const,
+    fontStyle: 'italic',
   },
   link: {
     color: colors.primary,
-    textDecorationLine: 'underline' as const,
+    textDecorationLine: 'underline',
   },
   code_inline: {
     fontFamily: 'monospace',
@@ -132,12 +133,7 @@ const markdownStyles = {
     backgroundColor: colors.divider,
     marginVertical: 16,
   },
-  image: {
-    width: '100%',
-    height: 200,
-    borderRadius: 8,
-    marginVertical: 16,
-  },
+  // Note: We don't include image style here since it's handled separately through LessonImage
 };
 
 const styles = StyleSheet.create({
