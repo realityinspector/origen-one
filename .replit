@@ -38,7 +38,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "NODE_ENV=development SESSION_SECRET=test-secret PORT=5000 npx ts-node -r dotenv/config scripts/dev.ts"
+args = "NODE_ENV=development SESSION_SECRET=test-secret PORT=5000 TS_NODE_TRANSPILE_ONLY=true npx ts-node -r dotenv/config scripts/dev.ts"
 waitForPort = 5000
 
 [[workflows.workflow]]
