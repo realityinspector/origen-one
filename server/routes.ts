@@ -14,10 +14,11 @@ import { users } from "../shared/schema";
 import { getSubjectSVG, generateLessonContent, generateQuizQuestions } from "./content-generator";
 
 // Helper function to convert ID to number (database expects integer)
-function toNumber(id: string | number): number {
+function toNumber(id: string | number | null | undefined): number {
+  if (id === null || id === undefined) return -1;
   if (typeof id === 'number') return id;
   const num = parseInt(id);
-  return isNaN(num) ? -1 : num; // Return -1 for invalid IDs
+  return isNaN(num) ? -1 : num;
 }
 
 // Use our imported middleware functions for authentication
