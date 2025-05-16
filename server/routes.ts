@@ -563,18 +563,71 @@ export function registerRoutes(app: Express): Server {
           }
         }
 
-        // Process other JSON fields carefully
-        const subjectsValue = subjects !== undefined 
-          ? (Array.isArray(subjects) ? subjects : ['Math', 'Reading', 'Science'])
-          : existingProfile.subjects;
-          
-        const recommendedSubjectsValue = recommendedSubjects !== undefined
-          ? (Array.isArray(recommendedSubjects) ? recommendedSubjects : [])
-          : existingProfile.recommended_subjects;
-          
-        const strugglingAreasValue = strugglingAreas !== undefined
-          ? (Array.isArray(strugglingAreas) ? strugglingAreas : [])
-          : existingProfile.struggling_areas;
+        // Process subjects array with proper error handling
+        let subjectsValue = existingProfile.subjects;
+        if (subjects !== undefined) {
+          if (Array.isArray(subjects)) {
+            subjectsValue = subjects;
+          } else if (typeof subjects === 'string') {
+            try {
+              subjectsValue = JSON.parse(subjects);
+              if (!Array.isArray(subjectsValue)) {
+                console.error('Subjects is not an array after parsing:', subjectsValue);
+                subjectsValue = ['Math', 'Reading', 'Science']; // Default
+              }
+            } catch (e) {
+              console.error('Error parsing subjects JSON:', e);
+              subjectsValue = ['Math', 'Reading', 'Science']; // Default on error
+            }
+          } else {
+            console.error('Subjects is in an unexpected format:', typeof subjects);
+            subjectsValue = ['Math', 'Reading', 'Science']; // Default
+          }
+        }
+        
+        // Process recommended subjects array
+        let recommendedSubjectsValue = existingProfile.recommended_subjects;
+        if (recommendedSubjects !== undefined) {
+          if (Array.isArray(recommendedSubjects)) {
+            recommendedSubjectsValue = recommendedSubjects;
+          } else if (typeof recommendedSubjects === 'string') {
+            try {
+              recommendedSubjectsValue = JSON.parse(recommendedSubjects);
+              if (!Array.isArray(recommendedSubjectsValue)) {
+                console.error('recommendedSubjects is not an array after parsing');
+                recommendedSubjectsValue = []; // Default
+              }
+            } catch (e) {
+              console.error('Error parsing recommendedSubjects JSON:', e);
+              recommendedSubjectsValue = []; // Default on error
+            }
+          } else {
+            console.error('recommendedSubjects is in an unexpected format:', typeof recommendedSubjects);
+            recommendedSubjectsValue = []; // Default
+          }
+        }
+        
+        // Process struggling areas array
+        let strugglingAreasValue = existingProfile.struggling_areas;
+        if (strugglingAreas !== undefined) {
+          if (Array.isArray(strugglingAreas)) {
+            strugglingAreasValue = strugglingAreas;
+          } else if (typeof strugglingAreas === 'string') {
+            try {
+              strugglingAreasValue = JSON.parse(strugglingAreas);
+              if (!Array.isArray(strugglingAreasValue)) {
+                console.error('strugglingAreas is not an array after parsing');
+                strugglingAreasValue = []; // Default
+              }
+            } catch (e) {
+              console.error('Error parsing strugglingAreas JSON:', e);
+              strugglingAreasValue = []; // Default on error
+            }
+          } else {
+            console.error('strugglingAreas is in an unexpected format:', typeof strugglingAreas);
+            strugglingAreasValue = []; // Default
+          }
+        }
 
         const updateParams = [
           userId,
