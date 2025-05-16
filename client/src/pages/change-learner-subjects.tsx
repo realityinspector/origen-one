@@ -30,8 +30,9 @@ export default function ChangeLearnerSubjects() {
   
   // Update the local subjects state when the profile is loaded
   useEffect(() => {
-    if (learnerProfile?.subjects) {
+    if (learnerProfile && Array.isArray(learnerProfile.subjects)) {
       setSubjects(learnerProfile.subjects);
+      console.log("Loaded subjects from profile:", learnerProfile.subjects);
     }
   }, [learnerProfile]);
   
@@ -52,7 +53,7 @@ export default function ChangeLearnerSubjects() {
       setSaveStatus('saving');
       setErrorMessage('');
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       setSaveStatus('success');
       setConfirmationMessage('Subjects updated successfully!');
       
@@ -60,12 +61,12 @@ export default function ChangeLearnerSubjects() {
       console.log("Subjects sent to server:", subjects);
       console.log("Subjects returned from server:", data.subjects);
       
-      if (JSON.stringify(data.subjects) === JSON.stringify(subjects)) {
+      if (data.subjects && JSON.stringify(data.subjects) === JSON.stringify(subjects)) {
         console.log("✅ Subjects successfully saved to database");
       } else {
         console.warn("⚠️ Subject validation mismatch:", {
           clientSubjects: subjects,
-          serverSubjects: data.subjects
+          serverSubjects: data.subjects || []
         });
         setErrorMessage('Warning: There may be a discrepancy between local and server data.');
       }
@@ -120,7 +121,7 @@ export default function ChangeLearnerSubjects() {
   
   // Go back to the main learners page
   const handleCancel = () => {
-    navigate('/learners');
+    setLocation('/learners');
   };
   
   if (isLoading) {
