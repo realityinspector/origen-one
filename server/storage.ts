@@ -294,12 +294,13 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async createLearnerProfile(profile: InsertLearnerProfile): Promise<LearnerProfile> {
+  async createLearnerProfile(profile: Omit<InsertLearnerProfile, "userId"> & { userId: string | number }): Promise<LearnerProfile> {
     try {
       // Make sure we have a UUID for the id field to prevent not-null constraint violations
       const profileWithId = {
         ...profile,
-        id: profile.id || crypto.randomUUID()
+        id: profile.id || crypto.randomUUID(),
+        userId: typeof profile.userId === "string" ? Number(profile.userId) : profile.userId
       };
 
       const result = await db.insert(learnerProfiles).values(profileWithId).returning();
@@ -617,7 +618,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getLessonHistory(learnerId: string | number | number, limit: number = 10): Promise<Lesson[]> {
+  async getLessonHistory(learnerId: string | number | number | number | number | number, limit: number = 10): Promise<Lesson[]> {
     try {
       // Try to get the full lesson history first
       try {
@@ -743,11 +744,11 @@ export class DatabaseStorage implements IStorage {
     return newAchievement as Achievement;
   }
 
-  async getAchievements(learnerId: string): Promise<Achievement[]> {
+  async getAchievements(learnerId: string | number): Promise<Achievement[]> {
     const result = await db
       .select()
       .from(achievements)
-      .where(eq(achievements.learnerId, Number(Number(learnerId))))
+      .where(eq(achievements.learnerId, learnerId.toString())))
       .orderBy(desc(achievements.awardedAt));
     return Array.isArray(result) ? result.map(achievement => achievement as Achievement) : [result as Achievement];
   }
@@ -846,7 +847,7 @@ export class DatabaseStorage implements IStorage {
         await db.delete(lessons).where(eq(lessons.learnerId, Number(Number(id))));
 
         // Delete any achievements associated with this learner
-        await db.delete(achievements).where(eq(achievements.learnerId, Number(Number(id))));
+        await db.delete(achievements).where(eq(achievements.learnerId, id.toString()))));
       }
 
       // Now delete the user
