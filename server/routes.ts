@@ -769,37 +769,114 @@ export function registerRoutes(app: Express): Server {
     try {
       const learnerProfile = await storage.getLearnerProfile(req.user.id);
       if (learnerProfile) {
-        // Create a simple fallback lesson if AI is disabled
+        // Create a varied lesson even when AI is disabled
         let lessonSpec;
+        let subject, category, difficulty;
+        
+        // Get subjects from learner profile or use default subjects
+        const subjects = learnerProfile.subjects || ['Math', 'Science', 'History', 'Literature', 'Geography'];
+        const categories = {
+          'Math': ['Algebra', 'Geometry', 'Statistics', 'Fractions', 'Decimals'],
+          'Science': ['Biology', 'Chemistry', 'Physics', 'Astronomy', 'Ecology'],
+          'History': ['Ancient Civilizations', 'World War II', 'American History', 'Renaissance', 'Industrial Revolution'],
+          'Literature': ['Poetry', 'Fiction', 'Shakespeare', 'Mythology', 'Drama'],
+          'Geography': ['Continents', 'Countries', 'Climate', 'Landforms', 'Oceans']
+        };
+        
+        // Select a random subject from the learner's preferred subjects
+        subject = subjects[Math.floor(Math.random() * subjects.length)];
+        
+        // Select a random category from the chosen subject
+        const subjectCategories = categories[subject] || categories['Math'];
+        category = subjectCategories[Math.floor(Math.random() * subjectCategories.length)];
+        
+        // Randomly choose difficulty
+        const difficulties = ['beginner', 'intermediate', 'advanced'];
+        difficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
+        
+        // Check for previously completed lessons to avoid repetition
+        const previousLessons = await storage.getLearnerLessons(req.user.id);
+        const recentSubjects = previousLessons
+          .slice(0, 3)
+          .map(lesson => lesson.subject)
+          .filter(Boolean);
+        
+        // Choose a different subject if possible
+        if (recentSubjects.includes(subject) && subjects.length > 1) {
+          const newSubjects = subjects.filter(s => !recentSubjects.includes(s));
+          if (newSubjects.length > 0) {
+            subject = newSubjects[Math.floor(Math.random() * newSubjects.length)];
+            const newCategories = categories[subject] || categories['Math'];
+            category = newCategories[Math.floor(Math.random() * newCategories.length)];
+          }
+        }
+        
         if (USE_AI) {
           lessonSpec = await generateLesson(learnerProfile.gradeLevel);
         } else {
-          // Fallback lesson when AI is disabled
-          console.log("AI lesson generation is disabled, using basic lesson for follow-up");
+          // Generate varied lessons when AI is disabled
+          console.log(`Generating varied lesson on ${subject}: ${category}`);
+          
+          // Create a sample image to include with the lesson
+          const imagePath = `/images/subjects/${subject.toLowerCase()}.svg`;
+          const sampleImage = {
+            id: crypto.randomUUID(),
+            description: `An illustration related to ${category}`,
+            alt: `${category} educational image`,
+            svgData: `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+              <rect width="200" height="200" fill="#f0f0f0" />
+              <text x="100" y="100" font-family="Arial" font-size="20" text-anchor="middle" fill="#333">${subject}: ${category}</text>
+            </svg>`,
+            promptUsed: `Create an illustration about ${category} in ${subject}`
+          };
+          
+          // Create a varied lesson content based on subject and category
           lessonSpec = {
-            title: "Follow-up Lesson",
-            content: "# Follow-up Lesson\n\nThis is a follow-up lesson created after completing your quiz.",
-            questions: [{
-              text: "Did you enjoy the previous lesson?",
-              options: [
-                "Yes, it was great!",
-                "It was okay",
-                "I didn't enjoy it",
-                "I'm not sure"
-              ],
-              correctIndex: 0,
-              explanation: "We're glad you're continuing to learn!"
-            }]
+            title: `${category} in ${subject}`,
+            content: `# ${category} in ${subject}\n\nThis is an educational lesson about ${category} in the field of ${subject}. ${learnerProfile.gradeLevel ? `Designed for grade ${learnerProfile.gradeLevel}` : 'Designed for all learning levels'}.\n\n## Key Concepts\n\n- Important point 1 about ${category}\n- Important point 2 about ${category}\n- Important point 3 about ${category}\n\n## Examples\n\nHere are some real-world examples of ${category}.\n\n## Practice\n\nLet's practice what we've learned about ${category}.`,
+            questions: [
+              {
+                text: `Which of the following best describes ${category}?`,
+                options: [
+                  `A core concept in ${subject}`,
+                  `An advanced topic rarely studied in ${subject}`,
+                  `A historical figure associated with ${subject}`,
+                  `A modern technology used to study ${subject}`
+                ],
+                correctIndex: 0,
+                explanation: `${category} is indeed a core concept in ${subject} that helps us understand fundamental principles.`
+              },
+              {
+                text: `How would you apply knowledge of ${category} in real life?`,
+                options: [
+                  `To solve practical problems`,
+                  `Only in academic settings`,
+                  `It has no practical applications`,
+                  `Only in specialized research`
+                ],
+                correctIndex: 0,
+                explanation: `Knowledge of ${category} can be applied to solve many practical problems in daily life.`
+              }
+            ],
+            images: [sampleImage]
           };
         }
         
-        // Create the new lesson with UUID
+        // Create the new lesson with UUID and varied content
         await storage.createLesson({
           id: crypto.randomUUID(),
           learnerId: req.user.id,
           moduleId: `generated-${Date.now()}`,
           status: "ACTIVE",
+          subject,
+          category,
+          difficulty,
           spec: lessonSpec,
+          imagePaths: [{
+            path: `/images/subjects/${subject.toLowerCase()}.svg`,
+            alt: `${category} educational image`,
+            description: `An illustration related to ${category}`
+          }]
         });
       }
     } catch (error) {
