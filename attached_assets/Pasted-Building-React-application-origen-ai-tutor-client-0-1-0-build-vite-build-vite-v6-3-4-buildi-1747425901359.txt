@@ -1,0 +1,361 @@
+Building React application...
+
+> origen-ai-tutor-client@0.1.0 build
+> vite build
+
+vite v6.3.4 building for production...
+✓ 768 modules transformed.
+dist/index.html                    1.37 kB │ gzip:   0.74 kB
+dist/assets/index-Du6VmGE3.js  1,008.06 kB │ gzip: 252.64 kB │ map: 3,495.11 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 4.61s
+React build successful!
+Starting the server...
+Client dist path: /home/runner/workspace/client/dist
+API server running on http://0.0.0.0:5000
+HTTP server running on http://0.0.0.0:8000
+Serving index from: /home/runner/workspace/client/dist/index.html
+Proxy: Forwarding login request to /api/login
+Looking for user with username: realityinspector
+Generating token for user ID: 15 with role: ADMIN
+Generating token for user ID: 15 with role: ADMIN
+Using JWT_SECRET: iu2...sdf
+Token generated successfully, length: 164
+Using JWT_SECRET: iu2...sdf
+Token generated successfully, length: 164
+GET /api/learners request received
+User: {
+  id: 15,
+  email: 'sm@allonething.xyz',
+  username: 'realityinspector',
+  name: 'Sean McDonald',
+  role: 'ADMIN',
+  password: '954d7f3808d1139d46ec12d0acf8c3c41bce809c89623505d78a53ca5d53c587b9790cbe6579278412e1ad6b7560fddffb5e12c28b23be761f01e1da14a13c53.6c5b02558248de086915fc48f9efafe7',
+  parentId: null,
+  createdAt: 2025-05-15T18:37:13.051Z
+}
+Query params: [Object: null prototype] { parentId: '15' }
+Admin getting learners for parent ID: 15
+Found 1 learners
+Unexpected error on idle client error: terminating connection due to administrator command
+    at bn.parseErrorMessage (/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:949:41)
+    at bn.handlePacket (/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:917:75)
+    at bn.parse (/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:905:36)
+    at S.<anonymous> (/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:956:16)
+    at S.emit (/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:316:79)
+    at WebSocket.<anonymous> (/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:398:19)
+    at callListener (/home/runner/workspace/node_modules/ws/lib/event-target.js:290:14)
+    at WebSocket.onMessage (/home/runner/workspace/node_modules/ws/lib/event-target.js:209:9)
+    at WebSocket.emit (node:events:518:28)
+    at WebSocket.emit (node:domain:489:12) {
+  length: 116,
+  severity: 'FATAL',
+  code: '57P01',
+  detail: undefined,
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'postgres.c',
+  line: '3289',
+  routine: 'ProcessInterrupts',
+  client: NeonClient {
+    _events: [Object: null prototype] { error: [Function (anonymous)] },
+    _eventsCount: 1,
+    _maxListeners: undefined,
+    connectionParameters: ConnectionParameters {
+      user: 'neondb_owner',
+      database: 'neondb',
+      port: 5432,
+      host: 'ep-cold-sea-a6hxbhys.us-west-2.aws.neon.tech',
+      binary: false,
+      options: undefined,
+      ssl: {},
+      client_encoding: '',
+      replication: undefined,
+      isDomainSocket: false,
+      application_name: undefined,
+      fallback_application_name: undefined,
+      statement_timeout: false,
+      lock_timeout: false,
+      idle_in_transaction_session_timeout: false,
+      query_timeout: false,
+      connect_timeout: 5
+    },
+    user: 'neondb_owner',
+    database: 'neondb',
+    port: 5432,
+    host: 'ep-cold-sea-a6hxbhys.us-west-2.aws.neon.tech',
+    replication: undefined,
+    _Promise: [Function: Promise],
+    _types: TypeOverrides { _types: [Object], text: {}, binary: {} },
+    _ending: true,
+    _connecting: false,
+    _connected: true,
+    _connectionError: false,
+    _queryable: false,
+    connection: Connection {
+      _events: [Object: null prototype],
+      _eventsCount: 22,
+      _maxListeners: undefined,
+      stream: [Socket],
+      _keepAlive: false,
+      _keepAliveInitialDelayMillis: 0,
+      lastBuffer: false,
+      parsedStatements: {},
+      ssl: false,
+      _ending: true,
+      _emitMessage: false,
+      _connecting: true
+    },
+    queryQueue: [],
+    binary: false,
+    processID: 2134011496,
+    secretKey: 1397806236,
+    ssl: false,
+    _connectionTimeoutMillis: 5000,
+    config: {
+      connectionString: 'postgresql://neondb_owner:npg_0ISsgCb8TDHK@ep-cold-sea-a6hxbhys.us-west-2.aws.neon.tech/neondb?sslmode=require',
+      max: 20,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+      maxUses: 7500,
+      allowExitOnIdle: false,
+      maxLifetimeSeconds: 0
+    },
+    _connectionCallback: null,
+    connectionTimeoutHandle: Timeout {
+      _idleTimeout: -1,
+      _idlePrev: null,
+      _idleNext: null,
+      _idleStart: 88387,
+      _onTimeout: null,
+      _timerArgs: undefined,
+      _repeat: null,
+      _destroyed: true,
+      [Symbol(refed)]: true,
+      [Symbol(kHasPrimitive)]: false,
+      [Symbol(asyncId)]: 427,
+      [Symbol(triggerId)]: 0
+    },
+    release: [Function (anonymous)],
+    activeQuery: null,
+    readyForQuery: true,
+    hasExecuted: true,
+    _poolUseCount: 3
+  }
+}
+Searching for learner profile with userId: 19 (type: number)
+Successfully retrieved learner profile: {
+  id: '76cccca2-e312-4553-877b-1e45497cc1df',
+  userId: 19,
+  gradeLevel: 5,
+  graph: { edges: [ [Object] ], nodes: [ [Object], [Object] ] },
+  subjects: [ 'Math', 'Reading', 'Science' ],
+  subjectPerformance: {},
+  recommendedSubjects: [],
+  strugglingAreas: [],
+  createdAt: 2025-05-16T19:17:48.603Z
+}
+Updating learner profile for userId: 19 {
+  gradeLevel: undefined,
+  subjects: 3,
+  recommendedSubjects: 0,
+  strugglingAreas: 0,
+  graph: 'undefined'
+}
+Profile exists check: Found profile
+Found existing profile: 76cccca2-e312-4553-877b-1e45497cc1df
+Executing update query with parameters: [
+  19,
+  5,
+  '{"edges":[{"source":"math","target":"math"}],"nodes":[{"id":"physics","label":"physics"},{"id":"math","label":"math"}]}',
+  '["Math","Reading","Science"]',
+  '[]',
+  '[]'
+]
+Learner profile updated successfully
+Updating learner profile for userId: 19 {
+  gradeLevel: undefined,
+  subjects: 3,
+  recommendedSubjects: 0,
+  strugglingAreas: 0,
+  graph: 'undefined'
+}
+Profile exists check: Found profile
+Found existing profile: 76cccca2-e312-4553-877b-1e45497cc1df
+Executing update query with parameters: [
+  19,
+  5,
+  '{"edges":[{"source":"math","target":"math"}],"nodes":[{"id":"physics","label":"physics"},{"id":"math","label":"math"}]}',
+  '["Math","Reading","Science"]',
+  '[]',
+  '[]'
+]
+Learner profile updated successfully
+Searching for learner profile with userId: 19 (type: number)
+Successfully retrieved learner profile: {
+  id: '76cccca2-e312-4553-877b-1e45497cc1df',
+  userId: 19,
+  gradeLevel: 5,
+  graph: { edges: [ [Object] ], nodes: [ [Object], [Object] ] },
+  subjects: [ 'Math', 'Reading', 'Science' ],
+  subjectPerformance: {},
+  recommendedSubjects: [],
+  strugglingAreas: [],
+  createdAt: 2025-05-16T19:17:48.603Z
+}
+Updating learner profile for userId: 19 {
+  gradeLevel: undefined,
+  subjects: 3,
+  recommendedSubjects: 0,
+  strugglingAreas: 0,
+  graph: 'undefined'
+}
+Profile exists check: Found profile
+Found existing profile: 76cccca2-e312-4553-877b-1e45497cc1df
+Executing update query with parameters: [
+  19,
+  5,
+  '{"edges":[{"source":"math","target":"math"}],"nodes":[{"id":"physics","label":"physics"},{"id":"math","label":"math"}]}',
+  '["Math","Reading","Science"]',
+  '[]',
+  '[]'
+]
+Learner profile updated successfully
+Searching for learner profile with userId: 19 (type: number)
+Successfully retrieved learner profile: {
+  id: '76cccca2-e312-4553-877b-1e45497cc1df',
+  userId: 19,
+  gradeLevel: 5,
+  graph: { edges: [ [Object] ], nodes: [ [Object], [Object] ] },
+  subjects: [ 'Math', 'Reading', 'Science' ],
+  subjectPerformance: {},
+  recommendedSubjects: [],
+  strugglingAreas: [],
+  createdAt: 2025-05-16T19:17:48.603Z
+}
+Updating learner profile for userId: 19 {
+  gradeLevel: undefined,
+  subjects: 3,
+  recommendedSubjects: 0,
+  strugglingAreas: 0,
+  graph: 'undefined'
+}
+Profile exists check: Found profile
+Found existing profile: 76cccca2-e312-4553-877b-1e45497cc1df
+Executing update query with parameters: [
+  19,
+  5,
+  '{"edges":[{"source":"math","target":"math"}],"nodes":[{"id":"physics","label":"physics"},{"id":"math","label":"math"}]}',
+  '["Math","Reading","Science"]',
+  '[]',
+  '[]'
+]
+Searching for learner profile with userId: 19 (type: number)
+Learner profile updated successfully
+Successfully retrieved learner profile: {
+  id: '76cccca2-e312-4553-877b-1e45497cc1df',
+  userId: 19,
+  gradeLevel: 5,
+  graph: { edges: [ [Object] ], nodes: [ [Object], [Object] ] },
+  subjects: [ 'Math', 'Reading', 'Science' ],
+  subjectPerformance: {},
+  recommendedSubjects: [],
+  strugglingAreas: [],
+  createdAt: 2025-05-16T19:17:48.603Z
+}
+Searching for learner profile with userId: 19 (type: number)
+Successfully retrieved learner profile: {
+  id: '76cccca2-e312-4553-877b-1e45497cc1df',
+  userId: 19,
+  gradeLevel: 5,
+  graph: { edges: [ [Object] ], nodes: [ [Object], [Object] ] },
+  subjects: [ 'Math', 'Reading', 'Science' ],
+  subjectPerformance: {},
+  recommendedSubjects: [],
+  strugglingAreas: [],
+  createdAt: 2025-05-16T19:17:48.603Z
+}
+Updating learner profile for userId: 19 {
+  gradeLevel: undefined,
+  subjects: 3,
+  recommendedSubjects: 0,
+  strugglingAreas: 0,
+  graph: 'undefined'
+}
+Profile exists check: Found profile
+Found existing profile: 76cccca2-e312-4553-877b-1e45497cc1df
+Executing update query with parameters: [
+  19,
+  5,
+  '{"edges":[{"source":"math","target":"math"}],"nodes":[{"id":"physics","label":"physics"},{"id":"math","label":"math"}]}',
+  '["Math","Reading","Science"]',
+  '[]',
+  '[]'
+]
+Learner profile updated successfully
+Updating learner profile for userId: 19 {
+  gradeLevel: undefined,
+  subjects: 3,
+  recommendedSubjects: 0,
+  strugglingAreas: 0,
+  graph: 'undefined'
+}
+Searching for learner profile with userId: 19 (type: number)
+Profile exists check: Found profile
+Found existing profile: 76cccca2-e312-4553-877b-1e45497cc1df
+Executing update query with parameters: [
+  19,
+  5,
+  '{"edges":[{"source":"math","target":"math"}],"nodes":[{"id":"physics","label":"physics"},{"id":"math","label":"math"}]}',
+  '["Math","Reading","Science"]',
+  '[]',
+  '[]'
+]
+Successfully retrieved learner profile: {
+  id: '76cccca2-e312-4553-877b-1e45497cc1df',
+  userId: 19,
+  gradeLevel: 5,
+  graph: { edges: [ [Object] ], nodes: [ [Object], [Object] ] },
+  subjects: [ 'Math', 'Reading', 'Science' ],
+  subjectPerformance: {},
+  recommendedSubjects: [],
+  strugglingAreas: [],
+  createdAt: 2025-05-16T19:17:48.603Z
+}
+Learner profile updated successfully
+Searching for learner profile with userId: 19 (type: number)
+Successfully retrieved learner profile: {
+  id: '76cccca2-e312-4553-877b-1e45497cc1df',
+  userId: 19,
+  gradeLevel: 5,
+  graph: { edges: [ [Object] ], nodes: [ [Object], [Object] ] },
+  subjects: [ 'Math', 'Reading', 'Science' ],
+  subjectPerformance: {},
+  recommendedSubjects: [],
+  strugglingAreas: [],
+  createdAt: 2025-05-16T19:17:48.603Z
+}
+Searching for learner profile with userId: 19 (type: number)
+Successfully retrieved learner profile: {
+  id: '76cccca2-e312-4553-877b-1e45497cc1df',
+  userId: 19,
+  gradeLevel: 5,
+  graph: { edges: [ [Object] ], nodes: [ [Object], [Object] ] },
+  subjects: [ 'Math', 'Reading', 'Science' ],
+  subjectPerformance: {},
+  recommendedSubjects: [],
+  strugglingAreas: [],
+  createdAt: 2025-05-16T19:17:48.603Z
+}
