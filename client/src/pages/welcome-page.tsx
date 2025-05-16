@@ -11,7 +11,7 @@ const WelcomePage: React.FC = () => {
   // Get current location and check if we need to redirect
   const [location] = useLocation();
   const currentPath = typeof window !== 'undefined' ? window.location.pathname : location;
-  
+
   // Add debug output to help understand why we might be redirecting
   console.log("WelcomePage: Checking auth status", { 
     wouterPath: location,
@@ -20,11 +20,11 @@ const WelcomePage: React.FC = () => {
     isLoading: isLoading, 
     userRole: user?.role
   });
-  
+
   // Only redirect if explicitly on /welcome path AND authenticated (not on root path)
   if (user && !isLoading && (location === '/welcome' || currentPath === '/welcome')) {
     console.log("WelcomePage: Redirecting authenticated user to dashboard");
-    
+
     // Use both redirection methods for consistency
     if (typeof window !== 'undefined') {
       window.location.href = '/dashboard';
@@ -47,6 +47,9 @@ const WelcomePage: React.FC = () => {
                 <Text style={styles.heroTitle}>ORIGEN™ AI TUTOR</Text>
                 <Text style={styles.heroSubtitle}>Personalized learning powered by artificial intelligence</Text>
                 <Text style={styles.heroOpenSource}>100% Open Source Educational Platform</Text>
+                <Text style={styles.heroPhilosophy}>
+                  We believe access to AI Tutors should be free as in freedom. (Not free as in snacks.) So we are making Origen always open source; and we'll provide a paid hosted version in the future, at a price point that motivates the development team to pursue excellence over the long run through competitive salaries.
+                </Text>
                 <View style={styles.heroCta}>
                   <TouchableOpacity 
                     style={[styles.ctaButton, {marginRight: 16}]} 
@@ -77,7 +80,7 @@ const WelcomePage: React.FC = () => {
                     strokeWidth="3"
                     opacity="0.6"
                   />
-                  
+
                   {/* Neural network nodes */}
                   <circle cx="150" cy="100" r="12" fill="#ffffff" />
                   <circle cx="100" cy="150" r="12" fill="#ffffff" />
@@ -85,7 +88,7 @@ const WelcomePage: React.FC = () => {
                   <circle cx="120" cy="200" r="12" fill="#ffffff" />
                   <circle cx="180" cy="200" r="12" fill="#ffffff" />
                   <circle cx="150" cy="150" r="18" fill="#ffffff" />
-                  
+
                   {/* Neural network connections */}
                   <line x1="150" y1="100" x2="100" y2="150" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
                   <line x1="150" y1="100" x2="200" y2="150" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
@@ -96,13 +99,13 @@ const WelcomePage: React.FC = () => {
                   <line x1="150" y1="150" x2="180" y2="200" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
                   <line x1="100" y1="150" x2="150" y2="150" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
                   <line x1="200" y1="150" x2="150" y2="150" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-                  
+
                   {/* Animated pulses */}
                   <circle cx="150" cy="150" r="18" fill="#ffffff" opacity="0.2">
                     <animate attributeName="r" values="18;30;18" dur="3s" repeatCount="indefinite" />
                     <animate attributeName="opacity" values="0.2;0.1;0.2" dur="3s" repeatCount="indefinite" />
                   </circle>
-                  
+
                   {/* Small book icon in the center */}
                   <rect x="140" y="145" width="20" height="15" fill="#6200EE" rx="2" />
                   <rect x="140" y="142" width="20" height="3" fill="#6200EE" rx="1" />
@@ -124,7 +127,7 @@ const WelcomePage: React.FC = () => {
               <Text style={styles.featureTitle}>Personalized Learning</Text>
               <Text style={styles.featureDescription}>AI-driven content that adapts to your child's learning pace and style</Text>
             </View>
-            
+
             <View style={styles.featureCard}>
               <View style={styles.featureIconContainer}>
                 <Eye size={24} color={colors.primary} />
@@ -132,7 +135,7 @@ const WelcomePage: React.FC = () => {
               <Text style={styles.featureTitle}>Visual Learning</Text>
               <Text style={styles.featureDescription}>Interactive knowledge graphs that make complex topics easy to understand</Text>
             </View>
-            
+
             <View style={styles.featureCard}>
               <View style={styles.featureIconContainer}>
                 <Shield size={24} color={colors.primary} />
@@ -140,7 +143,7 @@ const WelcomePage: React.FC = () => {
               <Text style={styles.featureTitle}>Safe Environment</Text>
               <Text style={styles.featureDescription}>Privacy-focused platform with age-appropriate content</Text>
             </View>
-            
+
             <View style={styles.featureCard}>
               <View style={styles.featureIconContainer}>
                 <Users size={24} color={colors.primary} />
@@ -164,7 +167,7 @@ const WelcomePage: React.FC = () => {
                 <Text style={styles.timelineText}>Sign up as a parent or educator and add your learners</Text>
               </View>
             </View>
-            
+
             <View style={styles.timelineItem}>
               <View style={styles.timelineBullet}>
                 <Text style={styles.timelineNumber}>2</Text>
@@ -174,7 +177,7 @@ const WelcomePage: React.FC = () => {
                 <Text style={styles.timelineText}>Choose topics and grade levels for personalized lessons</Text>
               </View>
             </View>
-            
+
             <View style={styles.timelineItem}>
               <View style={styles.timelineBullet}>
                 <Text style={styles.timelineNumber}>3</Text>
@@ -184,7 +187,7 @@ const WelcomePage: React.FC = () => {
                 <Text style={styles.timelineText}>AI generates custom lessons and adaptive quizzes</Text>
               </View>
             </View>
-            
+
             <View style={styles.timelineItem}>
               <View style={styles.timelineBullet}>
                 <Text style={styles.timelineNumber}>4</Text>
@@ -222,7 +225,7 @@ const WelcomePage: React.FC = () => {
               <View style={styles.footerMainInfo}>
                 <Text style={styles.footerTitle}>ORIGEN AI TUTOR</Text>
                 <Text style={styles.footerSubtitle}>An open source AI-powered educational platform</Text>
-              
+
                 <View style={styles.footerLinks}>
                   <View style={styles.footerLinkItem} onTouchEnd={openGitHub}>
                     <GitHub size={18} color={colors.onPrimary + 'DD'} />
@@ -230,7 +233,7 @@ const WelcomePage: React.FC = () => {
                   </View>
                 </View>
               </View>
-              
+
               <View style={styles.footerLogoSection}>
                 <TouchableOpacity 
                   onPress={() => Linking.openURL('https://allonething.xyz')}
@@ -248,7 +251,7 @@ const WelcomePage: React.FC = () => {
                 </TouchableOpacity>
               </View>
             </View>
-            
+
             <View style={styles.footerDivider} />
             <Text style={styles.copyright}>All materials copyright © Sean McDonald {new Date().getFullYear()}</Text>
           </View>
@@ -298,11 +301,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   heroOpenSource: {
-    ...typography.h6,
-    color: colors.secondary,
+    ...typography.subtitle2,
+    color: colors.textSecondary,
+    marginBottom: 12,
+  },
+  heroPhilosophy: {
+    ...typography.body2,
+    color: colors.textSecondary,
     marginBottom: 24,
-    fontWeight: 'bold',
-    // Note: textShadow isn't supported in React Native, so we're removing it
+    maxWidth: 600,
+    lineHeight: 22,
   },
   logoContainer: {
     width: 80,
