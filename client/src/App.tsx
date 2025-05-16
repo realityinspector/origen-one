@@ -97,6 +97,7 @@ export default function App() {
             {/* Protected parent/admin routes */}
             <ProtectedRoute path="/dashboard" component={DashboardPage} />
             <ProtectedRoute path="/learners" component={LearnersPage} />
+            <ProtectedRoute path="/change-learner-subjects" component={ChangeLearnerSubjectsPage} />
             <ProtectedRoute path="/reports" component={ReportsPage} />
             <ProtectedRoute path="/database-sync" component={DatabaseSyncPage} />
             
