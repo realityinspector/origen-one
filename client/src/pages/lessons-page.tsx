@@ -1,6 +1,7 @@
+import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
-import { apiRequest } from '../utils/api';
+import { apiRequest } from '../hooks/use-api';
 import SubjectDashboard from '../components/SubjectDashboard';
 import { PageContainer, LoadingSpinner } from '../components/ui-components';
 import { useAuth } from '../hooks/use-auth';
