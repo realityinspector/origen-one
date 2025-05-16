@@ -11,6 +11,7 @@ import { USE_AI } from '../config/flags';
 import axios from "axios";
 import { generateEnhancedLesson } from './enhanced-lesson-service';
 import { LessonSection, LessonDiagram, LessonImage, EnhancedLessonSpec } from '../../shared/schema';
+import { LESSON_PROMPTS, QUIZ_PROMPTS, FEEDBACK_PROMPTS, KNOWLEDGE_GRAPH_PROMPTS } from '../prompts';
 
 // Re-export the enhanced lesson generator
 export { generateEnhancedLesson };
@@ -126,13 +127,10 @@ export async function generateLessonContent(
   // Legacy lesson generation (simple markdown)
   try {
     console.log(`Generating legacy lesson about "${topic}" for grade ${gradeLevel}`);
-    const systemPrompt = `You are an educational assistant creating a lesson for grade ${gradeLevel} students on the topic of "${topic}".
-      Create a comprehensive, age-appropriate lesson with clear explanations, examples, and engaging content.
-      Format the lesson with markdown headings, bullet points, and emphasis where appropriate.`;
-
+    
     const messages: Message[] = [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: `Create an educational lesson about "${topic}" for grade ${gradeLevel} students.` }
+      { role: "system", content: LESSON_PROMPTS.LEGACY_LESSON(gradeLevel, topic) },
+      { role: "user", content: LESSON_PROMPTS.STANDARD_LESSON_USER(gradeLevel, topic) }
     ];
 
     return await chat(messages, {
@@ -155,10 +153,6 @@ export async function generateQuizQuestions(gradeLevel: number, topic: string, q
   }
 
   try {
-    const systemPrompt = `You are an expert educational content creator specializing in creating age-appropriate quiz questions for children. Create multiple-choice questions that are clear, engaging, and appropriate for grade ${gradeLevel} students.`;
-
-    const userPrompt = `Create ${questionCount} multiple-choice quiz questions about "${topic}". For each question, provide 4 options with one correct answer. The correct answer should be indicated with the index (0-3).`;
-
     // Define the JSON schema
     const schema = {
       type: 'array',
@@ -175,8 +169,8 @@ export async function generateQuizQuestions(gradeLevel: number, topic: string, q
     };
 
     const messages: Message[] = [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: userPrompt }
+      { role: "system", content: QUIZ_PROMPTS.STANDARD_QUIZ(gradeLevel, topic) },
+      { role: "user", content: QUIZ_PROMPTS.STANDARD_QUIZ_USER(gradeLevel, topic, questionCount) }
     ];
 
     const response = await chat(messages, {
@@ -205,23 +199,9 @@ export async function generateFeedback(quizQuestions: any[], userAnswers: number
   }
 
   try {
-    // Prepare the data for the AI
-    const questionsWithAnswers = quizQuestions.map((q, i) => {
-      const userAnswerCorrect = userAnswers[i] === q.correctIndex;
-      return {
-        question: q.text,
-        userAnswer: q.options[userAnswers[i]],
-        correctAnswer: q.options[q.correctIndex],
-        isCorrect: userAnswerCorrect,
-        explanation: q.explanation
-      };
-    });
-
-    const systemPrompt = `You are an encouraging educational assistant providing feedback to a student based on their quiz performance. The student scored ${score}% on their quiz. Review their answers and provide personalized, constructive feedback that emphasizes what they did well and suggests areas for improvement.`;
-
     const messages: Message[] = [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: `Here are the student's answers:\n${JSON.stringify(questionsWithAnswers, null, 2)}\nPlease provide personalized feedback based on these results.` }
+      { role: "system", content: FEEDBACK_PROMPTS.PERSONALIZED_FEEDBACK() },
+      { role: "user", content: FEEDBACK_PROMPTS.QUIZ_FEEDBACK_USER(quizQuestions, userAnswers, score) }
     ];
 
     return await chat(messages, {
@@ -243,8 +223,6 @@ export async function generateKnowledgeGraph(topic: string, gradeLevel: number):
   }
 
   try {
-    const systemPrompt = `You are an expert educational content creator designing a knowledge graph about "${topic}" for grade ${gradeLevel} students. Create a graph with nodes representing key concepts and edges representing relationships between them.`;
-
     const schema = {
       type: 'object',
       properties: {
@@ -275,8 +253,8 @@ export async function generateKnowledgeGraph(topic: string, gradeLevel: number):
     };
 
     const messages: Message[] = [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: `Create a knowledge graph about "${topic}" for grade ${gradeLevel} students. The graph should include key concepts as nodes and relationships between concepts as edges.` }
+      { role: "system", content: KNOWLEDGE_GRAPH_PROMPTS.KNOWLEDGE_GRAPH() },
+      { role: "user", content: KNOWLEDGE_GRAPH_PROMPTS.KNOWLEDGE_GRAPH_USER(topic, gradeLevel) }
     ];
 
     const response = await chat(messages, {
