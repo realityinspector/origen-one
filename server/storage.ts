@@ -27,12 +27,12 @@ export interface IStorage {
   getUsersByParentId(parentId: string): Promise<User[]>;
   getAllParents(): Promise<User[]>;
   upsertUser(userData: UpsertUser): Promise<User>;
-  
+
   // Learner profile operations
-  getLearnerProfile(userId: string): Promise<LearnerProfile | undefined>;
+  getLearnerProfile(userId: string | number | null | undefined): Promise<LearnerProfile | undefined>;
   createLearnerProfile(profile: InsertLearnerProfile): Promise<LearnerProfile>;
   updateLearnerProfile(userId: string, data: Partial<InsertLearnerProfile>): Promise<LearnerProfile | undefined>;
-  
+
   // Lesson operations
   createLesson(lesson: InsertLesson): Promise<Lesson>;
   getLessonById(id: string): Promise<Lesson | undefined>;
@@ -40,11 +40,11 @@ export interface IStorage {
   getLearnerLessons(learnerId: string): Promise<Lesson[]>;
   getLessonHistory(learnerId: string, limit?: number): Promise<Lesson[]>;
   updateLessonStatus(id: string, status: "QUEUED" | "ACTIVE" | "DONE", score?: number): Promise<Lesson | undefined>;
-  
+
   // Achievement operations
   createAchievement(achievement: InsertAchievement): Promise<Achievement>;
   getAchievements(learnerId: string): Promise<Achievement[]>;
-  
+
   // Database sync operations
   getSyncConfigsByParentId(parentId: string): Promise<DbSyncConfig[]>;
   getSyncConfigById(id: string): Promise<DbSyncConfig | undefined>;
@@ -77,7 +77,7 @@ export class DatabaseStorage implements IStorage {
         })
         .from(users)
         .where(eq(users.id, id));
-      
+
       const users_found = Array.isArray(result) ? result : [result];
       return users_found.length > 0 ? users_found[0] as User : undefined;
     } catch (error) {
@@ -106,16 +106,16 @@ export class DatabaseStorage implements IStorage {
           })
           .from(users)
           .where(eq(users.username, username));
-        
+
         const users_found = Array.isArray(result) ? result : [result];
         return users_found.length > 0 ? users_found[0] as User : undefined;
       });
     } catch (error) {
       console.error(`Error in getUserByUsername for username "${username}":`, error);
-      
+
       // Check database connection when an error occurs
       await checkDatabaseConnection();
-      
+
       // Return undefined on error after logging it
       return undefined;
     }
@@ -133,23 +133,23 @@ export class DatabaseStorage implements IStorage {
       if (!userData.role) {
         userData.role = "LEARNER";
       }
-      
+
       // Make sure name is set
       if (!userData.name) {
         userData.name = userData.username || userData.email?.split('@')[0] || 'New User';
       }
-      
+
       // Set username if not provided
       if (!userData.username && userData.email) {
         // Use the email part before @ as username
         userData.username = userData.email.split('@')[0];
       }
-      
+
       // If we still don't have a username, create one from id
       if (!userData.username) {
         userData.username = `user-${userData.id.substring(0, 6)}`;
       }
-      
+
       // Use only the fields that exist in the database schema
       const dbSafeUserData = {
         id: userData.id,
@@ -158,10 +158,10 @@ export class DatabaseStorage implements IStorage {
         name: userData.name,
         role: userData.role
       };
-      
+
       // Check if user already exists
       const existingUser = await this.getUser(userData.id);
-      
+
       if (existingUser) {
         // Update existing user
         const [user] = await db
@@ -213,56 +213,55 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Learner profile operations
-  async getLearnerProfile(userId: string | number): Promise<LearnerProfile | undefined> {
+  async getLearnerProfile(userId: string | number | null | undefined): Promise<LearnerProfile | undefined> {
     try {
       // Convert userId to integer for database comparison (as the column is INTEGER type)
-      const userIdNum = typeof userId === 'string' ? parseInt(userId) : userId;
-      
-      if (isNaN(userIdNum)) {
+      const userIdNum = toNumber(userId);
+      if (userIdNum === -1) {
         console.error(`Invalid user ID: ${userId}`);
         return undefined;
       }
-      
+
       console.log(`Searching for learner profile with userId: ${userIdNum} (type: ${typeof userIdNum})`);
-      
+
       // Use raw SQL via the pool to avoid type issues with ORM
       const result = await pool.query(
         'SELECT * FROM learner_profiles WHERE user_id = $1',
         [userIdNum]
       );
-      
+
       if (result.rows.length > 0) {
         // Get the row from database
         const row = result.rows[0];
-        
+
         // Parse JSON fields safely
         let graph = { nodes: [], edges: [] };
         let subjects = ['Math', 'Reading', 'Science'];
         let subjectPerformance = {};
         let recommendedSubjects = [];
         let strugglingAreas = [];
-        
+
         try {
           if (row.graph) {
             graph = typeof row.graph === 'string' ? JSON.parse(row.graph) : row.graph;
           }
-          
+
           if (row.subjects) {
             subjects = typeof row.subjects === 'string' ? JSON.parse(row.subjects) : row.subjects;
           }
-          
+
           if (row.subject_performance) {
             subjectPerformance = typeof row.subject_performance === 'string' 
               ? JSON.parse(row.subject_performance) 
               : row.subject_performance;
           }
-          
+
           if (row.recommended_subjects) {
             recommendedSubjects = typeof row.recommended_subjects === 'string' 
               ? JSON.parse(row.recommended_subjects) 
               : row.recommended_subjects;
           }
-          
+
           if (row.struggling_areas) {
             strugglingAreas = typeof row.struggling_areas === 'string' 
               ? JSON.parse(row.struggling_areas) 
@@ -271,7 +270,7 @@ export class DatabaseStorage implements IStorage {
         } catch (err) {
           console.error('Error parsing learner profile JSON fields:', err);
         }
-        
+
         // Construct a complete profile with data from the row
         const completeProfile: LearnerProfile = {
           id: row.id,
@@ -284,11 +283,11 @@ export class DatabaseStorage implements IStorage {
           strugglingAreas,
           createdAt: row.created_at
         };
-        
+
         console.log('Successfully retrieved learner profile:', completeProfile);
         return completeProfile;
       }
-      
+
       console.log(`No learner profile found for user ID: ${userIdNum}`);
       return undefined;
     } catch (error) {
@@ -304,17 +303,17 @@ export class DatabaseStorage implements IStorage {
         ...profile,
         id: profile.id || crypto.randomUUID()
       };
-      
+
       const result = await db.insert(learnerProfiles).values(profileWithId).returning();
       const learnerProfile = Array.isArray(result) ? result[0] : result;
       return learnerProfile as LearnerProfile;
     } catch (error) {
       console.error('Error in createLearnerProfile:', error);
-      
+
       // Try again with just minimal fields if we encounter a column-related error
       if (error.message && error.message.includes('column') && error.message.includes('does not exist')) {
         console.log('Falling back to minimal profile creation');
-        
+
         // Create with only the essential fields
         const minimalProfile = {
           id: profile.id || crypto.randomUUID(),
@@ -322,12 +321,12 @@ export class DatabaseStorage implements IStorage {
           gradeLevel: profile.gradeLevel,
           graph: profile.graph || { nodes: [], edges: [] }
         };
-        
+
         const minResult = await db.insert(learnerProfiles).values(minimalProfile).returning();
         const minProfile = Array.isArray(minResult) ? minResult[0] : minResult;
         return minProfile as LearnerProfile;
       }
-      
+
       throw error;
     }
   }
@@ -336,74 +335,74 @@ export class DatabaseStorage implements IStorage {
     try {
       // Convert userId to integer for database comparison (as the column is INTEGER type)
       const userIdNum = typeof userId === 'string' ? parseInt(userId) : userId;
-      
+
       if (isNaN(userIdNum)) {
         console.error(`Invalid user ID for update: ${userId}`);
         return undefined;
       }
-      
+
       console.log(`Updating learner profile for user ID: ${userIdNum}, data:`, data);
-      
+
       // Use direct SQL for profile update to bypass type issues
       // First check if profile exists
       const checkQuery = `SELECT * FROM learner_profiles WHERE user_id = $1`;
       const checkResult = await pool.query(checkQuery, [userIdNum]);
-      
+
       if (checkResult.rowCount === 0) {
         console.error(`Cannot update profile for user ${userId}: profile does not exist`);
         return undefined;
       }
-      
+
       const existingProfileRow = checkResult.rows[0];
-      
+
       // Build SET statements for the update query
       const setStatements = [];
       const queryParams = [userIdNum]; // userId is always $1
       let paramCounter = 2;
-      
+
       // Process each field that can be updated
       if (data.gradeLevel !== undefined) {
         setStatements.push(`grade_level = $${paramCounter}`);
         queryParams.push(data.gradeLevel);
         paramCounter++;
       }
-      
+
       if (data.graph !== undefined) {
         setStatements.push(`graph = $${paramCounter}`);
         queryParams.push(JSON.stringify(data.graph));
         paramCounter++;
       }
-      
+
       if (data.subjects !== undefined) {
         setStatements.push(`subjects = $${paramCounter}`);
         queryParams.push(JSON.stringify(data.subjects));
         paramCounter++;
       }
-      
+
       if (data.subjectPerformance !== undefined) {
         setStatements.push(`subject_performance = $${paramCounter}`);
         queryParams.push(JSON.stringify(data.subjectPerformance));
         paramCounter++;
       }
-      
+
       if (data.recommendedSubjects !== undefined) {
         setStatements.push(`recommended_subjects = $${paramCounter}`);
         queryParams.push(JSON.stringify(data.recommendedSubjects));
         paramCounter++;
       }
-      
+
       if (data.strugglingAreas !== undefined) {
         setStatements.push(`struggling_areas = $${paramCounter}`);
         queryParams.push(JSON.stringify(data.strugglingAreas));
         paramCounter++;
       }
-      
+
       // If we have nothing to update, just return the existing profile
       if (setStatements.length === 0) {
         console.log("No fields to update, returning existing profile");
         return this.getLearnerProfile(userIdNum);
       }
-      
+
       // Create and execute the update query
       const updateQuery = `
         UPDATE learner_profiles
@@ -411,43 +410,43 @@ export class DatabaseStorage implements IStorage {
         WHERE user_id = $1
         RETURNING *
       `;
-      
+
       console.log('Executing update query:', updateQuery);
-      
+
       const updateResult = await pool.query(updateQuery, queryParams);
-      
+
       if (updateResult.rowCount > 0) {
         // Convert database row to expected profile format
         const updatedRow = updateResult.rows[0];
-        
+
         // Parse JSON fields safely
         let graph = { nodes: [], edges: [] };
         let subjects = ['Math', 'Reading', 'Science'];
         let subjectPerformance = {};
         let recommendedSubjects = [];
         let strugglingAreas = [];
-        
+
         try {
           if (updatedRow.graph) {
             graph = typeof updatedRow.graph === 'string' ? JSON.parse(updatedRow.graph) : updatedRow.graph;
           }
-          
+
           if (updatedRow.subjects) {
             subjects = typeof updatedRow.subjects === 'string' ? JSON.parse(updatedRow.subjects) : updatedRow.subjects;
           }
-          
+
           if (updatedRow.subject_performance) {
             subjectPerformance = typeof updatedRow.subject_performance === 'string' 
               ? JSON.parse(updatedRow.subject_performance) 
               : updatedRow.subject_performance;
           }
-          
+
           if (updatedRow.recommended_subjects) {
             recommendedSubjects = typeof updatedRow.recommended_subjects === 'string' 
               ? JSON.parse(updatedRow.recommended_subjects) 
               : updatedRow.recommended_subjects;
           }
-          
+
           if (updatedRow.struggling_areas) {
             strugglingAreas = typeof updatedRow.struggling_areas === 'string' 
               ? JSON.parse(updatedRow.struggling_areas) 
@@ -456,7 +455,7 @@ export class DatabaseStorage implements IStorage {
         } catch (err) {
           console.error('Error parsing JSON fields:', err);
         }
-        
+
         const completeProfile: LearnerProfile = {
           id: updatedRow.id,
           userId: updatedRow.user_id,
@@ -468,11 +467,11 @@ export class DatabaseStorage implements IStorage {
           strugglingAreas,
           createdAt: updatedRow.created_at
         };
-        
+
         console.log('Profile updated successfully:', completeProfile);
         return completeProfile;
       }
-      
+
       return undefined;
     } catch (error) {
       console.error('Error in updateLearnerProfile:', error);
@@ -487,7 +486,7 @@ export class DatabaseStorage implements IStorage {
       ...lesson,
       id: crypto.randomUUID()
     };
-    
+
     const result = await db.insert(lessons).values(lessonWithId).returning();
     const newLesson = Array.isArray(result) ? result[0] : result;
     return newLesson as Lesson;
@@ -505,7 +504,7 @@ export class DatabaseStorage implements IStorage {
       } catch (e) {
         console.log('Full lesson query failed, falling back to basic query:', e);
       }
-      
+
       // Fallback to a more specific query to avoid "column does not exist" errors
       const result = await db
         .select({
@@ -520,9 +519,9 @@ export class DatabaseStorage implements IStorage {
         })
         .from(lessons)
         .where(eq(lessons.id, id));
-      
+
       const lessonList = Array.isArray(result) ? result : [result];
-      
+
       if (lessonList.length > 0) {
         // Return a lesson with default values for potentially missing columns
         const baseLesson = lessonList[0];
@@ -536,7 +535,7 @@ export class DatabaseStorage implements IStorage {
         };
         return fullLesson as Lesson;
       }
-      
+
       return undefined;
     } catch (error) {
       console.error('Error in getLessonById:', error);
@@ -558,7 +557,7 @@ export class DatabaseStorage implements IStorage {
       } catch (e) {
         console.log('Full active lesson query failed, falling back to basic query:', e);
       }
-      
+
       // Fallback to a more specific query to avoid "column does not exist" errors
       const result = await db
         .select({
@@ -573,9 +572,9 @@ export class DatabaseStorage implements IStorage {
         })
         .from(lessons)
         .where(and(eq(lessons.learnerId, learnerId), eq(lessons.status, "ACTIVE")));
-      
+
       const lessonList = Array.isArray(result) ? result : [result];
-      
+
       if (lessonList.length > 0) {
         // Return a lesson with default values for potentially missing columns
         const baseLesson = lessonList[0];
@@ -589,7 +588,7 @@ export class DatabaseStorage implements IStorage {
         };
         return fullLesson as Lesson;
       }
-      
+
       return undefined;
     } catch (error) {
       // Log the error but don't crash
@@ -606,7 +605,7 @@ export class DatabaseStorage implements IStorage {
         .from(lessons)
         .where(eq(lessons.learnerId, learnerId))
         .orderBy(desc(lessons.createdAt));
-      
+
       return Array.isArray(result) ? result.map(lesson => lesson as Lesson) : [result as Lesson];
     } catch (error) {
       console.error('Error in getLearnerLessons:', error);
@@ -628,7 +627,7 @@ export class DatabaseStorage implements IStorage {
       } catch (e) {
         console.log('Full history query failed, falling back to basic query:', e);
       }
-      
+
       // Fallback to a more specific query to avoid "column does not exist" errors
       const result = await db
         .select({
@@ -650,7 +649,7 @@ export class DatabaseStorage implements IStorage {
         .where(eq(lessons.learnerId, learnerId))
         .orderBy(desc(lessons.createdAt))
         .limit(limit);
-      
+
       // Add default values for potentially missing columns
       return result.map(baseLesson => ({
         ...baseLesson,
@@ -669,12 +668,12 @@ export class DatabaseStorage implements IStorage {
   async updateLessonStatus(id: string, status: "QUEUED" | "ACTIVE" | "DONE", score?: number): Promise<Lesson | undefined> {
     try {
       const updateData: Partial<InsertLesson> = { status };
-      
+
       if (status === "DONE" && score !== undefined) {
         updateData.score = score;
         updateData.completedAt = new Date();
       }
-      
+
       // Try to update only the specific fields we know exist in the database
       try {
         const result = await db
@@ -691,9 +690,9 @@ export class DatabaseStorage implements IStorage {
             createdAt: lessons.createdAt,
             completedAt: lessons.completedAt,
           });
-        
+
         const lessonList = Array.isArray(result) ? result : [result];
-        
+
         if (lessonList.length > 0) {
           // Return a lesson with default values for potentially missing columns
           const baseLesson = lessonList[0];
@@ -709,17 +708,17 @@ export class DatabaseStorage implements IStorage {
         }
       } catch (e) {
         console.error('Error updating lesson status with full returning:', e);
-        
+
         // Fallback: Update without returning all fields
         await db
           .update(lessons)
           .set(updateData)
           .where(eq(lessons.id, id));
-          
+
         // Fetch the updated lesson separately
         return this.getLessonById(id);
       }
-      
+
       return undefined;
     } catch (error) {
       console.error('Error in updateLessonStatus:', error);
@@ -734,7 +733,7 @@ export class DatabaseStorage implements IStorage {
       ...achievement,
       id: crypto.randomUUID()
     };
-    
+
     const result = await db.insert(achievements).values(achievementWithId).returning();
     const newAchievement = Array.isArray(result) ? result[0] : result;
     return newAchievement as Achievement;
@@ -824,28 +823,28 @@ export class DatabaseStorage implements IStorage {
     const configs = Array.isArray(result) ? result : [result];
     return configs.length > 0 ? configs[0] as DbSyncConfig : undefined;
   }
-  
+
   // Delete a user and all associated data
   async deleteUser(id: string): Promise<boolean> {
     try {
       // First, check if this is a learner and delete their profile if it exists
       const user = await this.getUser(id);
       if (!user) return false;
-      
+
       if (user.role === "LEARNER") {
         // Delete the learner profile if it exists
         const profile = await this.getLearnerProfile(id);
         if (profile) {
           await db.delete(learnerProfiles).where(eq(learnerProfiles.userId, id));
         }
-        
+
         // Delete any lessons associated with this learner
         await db.delete(lessons).where(eq(lessons.learnerId, id));
-        
+
         // Delete any achievements associated with this learner
         await db.delete(achievements).where(eq(achievements.learnerId, id));
       }
-      
+
       // Now delete the user
       try {
         const result = await db.delete(users).where(eq(users.id, id));
@@ -861,3 +860,18 @@ export class DatabaseStorage implements IStorage {
 }
 
 export const storage = new DatabaseStorage();
+
+// Helper function to convert userId to number, returns -1 if invalid
+function toNumber(userId: string | number | null | undefined): number {
+  if (userId === null || userId === undefined) {
+    return -1;
+  }
+
+  const userIdNum = typeof userId === 'string' ? parseInt(userId) : userId;
+
+  if (isNaN(userIdNum)) {
+    return -1;
+  }
+
+  return userIdNum;
+}
