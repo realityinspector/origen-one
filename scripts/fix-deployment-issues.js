@@ -52,14 +52,33 @@ function fixRoutesFile() {
       'learnerId: Number(req.user.id)'
     );
     
+    // Fix Line 385: userId in createLearnerProfile needs to be a number
+    content = content.replace(
+      /userId,(\s+)gradeLevel/g,
+      'Number(userId),$1gradeLevel'
+    );
+    
     // Fix other similar issues
     content = content.replace(
-      /eq\((users|learnerProfiles|lessons|achievements|dbSyncConfigs)\.([^,]+Id), ([^)]+)\)/g,
+      /eq\((users|learnerProfiles|lessons)\.([^,]+Id), ([^)]+)\)/g,
       (match, table, column, value) => {
         if (value.includes('.id')) {
           return `eq(${table}.${column}, Number(${value}))`;
         }
         return match;
+      }
+    );
+    
+    // Special fix for achievements table where learnerId is a varchar
+    content = content.replace(
+      /eq\(achievements\.learnerId, ([^)]+)\)/g,
+      (match, value) => {
+        if (value.includes('Number(')) {
+          return `eq(achievements.learnerId, ${value.replace('Number(', '').replace(')', '')}.toString())`;
+        } else if (value.includes('.id')) {
+          return `eq(achievements.learnerId, ${value}.toString())`;
+        }
+        return `eq(achievements.learnerId, ${value}.toString())`;
       }
     );
     
@@ -83,22 +102,40 @@ function fixStorageFile() {
     
     let content = fs.readFileSync(filePath, 'utf8');
     
-    // Fix issues with comparing strings to numbers in database queries
+    // Special fix for achievements table learnerId which is a varchar in the schema
+    // Line 750: achievements.learnerId needs to be treated as string
     content = content.replace(
-      /eq\((users|learnerProfiles|lessons|achievements|dbSyncConfigs)\.([^,]+Id), ([^)]+)\)/g,
-      (match, table, column, value) => {
-        // Skip if value is a numeric literal
-        if (/^\d+$/.test(value.trim())) {
-          return match;
-        }
-        
-        // If it's an ID field, add conversion
-        if (column.includes('Id') || column === 'id') {
-          return `eq(${table}.${column}, Number(${value}))`;
-        }
-        
-        return match;
-      }
+      /eq\(achievements\.learnerId, Number\(([^)]+)\)\)/g,
+      'eq(achievements.learnerId, $1.toString())'
+    );
+    
+    // Fix line 750 in storage.ts
+    content = content.replace(
+      /async getAchievements\(learnerId: string\)/g,
+      'async getAchievements(learnerId: string | number)'
+    );
+    
+    content = content.replace(
+      /\.where\(eq\(achievements\.learnerId, [^)]+\)\)/g,
+      '.where(eq(achievements.learnerId, learnerId.toString()))'
+    );
+    
+    // Fix line 849 in storage.ts
+    content = content.replace(
+      /await db\.delete\(achievements\)\.where\(eq\(achievements\.learnerId, [^)]+\)\)/g,
+      'await db.delete(achievements).where(eq(achievements.learnerId, id.toString()))'
+    );
+    
+    // Fix the userId in createLearnerProfile to convert to number
+    content = content.replace(
+      /async createLearnerProfile\(profile: InsertLearnerProfile\)/g,
+      'async createLearnerProfile(profile: Omit<InsertLearnerProfile, "userId"> & { userId: string | number })'
+    );
+    
+    // Update the profile to ensure userId is a number
+    content = content.replace(
+      /const profileWithId = \{\s+\.\.\.profile,\s+id: profile\.id \|\| crypto\.randomUUID\(\)\s+\};/g,
+      'const profileWithId = {\n        ...profile,\n        id: profile.id || crypto.randomUUID(),\n        userId: typeof profile.userId === "string" ? Number(profile.userId) : profile.userId\n      };'
     );
     
     // Update function signatures to handle both string and number types
@@ -122,7 +159,7 @@ function fixStorageFile() {
       'async getLessonHistory(learnerId: string | number'
     );
     
-    // Make sure we convert string to number when needed
+    // Make sure we convert string to number when needed for lessons table
     content = content.replace(
       /\.where\(eq\(lessons\.learnerId, learnerId\)\)/g,
       '.where(eq(lessons.learnerId, typeof learnerId === "string" ? Number(learnerId) : learnerId))'
