@@ -29,7 +29,7 @@ export interface IStorage {
   upsertUser(userData: UpsertUser): Promise<User>;
 
   // Learner profile operations
-  getLearnerProfile(userId: string | number | null | undefined): Promise<LearnerProfile | undefined>;
+  getLearnerProfile(userId: string | null | undefined): Promise<LearnerProfile | undefined>;
   createLearnerProfile(profile: InsertLearnerProfile): Promise<LearnerProfile>;
   updateLearnerProfile(userId: string, data: Partial<InsertLearnerProfile>): Promise<LearnerProfile | undefined>;
 
@@ -213,21 +213,19 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Learner profile operations
-  async getLearnerProfile(userId: string | number | null | undefined): Promise<LearnerProfile | undefined> {
+  async getLearnerProfile(userId: string | null | undefined): Promise<LearnerProfile | undefined> {
     try {
-      // Convert userId to integer for database comparison (as the column is INTEGER type)
-      const userIdNum = toNumber(userId);
-      if (userIdNum === -1) {
+      if (!userId) {
         console.error(`Invalid user ID: ${userId}`);
         return undefined;
       }
 
-      console.log(`Searching for learner profile with userId: ${userIdNum} (type: ${typeof userIdNum})`);
+      console.log(`Searching for learner profile with userId: ${userId} (type: ${typeof userId})`);
 
       // Use raw SQL via the pool to avoid type issues with ORM
       const result = await pool.query(
         'SELECT * FROM learner_profiles WHERE user_id = $1',
-        [userIdNum]
+        [userId]
       );
 
       if (result.rows.length > 0) {
@@ -288,7 +286,7 @@ export class DatabaseStorage implements IStorage {
         return completeProfile;
       }
 
-      console.log(`No learner profile found for user ID: ${userIdNum}`);
+      console.log(`No learner profile found for user ID: ${userId}`);
       return undefined;
     } catch (error) {
       console.error('Error in getLearnerProfile:', error);
