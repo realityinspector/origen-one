@@ -218,6 +218,28 @@ const LearnersPage: React.FC = () => {
       subjects,
       recommendedSubjects,
       strugglingAreas
+    }, {
+      onSuccess: (data) => {
+        // Add successful update confirmation
+        alert("Subjects updated successfully!");
+        
+        // Verify the update by comparing updated values with what's in the database
+        const updatedSubjects = data.subjects;
+        if (JSON.stringify(updatedSubjects) === JSON.stringify(subjects)) {
+          console.log("Subjects successfully verified in database:", updatedSubjects);
+        } else {
+          console.warn("Subjects validation mismatch:", {
+            clientSubjects: subjects,
+            serverSubjects: updatedSubjects
+          });
+        }
+        
+        // Close modal and update state as before
+        queryClient.invalidateQueries({ queryKey: ['/api/learner-profiles', learners] });
+        setSubjectsModalVisible(false);
+        setCurrentProfile(null);
+        setError('');
+      }
     });
   };
   
@@ -677,7 +699,11 @@ const LearnersPage: React.FC = () => {
                       const newSubject = e.nativeEvent.text.trim();
                       if (newSubject && !subjects.includes(newSubject)) {
                         setSubjects([...subjects, newSubject]);
+                        // Show confirmation message
+                        alert(`Added "${newSubject}" to subjects. Remember to save changes!`);
                         // Clear the input (would need a ref in a real implementation)
+                      } else if (subjects.includes(newSubject)) {
+                        alert(`"${newSubject}" is already in your subjects list.`);
                       }
                     }}
                   />
