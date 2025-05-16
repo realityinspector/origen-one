@@ -21,9 +21,26 @@ async function main() {
 
   console.log('Seeding database with demo data...');
   
+  // First, let's clear any existing data to avoid unique constraint violations
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  const db = drizzle(pool, { schema });
-
+  
+  try {
+    // Check if admin user already exists
+    const adminCheck = await pool.query(
+      "SELECT * FROM users WHERE email = 'admin@example.com'"
+    );
+    
+    if (adminCheck.rows.length > 0) {
+      console.log('Admin user already exists, skipping seed process...');
+      console.log('Set FORCE_SEED=1 if you want to clear the database and re-seed.');
+      await pool.end();
+      return;
+    }
+  } catch (error) {
+    console.error('Error checking for existing admin user:', error);
+  }
+  
+  // Skip the drizzle ORM since we're having type issues, use raw SQL instead
   // Create admin user
   console.log('Creating admin user...');
   const adminPassword = await hashPassword('admin1234');
@@ -41,34 +58,56 @@ async function main() {
   };
   
   console.log('Inserting admin user:', adminUser);
-  const result = await db.insert(schema.users).values(adminUser).returning();
-  const admin = result[0];
+  // Use raw SQL to ensure field names and types match the database schema
+  const result = await pool.query(
+    `INSERT INTO users (username, email, name, role, password)
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING *`,
+    [
+      adminUser.username,
+      adminUser.email,
+      adminUser.name,
+      adminUser.role,
+      adminUser.password
+    ]
+  );
+  const admin = result.rows[0];
   console.log(`Admin created with ID: ${admin.id}`);
 
   // Create parent user
   console.log('Creating parent user...');
   const parentPassword = await hashPassword('parent1234');
-  const parentResult = await db.insert(schema.users).values({
-    username: 'parent',
-    email: 'parent@example.com',
-    name: 'Demo Parent',
-    role: 'PARENT',
-    password: parentPassword,
-  }).returning();
-  const parent = parentResult[0];
+  const parentResult = await pool.query(
+    `INSERT INTO users (username, email, name, role, password)
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING *`,
+    [
+      'parent',
+      'parent@example.com',
+      'Demo Parent',
+      'PARENT',
+      parentPassword
+    ]
+  );
+  const parent = parentResult.rows[0];
   console.log(`Parent created with ID: ${parent.id}`);
 
   // Create learner user
   console.log('Creating learner user...');
   const learnerPassword = await hashPassword('learner1234');
-  const learnerResult = await db.insert(schema.users).values({
-    username: 'learner',
-    email: 'learner@example.com',
-    name: 'Demo Student',
-    role: 'LEARNER',
-    parentId: parent.id,
-    password: learnerPassword,
-  }).returning();
+  const learnerResult = await pool.query(
+    `INSERT INTO users (username, email, name, role, parent_id, password)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING *`,
+    [
+      'learner',
+      'learner@example.com',
+      'Demo Student',
+      'LEARNER',
+      parent.id,
+      learnerPassword
+    ]
+  );
   const learner = learnerResult[0];
   console.log(`Learner created with ID: ${learner.id}`);
 

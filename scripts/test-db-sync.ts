@@ -1,5 +1,5 @@
-import dotenv from 'dotenv';
-import { randomBytes } from 'crypto';
+import crypto from 'crypto';
+const { randomBytes } = crypto; 
 import { db, pool } from '../server/db';
 import * as schema from '../shared/schema';
 import { eq, and } from 'drizzle-orm';
@@ -28,8 +28,8 @@ function generateId(size: number = 6): string {
   return randomBytes(size).toString('hex').slice(0, size);
 }
 
-// Load environment variables from test.env if it exists
-dotenv.config({ path: './test.env' });
+// Environment variables are loaded from Replit Secrets
+// No need to load from .env files on Replit
 
 // Test user credentials
 const TEST_PARENT = {
