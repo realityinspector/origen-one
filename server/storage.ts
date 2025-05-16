@@ -15,9 +15,6 @@ import { pool } from "./db";
 export interface UpsertUser {
   id: string;
   email?: string;
-  firstName?: string;
-  lastName?: string;
-  profileImageUrl?: string;
   username?: string;
   name?: string;
   role?: "ADMIN" | "PARENT" | "LEARNER";
@@ -153,8 +150,14 @@ export class DatabaseStorage implements IStorage {
         userData.username = `user-${userData.id.substring(0, 6)}`;
       }
       
-      // Filter out fields that don't exist in the database schema
-      const { firstName, lastName, ...dbSafeUserData } = userData;
+      // Use only the fields that exist in the database schema
+      const dbSafeUserData = {
+        id: userData.id,
+        email: userData.email,
+        username: userData.username,
+        name: userData.name,
+        role: userData.role
+      };
       
       // Check if user already exists
       const existingUser = await this.getUser(userData.id);
