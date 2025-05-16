@@ -25,9 +25,6 @@ export const sessions = pgTable(
 export const users = pgTable("users", {
   id: varchar("id").primaryKey().notNull(), // Store Replit user ID as string
   email: varchar("email").unique(),
-  firstName: varchar("first_name"),
-  lastName: varchar("last_name"),
-  profileImageUrl: varchar("profile_image_url"),
   username: text("username").unique(),
   name: text("name"),
   role: userRoleEnum("role").default("LEARNER"),

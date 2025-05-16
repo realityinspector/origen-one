@@ -29,14 +29,21 @@ async function main() {
   // Create admin user
   console.log('Creating admin user...');
   const adminPassword = await hashPassword('admin1234');
-  const result = await db.insert(schema.users).values({
+  
+  // Print users schema to debug
+  console.log('Users schema fields:', Object.keys(schema.users));
+  
+  const adminUser = {
     id: generateId(10),
     username: 'admin',
     email: 'admin@example.com',
     name: 'System Administrator',
     role: 'ADMIN',
     password: adminPassword,
-  }).returning();
+  };
+  
+  console.log('Inserting admin user:', adminUser);
+  const result = await db.insert(schema.users).values(adminUser).returning();
   const admin = result[0];
   console.log(`Admin created with ID: ${admin.id}`);
 
