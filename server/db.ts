@@ -2,17 +2,16 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "../shared/schema";
-import { env, validateEnvironment } from './config/env';
+import * as env from './config/env';
 
-// Validate required environment variables
-validateEnvironment();
+// Environment variables are accessed through the central config module
 
 // Configure Neon to use ws instead of browser WebSocket
 neonConfig.webSocketConstructor = ws;
 
 // Configure the connection pool with more robust settings
 export const pool = new Pool({
-  connectionString: env.DATABASE_URL,
+  connectionString: process.env.DATABASE_URL,
   max: 20, // Maximum number of clients in the pool
   idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
   connectionTimeoutMillis: 5000, // Return an error after 5 seconds if a connection cannot be established
