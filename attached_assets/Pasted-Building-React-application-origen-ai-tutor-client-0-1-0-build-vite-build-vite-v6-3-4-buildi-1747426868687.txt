@@ -1,0 +1,154 @@
+Building React application...
+
+> origen-ai-tutor-client@0.1.0 build
+> vite build
+
+vite v6.3.4 building for production...
+✓ 768 modules transformed.
+dist/index.html                    1.37 kB │ gzip:   0.74 kB
+dist/assets/index-Du6VmGE3.js  1,008.06 kB │ gzip: 252.64 kB │ map: 3,495.11 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 5.23s
+React build successful!
+Starting the server...
+Client dist path: /home/runner/workspace/client/dist
+API server running on http://0.0.0.0:5000
+HTTP server running on http://0.0.0.0:8000
+Serving index from: /home/runner/workspace/client/dist/index.html
+Proxy: Forwarding login request to /api/login
+Looking for user with username: realityinspector
+Generating token for user ID: 15 with role: ADMIN
+Generating token for user ID: 15 with role: ADMIN
+Using JWT_SECRET: iu2...sdf
+Token generated successfully, length: 164
+Using JWT_SECRET: iu2...sdf
+Token generated successfully, length: 164
+GET /api/learners request received
+User: {
+  id: 15,
+  email: 'sm@allonething.xyz',
+  username: 'realityinspector',
+  name: 'Sean McDonald',
+  role: 'ADMIN',
+  password: '954d7f3808d1139d46ec12d0acf8c3c41bce809c89623505d78a53ca5d53c587b9790cbe6579278412e1ad6b7560fddffb5e12c28b23be761f01e1da14a13c53.6c5b02558248de086915fc48f9efafe7',
+  parentId: null,
+  createdAt: 2025-05-15T18:37:13.051Z
+}
+Query params: [Object: null prototype] { parentId: '15' }
+Admin getting learners for parent ID: 15
+Found 1 learners
+Searching for learner profile with userId: 15 (type: number)
+Successfully retrieved learner profile: {
+  id: 'b3a442d8-b4b5-4305-a20b-cba83e50c19e',
+  userId: 15,
+  gradeLevel: 5,
+  graph: { edges: [], nodes: [] },
+  subjects: [ 'Math', 'Reading', 'Science' ],
+  subjectPerformance: {},
+  recommendedSubjects: [],
+  strugglingAreas: [],
+  createdAt: 2025-05-15T19:37:29.685Z
+}
+Searching for learner profile with userId: 19 (type: number)
+Successfully retrieved learner profile: {
+  id: '76cccca2-e312-4553-877b-1e45497cc1df',
+  userId: 19,
+  gradeLevel: 5,
+  graph: { edges: [ [Object] ], nodes: [ [Object], [Object] ] },
+  subjects: [ 'Math', 'Reading', 'Science' ],
+  subjectPerformance: {},
+  recommendedSubjects: [],
+  strugglingAreas: [],
+  createdAt: 2025-05-16T19:17:48.603Z
+}
+Updating learner profile for userId: 19 {
+  gradeLevel: undefined,
+  subjects: 'Array with 3 items: ["Math","Reading","Science"]',
+  recommendedSubjects: 0,
+  strugglingAreas: 0,
+  graph: 'undefined'
+}
+Profile exists check: Found profile
+Found existing profile: 76cccca2-e312-4553-877b-1e45497cc1df
+Executing update query with parameters: [
+  19,
+  5,
+  '{"edges":[{"source":"math","target":"math"}],"nodes":[{"id":"physics","label":"physics"},{"id":"math","label":"math"}]}',
+  '["Math","Reading","Science"]',
+  '[]',
+  '[]'
+]
+Subjects being saved to database: ["Math","Reading","Science"]
+Learner profile updated successfully
+Subjects returned from database after update: ["Math","Reading","Science"]
+Searching for learner profile with userId: 19 (type: number)
+Successfully retrieved learner profile: {
+  id: '76cccca2-e312-4553-877b-1e45497cc1df',
+  userId: 19,
+  gradeLevel: 5,
+  graph: { edges: [ [Object] ], nodes: [ [Object], [Object] ] },
+  subjects: [ 'Math', 'Reading', 'Science' ],
+  subjectPerformance: {},
+  recommendedSubjects: [],
+  strugglingAreas: [],
+  createdAt: 2025-05-16T19:17:48.603Z
+}
+Searching for learner profile with userId: 19 (type: number)
+Successfully retrieved learner profile: {
+  id: '76cccca2-e312-4553-877b-1e45497cc1df',
+  userId: 19,
+  gradeLevel: 5,
+  graph: { edges: [ [Object] ], nodes: [ [Object], [Object] ] },
+  subjects: [ 'Math', 'Reading', 'Science' ],
+  subjectPerformance: {},
+  recommendedSubjects: [],
+  strugglingAreas: [],
+  createdAt: 2025-05-16T19:17:48.603Z
+}
+Updating learner profile for userId: 19 {
+  gradeLevel: undefined,
+  subjects: 'Array with 3 items: ["Math","Reading","Science"]',
+  recommendedSubjects: 0,
+  strugglingAreas: 0,
+  graph: 'undefined'
+}
+Profile exists check: Found profile
+Found existing profile: 76cccca2-e312-4553-877b-1e45497cc1df
+Executing update query with parameters: [
+  19,
+  5,
+  '{"edges":[{"source":"math","target":"math"}],"nodes":[{"id":"physics","label":"physics"},{"id":"math","label":"math"}]}',
+  '["Math","Reading","Science"]',
+  '[]',
+  '[]'
+]
+Subjects being saved to database: ["Math","Reading","Science"]
+Learner profile updated successfully
+Subjects returned from database after update: ["Math","Reading","Science"]
+Searching for learner profile with userId: 19 (type: number)
+Successfully retrieved learner profile: {
+  id: '76cccca2-e312-4553-877b-1e45497cc1df',
+  userId: 19,
+  gradeLevel: 5,
+  graph: { edges: [ [Object] ], nodes: [ [Object], [Object] ] },
+  subjects: [ 'Math', 'Reading', 'Science' ],
+  subjectPerformance: {},
+  recommendedSubjects: [],
+  strugglingAreas: [],
+  createdAt: 2025-05-16T19:17:48.603Z
+}
+Searching for learner profile with userId: 19 (type: number)
+Successfully retrieved learner profile: {
+  id: '76cccca2-e312-4553-877b-1e45497cc1df',
+  userId: 19,
+  gradeLevel: 5,
+  graph: { edges: [ [Object] ], nodes: [ [Object], [Object] ] },
+  subjects: [ 'Math', 'Reading', 'Science' ],
+  subjectPerformance: {},
+  recommendedSubjects: [],
+  strugglingAreas: [],
+  createdAt: 2025-05-16T19:17:48.603Z
