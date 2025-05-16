@@ -213,9 +213,13 @@ const LearnersPage: React.FC = () => {
       return;
     }
     
+    // Log the subjects before sending to server
+    console.log("Subjects being sent to server:", subjects);
+    
+    // Make sure all subjects are correctly included
     updateSubjectsMutation.mutate({
       userId: currentEditLearner.id,
-      subjects,
+      subjects: subjects, // Explicitly use the current subjects state
       recommendedSubjects,
       strugglingAreas
     }, {
@@ -235,10 +239,15 @@ const LearnersPage: React.FC = () => {
         }
         
         // Close modal and update state as before
-        queryClient.invalidateQueries({ queryKey: ['/api/learner-profiles', learners] });
+        queryClient.invalidateQueries({ queryKey: ['/api/learner-profile'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/learners'] });
         setSubjectsModalVisible(false);
         setCurrentProfile(null);
         setError('');
+      },
+      onError: (error) => {
+        console.error("Error updating subjects:", error);
+        alert("Error saving subjects. Please try again.");
       }
     });
   };
@@ -698,10 +707,19 @@ const LearnersPage: React.FC = () => {
                     onSubmitEditing={(e) => {
                       const newSubject = e.nativeEvent.text.trim();
                       if (newSubject && !subjects.includes(newSubject)) {
-                        setSubjects([...subjects, newSubject]);
+                        // Update the local state with the new subject
+                        const updatedSubjects = [...subjects, newSubject];
+                        setSubjects(updatedSubjects);
+                        
+                        // Log subjects before and after update
+                        console.log("Original subjects:", subjects);
+                        console.log("Updated subjects:", updatedSubjects);
+                        
                         // Show confirmation message
                         alert(`Added "${newSubject}" to subjects. Remember to save changes!`);
-                        // Clear the input (would need a ref in a real implementation)
+                        
+                        // Clear the input field
+                        e.nativeEvent.target.value = "";
                       } else if (subjects.includes(newSubject)) {
                         alert(`"${newSubject}" is already in your subjects list.`);
                       }
