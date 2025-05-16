@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
-import { SvgXml } from 'react-native-svg';
 import { colors, typography } from '../styles/theme';
 
 interface LessonImageProps {
@@ -25,7 +24,10 @@ export const LessonImage: React.FC<LessonImageProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        <SvgXml xml={svgData} width="100%" height="200" />
+        <div 
+          style={{ width: '100%', height: '200px' }}
+          dangerouslySetInnerHTML={{ __html: svgData }} 
+        />
       </View>
       {description && (
         <Text style={styles.caption}>{description}</Text>
