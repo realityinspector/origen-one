@@ -4,6 +4,7 @@ import AuthPage from './pages/auth-page';
 import HomePage from './pages/home-page';
 import DashboardPage from './pages/dashboard-page';
 import LearnersPage from './pages/learners-page';
+import ChangeLearnerSubjectsPage from './pages/change-learner-subjects';
 import ReportsPage from './pages/reports-page';
 import AdminPage from './pages/admin-page';
 import AdminUsersPage from './pages/admin-users-page';
