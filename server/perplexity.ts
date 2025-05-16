@@ -77,6 +77,8 @@ export async function askPerplexity(options: PerplexityApiOptions): Promise<Perp
   }
 }
 
+import { LESSON_PROMPTS } from './prompts';
+
 /**
  * Generate a lesson for a specific grade level and topic
  */
@@ -84,11 +86,11 @@ export async function generateLessonContent(gradeLevel: number, topic: string): 
   const messages: PerplexityMessage[] = [
     {
       role: 'system',
-      content: 'You are an expert educational content creator specializing in creating engaging, age-appropriate learning materials for children. Create content that is clear, engaging, and designed for the specific grade level.'
+      content: LESSON_PROMPTS.STANDARD_LESSON(gradeLevel, topic)
     },
     {
       role: 'user',
-      content: `Create an educational lesson about "${topic}" for grade ${gradeLevel} students. The lesson should be engaging, informative, and appropriate for the age group. Include a brief introduction, key concepts, examples, and a summary. Format the content in Markdown.`
+      content: LESSON_PROMPTS.STANDARD_LESSON_USER(gradeLevel, topic)
     }
   ];
 
