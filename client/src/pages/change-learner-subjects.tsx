@@ -9,12 +9,16 @@ export default function ChangeLearnerSubjects() {
   const [_, setLocation] = useLocation();
   const queryClient = useQueryClient();
   
-  // Extract learner ID from route params
-  const [location, params] = useLocation();
-  const learnerId = params?.id;
+  // Extract learner ID from URL path
+  const [path] = useLocation();
   
-  console.log("Current location:", location);
-  console.log("Learner ID from URL params:", learnerId);
+  // Since wouter doesn't directly expose params in functional components,
+  // we need to extract the ID from the path manually
+  const pathSegments = path.split('/');
+  const learnerId = pathSegments[pathSegments.length - 1];
+  
+  console.log("Current path:", path);
+  console.log("Extracted learner ID:", learnerId);
   
   // State for subject management
   const [subjects, setSubjects] = useState<string[]>([]);
