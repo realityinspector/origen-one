@@ -38,7 +38,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "NODE_ENV=development SESSION_SECRET=test-secret PORT=5000 TS_NODE_TRANSPILE_ONLY=true npx ts-node -r dotenv/config scripts/dev.ts"
+args = "NODE_ENV=development SESSION_SECRET=test-secret PORT=5000 TS_NODE_TRANSPILE_ONLY=true npx ts-node scripts/dev.ts"
 waitForPort = 5000
 
 [[workflows.workflow]]
@@ -47,7 +47,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npx ts-node -r dotenv/config scripts/push-schema.ts"
+args = "npx ts-node scripts/push-schema.ts"
 
 [[workflows.workflow]]
 name = "DB Generate Migrations"
@@ -55,7 +55,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "ts-node -r dotenv/config scripts/generate-migrations.ts"
+args = "ts-node scripts/generate-migrations.ts"
 
 [[workflows.workflow]]
 name = "DB Migrate"
@@ -63,7 +63,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "ts-node -r dotenv/config scripts/migrate.ts"
+args = "ts-node scripts/migrate.ts"
 
 [[workflows.workflow]]
 name = "DB Seed"
@@ -71,7 +71,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "ts-node -r dotenv/config scripts/seed-clean.ts"
+args = "ts-node scripts/seed-clean.ts"
 
 [deployment]
 run = ["sh", "-c", "NODE_ENV=production PORT=5000 HTTP_PORT=8000 node dist/server/index.js"]
