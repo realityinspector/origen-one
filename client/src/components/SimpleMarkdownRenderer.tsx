@@ -1,22 +1,43 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, typography } from '../styles/theme';
+import LessonImage from './LessonImage';
 
 interface SimpleMarkdownRendererProps {
   content: string;
+  images?: Array<{
+    id: string;
+    alt: string;
+    description?: string;
+    svgData?: string;
+  }>;
 }
 
 /**
  * A simple markdown renderer that handles basic markdown formatting
  * without external dependencies that might cause build issues
  */
-export const SimpleMarkdownRenderer: React.FC<SimpleMarkdownRendererProps> = ({ content }) => {
+export const SimpleMarkdownRenderer: React.FC<SimpleMarkdownRendererProps> = ({ content, images = [] }) => {
   // Parse content into sections
   const sections = parseMarkdownContent(content);
 
   return (
     <View style={styles.container}>
       {sections.map((section, index) => renderSection(section, index))}
+      
+      {/* Render SVG images */}
+      {images && images.length > 0 && (
+        <View style={styles.imagesContainer}>
+          {images.map((image, index) => (
+            <LessonImage 
+              key={image.id || `image-${index}`}
+              svgData={image.svgData}
+              altText={image.alt}
+              description={image.description}
+            />
+          ))}
+        </View>
+      )}
     </View>
   );
 };
@@ -232,6 +253,10 @@ const styles = StyleSheet.create({
     flex: 1,
     ...typography.body1,
     color: colors.textPrimary,
+  },
+  imagesContainer: {
+    marginTop: 16,
+    marginBottom: 8,
   },
 });
 
