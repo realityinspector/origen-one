@@ -97,7 +97,7 @@ const SubjectCard = ({ subject, onSelect }: SubjectCardProps) => {
 export function SubjectDashboard({ subjects, userGradeLevel }: SubjectDashboardProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [, navigate] = useNavigation();
+  const [, setLocation] = useLocation();
   
   // Default subjects if none provided
   const defaultSubjects = ['Math', 'Science', 'History', 'Reading', 'Geography'];
@@ -117,7 +117,7 @@ export function SubjectDashboard({ subjects, userGradeLevel }: SubjectDashboardP
       });
       
       if (response && response.data && response.data.id) {
-        navigate(`/lesson/${response.data.id}`);
+        setLocation(`/lesson/${response.data.id}`);
       } else {
         setError('Could not create the lesson. Please try again.');
       }
