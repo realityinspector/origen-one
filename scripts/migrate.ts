@@ -3,10 +3,7 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import * as schema from '../shared/schema';
 import { migrate } from 'drizzle-orm/neon-serverless/migrator';
 import path from 'path';
-import dotenv from 'dotenv';
 import ws from 'ws';
-
-dotenv.config();
 
 async function main() {
   if (!process.env.DATABASE_URL) {
