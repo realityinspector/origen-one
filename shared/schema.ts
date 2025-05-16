@@ -23,13 +23,13 @@ export const sessions = pgTable(
 
 // Users table
 export const users = pgTable("users", {
-  id: text("id").primaryKey().notNull(), // Store ID as string
+  id: serial("id").primaryKey(), // Store ID as integer with auto-increment
   email: varchar("email").unique(),
   username: text("username").unique(),
   name: text("name"),
   role: userRoleEnum("role").default("LEARNER"),
   password: text("password"), // For non-Replit auth users
-  parentId: text("parent_id").references(() => users.id, { onDelete: "cascade" }),
+  parentId: integer("parent_id").references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -50,7 +50,7 @@ export const usersRelations = relations(users, ({ one, many }) => ({
 // Learner Profiles table
 export const learnerProfiles = pgTable("learner_profiles", {
   id: text("id").primaryKey().notNull(),
-  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   gradeLevel: integer("grade_level").notNull(),
   graph: json("graph").$type<{ nodes: any[], edges: any[] }>(),
   subjects: json("subjects").$type<string[]>().default(['Math', 'Science']),
@@ -144,7 +144,7 @@ export type EnhancedLessonSpec = {
 // Lessons table
 export const lessons = pgTable("lessons", {
   id: text("id").primaryKey().notNull(),
-  learnerId: text("learner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  learnerId: integer("learner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   moduleId: text("module_id").notNull(),
   status: lessonStatusEnum("status").notNull().default("QUEUED"),
   subject: text("subject"),

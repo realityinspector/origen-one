@@ -7,11 +7,18 @@ import { asyncHandler, authenticateJwt, hasRoleMiddleware, AuthRequest, compareP
 import { synchronizeToExternalDatabase } from "./sync-utils";
 import { InsertDbSyncConfig } from "../shared/schema";
 import { USE_AI } from "./config/flags";
-import { db } from "./db";
+import { db, pool } from "./db";
 import { sql } from "drizzle-orm";
 import crypto from "crypto";
 import { users } from "../shared/schema";
 import { getSubjectSVG, generateLessonContent, generateQuizQuestions } from "./content-generator";
+
+// Helper function to convert ID to number (database expects integer)
+function toNumber(id: string | number): number {
+  if (typeof id === 'number') return id;
+  const num = parseInt(id);
+  return isNaN(num) ? -1 : num; // Return -1 for invalid IDs
+}
 
 // Use our imported middleware functions for authentication
 function isAuthenticated(req: Request, res: Response, next: NextFunction) {
@@ -398,96 +405,188 @@ export function registerRoutes(app: Express): Server {
   
   // Update learner profile (supports updating grade level and subjects)
   app.put("/api/learner-profile/:userId", hasRole(["PARENT", "ADMIN"]), asyncHandler(async (req: AuthRequest, res) => {
-    const userId = req.params.userId;
+    const userIdParam = req.params.userId;
+    // Convert userId to integer as the database expects integer
+    const userId = toNumber(userIdParam);
+    
+    // Make sure we have a valid numeric ID
+    if (userId < 0) {
+      return res.status(400).json({ error: "Invalid user ID format" });
+    }
+    
     const { gradeLevel, subjects, recommendedSubjects, strugglingAreas, graph } = req.body;
     
-    // Build update object for the profile
-    const updateData: any = {};
-    
-    // Process grade level if present
-    if (gradeLevel !== undefined) {
-      // Convert 'K' to 0 for Kindergarten
-      let gradeLevelNum: number;
-      if (gradeLevel === 'K') {
-        gradeLevelNum = 0; // Kindergarten
-      } else {
-        gradeLevelNum = parseInt(gradeLevel);
-        if (isNaN(gradeLevelNum) || gradeLevelNum < 0 || gradeLevelNum > 12) {
-          return res.status(400).json({ error: "Grade level must be between K and 12" });
-        }
-      }
-      updateData.gradeLevel = gradeLevelNum;
-    }
-    
-    // Process subjects if present
-    if (subjects !== undefined && Array.isArray(subjects)) {
-      updateData.subjects = subjects;
-    }
-    
-    // Process recommended subjects if present
-    if (recommendedSubjects !== undefined && Array.isArray(recommendedSubjects)) {
-      updateData.recommendedSubjects = recommendedSubjects;
-    }
-    
-    // Process struggling areas if present
-    if (strugglingAreas !== undefined && Array.isArray(strugglingAreas)) {
-      updateData.strugglingAreas = strugglingAreas;
-    }
-    
-    // Process knowledge graph if present
-    if (graph !== undefined && typeof graph === 'object') {
-      updateData.graph = graph;
-    }
-    
     // If no valid update data was provided
-    if (Object.keys(updateData).length === 0) {
+    if (!gradeLevel && !subjects && !recommendedSubjects && !strugglingAreas && !graph) {
       return res.status(400).json({ error: "No valid update data provided" });
     }
     
+    console.log(`Updating learner profile for userId: ${userId}`, {
+      gradeLevel, 
+      subjects: Array.isArray(subjects) ? subjects.length : 'undefined',
+      recommendedSubjects: Array.isArray(recommendedSubjects) ? recommendedSubjects.length : 'undefined',
+      strugglingAreas: Array.isArray(strugglingAreas) ? strugglingAreas.length : 'undefined',
+      graph: graph ? 'provided' : 'undefined'
+    });
+    
     // Check authorization for parents
     if (req.user?.role === "PARENT") {
-      // Check if the learner belongs to this parent
-      const learners = await storage.getUsersByParentId(req.user.id);
-      const isParentOfLearner = learners.some(learner => learner.id === userId);
-      
-      if (!isParentOfLearner) {
-        return res.status(403).json({ error: "Not authorized to update this profile" });
+      try {
+        // Check if the learner belongs to this parent (using direct SQL for type safety)
+        const parentQuery = `
+          SELECT 1 FROM users 
+          WHERE id = $1 AND parent_id = $2
+        `;
+        const parentResult = await pool.query(parentQuery, [userId, toNumber(req.user.id)]);
+        
+        if (parentResult.rowCount === 0) {
+          return res.status(403).json({ error: "Not authorized to update this profile" });
+        }
+      } catch (err) {
+        console.error('Error checking parent-child relationship:', err);
+        return res.status(500).json({ error: "Error verifying permissions" });
       }
     }
     
-    // Update the profile
+    // Update the profile using direct SQL to avoid type issues
     try {
       // First check if profile exists
-      let profile = await storage.getLearnerProfile(userId);
+      const checkQuery = `SELECT * FROM learner_profiles WHERE user_id = $1`;
+      const checkResult = await pool.query(checkQuery, [userId]);
+      
+      console.log(`Profile exists check: ${checkResult.rowCount > 0 ? 'Found profile' : 'No profile found'}`);
+      
+      // Process grade level if present
+      let gradeLevelNum = undefined;
+      if (gradeLevel !== undefined) {
+        // Convert 'K' to 0 for Kindergarten
+        if (gradeLevel === 'K') {
+          gradeLevelNum = 0; // Kindergarten
+        } else {
+          gradeLevelNum = parseInt(gradeLevel.toString());
+          if (isNaN(gradeLevelNum) || gradeLevelNum < 0 || gradeLevelNum > 12) {
+            return res.status(400).json({ error: "Grade level must be between K and 12" });
+          }
+        }
+      }
       
       // If profile doesn't exist, create one with default values
-      if (!profile) {
+      if (checkResult.rowCount === 0) {
         console.log(`Creating learner profile for user ${userId} during update`);
-        profile = await storage.createLearnerProfile({
-          id: crypto.randomUUID(),
-          userId,
-          gradeLevel: updateData.gradeLevel || 5, // Use provided grade level or default to 5
-          graph: updateData.graph || { nodes: [], edges: [] },
-          subjects: updateData.subjects || ['Math', 'Reading', 'Science'],
-          subjectPerformance: updateData.subjectPerformance || {},
-          recommendedSubjects: updateData.recommendedSubjects || [],
-          strugglingAreas: updateData.strugglingAreas || []
-        });
         
-        return res.json(profile);
+        const newProfileId = crypto.randomUUID();
+        const createQuery = `
+          INSERT INTO learner_profiles (
+            id, user_id, grade_level, graph, subjects, subject_performance, recommended_subjects, struggling_areas
+          ) VALUES (
+            $1, $2, $3, $4, $5, $6, $7, $8
+          ) RETURNING *
+        `;
+        
+        const graphValue = graph || { nodes: [], edges: [] };
+        const subjectsValue = subjects || ['Math', 'Reading', 'Science'];
+        const subjectPerformanceValue = {};
+        const recommendedSubjectsValue = recommendedSubjects || [];
+        const strugglingAreasValue = strugglingAreas || [];
+        
+        const insertResult = await pool.query(createQuery, [
+          newProfileId,
+          userId,
+          gradeLevelNum || 5, // Default to grade 5
+          JSON.stringify(graphValue),
+          JSON.stringify(subjectsValue),
+          JSON.stringify(subjectPerformanceValue),
+          JSON.stringify(recommendedSubjectsValue),
+          JSON.stringify(strugglingAreasValue)
+        ]);
+        
+        if (insertResult.rowCount > 0) {
+          console.log(`Successfully created new learner profile with ID: ${newProfileId}`);
+          // Convert database row to expected profile format
+          return res.json({
+            id: insertResult.rows[0].id,
+            userId: userId,
+            gradeLevel: insertResult.rows[0].grade_level,
+            graph: typeof insertResult.rows[0].graph === 'string' ? 
+              JSON.parse(insertResult.rows[0].graph) : insertResult.rows[0].graph || { nodes: [], edges: [] },
+            subjects: typeof insertResult.rows[0].subjects === 'string' ? 
+              JSON.parse(insertResult.rows[0].subjects) : insertResult.rows[0].subjects || ['Math', 'Reading', 'Science'],
+            subjectPerformance: typeof insertResult.rows[0].subject_performance === 'string' ? 
+              JSON.parse(insertResult.rows[0].subject_performance) : insertResult.rows[0].subject_performance || {},
+            recommendedSubjects: typeof insertResult.rows[0].recommended_subjects === 'string' ? 
+              JSON.parse(insertResult.rows[0].recommended_subjects) : insertResult.rows[0].recommended_subjects || [],
+            strugglingAreas: typeof insertResult.rows[0].struggling_areas === 'string' ? 
+              JSON.parse(insertResult.rows[0].struggling_areas) : insertResult.rows[0].struggling_areas || [],
+            createdAt: insertResult.rows[0].created_at
+          });
+        } else {
+          console.error('Failed to create learner profile - no rows returned');
+          return res.status(500).json({ error: "Failed to create learner profile" });
+        }
       }
       
-      // Otherwise update the existing profile
-      const updatedProfile = await storage.updateLearnerProfile(userId, updateData);
+      // If we get here, the profile exists - update it
+      const existingProfile = checkResult.rows[0];
+      console.log(`Found existing profile: ${existingProfile.id}`);
       
-      if (!updatedProfile) {
-        return res.status(500).json({ error: "Failed to update learner profile" });
+      try {
+        // Directly perform the update with all fields at once for simplicity and safety
+        const updateQuery = `
+          UPDATE learner_profiles
+          SET 
+            grade_level = $2,
+            graph = $3,
+            subjects = $4,
+            recommended_subjects = $5,
+            struggling_areas = $6
+          WHERE user_id = $1
+          RETURNING *
+        `;
+        
+        // Use existing values for any undefined fields
+        const updateParams = [
+          userId,
+          gradeLevelNum !== undefined ? gradeLevelNum : existingProfile.grade_level,
+          graph !== undefined ? JSON.stringify(graph) : existingProfile.graph,
+          subjects !== undefined ? JSON.stringify(subjects) : existingProfile.subjects,
+          recommendedSubjects !== undefined ? JSON.stringify(recommendedSubjects) : existingProfile.recommended_subjects,
+          strugglingAreas !== undefined ? JSON.stringify(strugglingAreas) : existingProfile.struggling_areas
+        ];
+        
+        console.log('Executing update query with parameters:', updateParams);
+        const updateResult = await pool.query(updateQuery, updateParams);
+        
+        if (updateResult.rowCount > 0) {
+          console.log('Learner profile updated successfully');
+          // Convert database row to expected profile format
+          const profile = updateResult.rows[0];
+          return res.json({
+            id: profile.id,
+            userId: userId,
+            gradeLevel: profile.grade_level,
+            graph: typeof profile.graph === 'string' ? 
+              JSON.parse(profile.graph) : profile.graph || { nodes: [], edges: [] },
+            subjects: typeof profile.subjects === 'string' ? 
+              JSON.parse(profile.subjects) : profile.subjects || ['Math', 'Reading', 'Science'],
+            subjectPerformance: typeof profile.subject_performance === 'string' ? 
+              JSON.parse(profile.subject_performance) : profile.subject_performance || {},
+            recommendedSubjects: typeof profile.recommended_subjects === 'string' ? 
+              JSON.parse(profile.recommended_subjects) : profile.recommended_subjects || [],
+            strugglingAreas: typeof profile.struggling_areas === 'string' ? 
+              JSON.parse(profile.struggling_areas) : profile.struggling_areas || [],
+            createdAt: profile.created_at
+          });
+        } else {
+          console.error('Failed to update learner profile - no rows affected');
+          return res.status(500).json({ error: "Failed to update learner profile" });
+        }
+      } catch (updateError) {
+        console.error('Error during profile update:', updateError);
+        return res.status(500).json({ error: "Error updating profile: " + updateError.message });
       }
-      
-      return res.json(updatedProfile);
     } catch (error) {
       console.error('Error updating learner profile:', error);
-      return res.status(500).json({ error: "Failed to update learner profile" });
+      return res.status(500).json({ error: "Failed to update learner profile: " + error.message });
     }
   }));
   
