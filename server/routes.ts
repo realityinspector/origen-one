@@ -11,6 +11,7 @@ import { db } from "./db";
 import { sql } from "drizzle-orm";
 import crypto from "crypto";
 import { users } from "../shared/schema";
+import { getSubjectSVG, generateLessonContent, generateQuizQuestions } from "./content-generator";
 
 // Use our imported middleware functions for authentication
 function isAuthenticated(req: Request, res: Response, next: NextFunction) {
