@@ -6,6 +6,7 @@ import path from 'path';
 import ws from 'ws';
 
 async function main() {
+  // For scripts that are run directly, ensure DATABASE_URL is available from Replit Secrets
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL is required');
   }
