@@ -84,20 +84,30 @@ export default function ChangeLearnerSubjects() {
   
   // Add a new subject to the list
   const handleAddSubject = () => {
-    if (!newSubject.trim()) {
+    const subjectToAdd = newSubject.trim();
+    
+    if (!subjectToAdd) {
       return;
     }
     
-    if (subjects.includes(newSubject.trim())) {
-      Alert.alert('Duplicate Subject', `${newSubject} is already in your subjects list.`);
+    if (subjects.includes(subjectToAdd)) {
+      // Use standard alert for web compatibility
+      alert(`"${subjectToAdd}" is already in your subjects list.`);
       return;
     }
     
-    // Update local state
-    const updatedSubjects = [...subjects, newSubject.trim()];
+    // Update local state with the new subject
+    const updatedSubjects = [...subjects, subjectToAdd];
+    
+    // Log for debugging
+    console.log("Adding subject:", subjectToAdd);
+    console.log("Previous subjects:", subjects);
+    console.log("Updated subjects:", updatedSubjects);
+    
+    // Update state
     setSubjects(updatedSubjects);
     setNewSubject(''); // Clear input
-    setConfirmationMessage(`Added "${newSubject.trim()}" to subjects list`);
+    setConfirmationMessage(`Added "${subjectToAdd}" to subjects list`);
   };
   
   // Remove a subject from the list
@@ -109,14 +119,45 @@ export default function ChangeLearnerSubjects() {
   };
   
   // Save changes to the server
-  const handleSaveChanges = () => {
+  const handleSaveChanges = async () => {
     if (subjects.length === 0) {
       setErrorMessage('Please add at least one subject');
       return;
     }
     
     console.log("Saving subjects to server:", subjects);
-    updateSubjectsMutation.mutate(subjects);
+    
+    // Add timestamp to verify freshness of data when it returns
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] Starting save operation`);
+    
+    try {
+      // Save the subjects to the database
+      await updateSubjectsMutation.mutateAsync(subjects);
+      
+      // After saving, fetch the profile again to verify subjects were saved
+      const response = await apiRequest('GET', `/api/learner-profile/${learnerId}`);
+      const refreshedProfile = response.data;
+      
+      console.log(`[${timestamp}] Verification - subjects in database:`, refreshedProfile.subjects);
+      
+      // Deep comparison of the arrays
+      const sortedOriginal = [...subjects].sort();
+      const sortedFromDB = [...(refreshedProfile.subjects || [])].sort();
+      const arraysMatch = JSON.stringify(sortedOriginal) === JSON.stringify(sortedFromDB);
+      
+      if (arraysMatch) {
+        console.log("✅ Database verification passed - subjects successfully saved and retrieved");
+      } else {
+        console.warn("⚠️ Database verification failed - subject lists don't match:", {
+          localSubjects: sortedOriginal,
+          databaseSubjects: sortedFromDB
+        });
+        setErrorMessage('Warning: Database verification failed. Some subjects may not have been saved correctly.');
+      }
+    } catch (error) {
+      console.error("Error during save or verification:", error);
+    }
   };
   
   // Go back to the main learners page
