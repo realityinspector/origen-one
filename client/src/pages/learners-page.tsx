@@ -471,7 +471,8 @@ const LearnersPage: React.FC = () => {
           <TouchableOpacity
             style={[styles.actionButton, styles.subjectsButton]}
             onPress={() => {
-              openSubjectsModal(item, profile || {});
+              // Navigate to the dedicated subjects management page with the learner ID
+              window.location.href = `/change-learner-subjects?id=${item.id}`;
             }}
           >
             <Edit size={16} color={colors.onPrimary} />
