@@ -1,0 +1,131 @@
+ to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+use-auth.tsx:170 Auth query: Received invalid user data, treating as unauthenticated
+api/user:1 
+            
+            
+           Failed to load resource: the server responded with a status of 401 (Unauthorized)Understand this error
+use-auth.tsx:170 Auth query: Received invalid user data, treating as unauthenticated
+use-auth.tsx:186 Sending login request to server: {url: '/api/login', username: 'realityinspector', passwordLength: 15}
+use-auth.tsx:194 Using current domain for authentication: https://f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev:5000
+use-auth.tsx:213 Attempting login via endpoint: https://f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev:5000/login
+index.js:24 props.pointerEvents is deprecated. Use style.pointerEvents
+Fd @ index.js:24
+D4 @ index.js:805
+as @ index.js:23
+View @ index.js:111
+react-stack-bottom-frame @ react-dom-client.development.js:23863
+Yp @ react-dom-client.development.js:5529
+RN @ react-dom-client.development.js:8645
+Ag @ react-dom-client.development.js:10861
+qe @ react-dom-client.development.js:1519
+yw @ react-dom-client.development.js:15140
+bw @ react-dom-client.development.js:14956
+qg @ react-dom-client.development.js:14936
+fw @ react-dom-client.development.js:14419
+Vw @ react-dom-client.development.js:16231
+Oc @ react-dom-client.development.js:16079
+Fg @ react-dom-client.development.js:16116
+(anonymous) @ react-dom-client.development.js:16250Understand this warning
+use-auth.tsx:228 Successfully received JSON response from endpoint: /login
+use-auth.tsx:269 Login response received: {status: 200, hasData: true, dataType: 'object', responseKeys: Array(2), hasToken: 'Yes', …}
+use-auth.tsx:286 Login response is in standard format with token + user
+use-auth.tsx:338 Processing login success: {hasToken: true, tokenLength: 164, hasUser: true, hasUserData: false, userFields: Array(7), …}
+use-auth.tsx:354 Auth token set successfully: {tokenLength: 164}
+use-auth.tsx:364 User data received: {id: 15, name: 'Sean McDonald', role: 'ADMIN', fields: Array(7)}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+auth-page.tsx:44 Auth page: User is already authenticated {userId: 15, userRole: 'ADMIN'}
+auth-page.tsx:54 Auth page: Redirecting authenticated user to dashboard
+queryClient.ts:116 [REQ:mar9a4vckfk38] Starting GET request to /api/learners?parentId=15
+auth-page.tsx:44 Auth page: User is already authenticated {userId: 15, userRole: 'ADMIN'}
+auth-page.tsx:54 Auth page: Redirecting authenticated user to dashboard
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+queryClient.ts:171 [REQ:mar9a4vckfk38] Response received (200): {url: '/api/learners?parentId=15', method: 'GET', status: 200, contentType: 'application/json; charset=utf-8', dataSize: 186}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+ModeToggle.tsx:28 ModeToggle rendering {isLearnerMode: false}
+queryClient.ts:116 [REQ:mar9a8smb60l1] Starting GET request to /api/learner-profile/19
+queryClient.ts:171 [REQ:mar9a8smb60l1] Response received (200): {url: '/api/learner-profile/19', method: 'GET', status: 200, contentType: 'application/json; charset=utf-8', dataSize: 349}
+Navigated to https://f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev:5000/change-learner-subjects?id=19
+react-dom-client.development.js:24868 Download the React DevTools for a better development experience: https://react.dev/link/react-devtools
+theme.tsx:135 "shadow*" style props are deprecated. Use "boxShadow".
+Fd @ index.js:24
+YD @ preprocess.js:136
+g4 @ index.js:56
+(anonymous) @ index.js:99
+JD @ index.js:87
+(anonymous) @ theme.tsx:135Understand this warning
+use-auth.tsx:170 Auth query: Received invalid user data, treating as unauthenticated
+use-auth.tsx:59 Starting FRESH auth initialization with stricter validation
+use-auth.tsx:170 Auth query: Received invalid user data, treating as unauthenticated
+use-auth.tsx:59 Starting FRESH auth initialization with stricter validation
+2use-auth.tsx:70 Cleared all potential auth data for fresh start
+use-auth.tsx:79 Strict token check: {hasToken: false, tokenLength: 0, seemsValid: false}
+use-auth.tsx:126 No valid token found, user is not authenticated
+use-auth.tsx:170 Auth query: Received invalid user data, treating as unauthenticated
+use-auth.tsx:79 Strict token check: {hasToken: false, tokenLength: 0, seemsValid: false}
+use-auth.tsx:126 No valid token found, user is not authenticated
+use-auth.tsx:170 Auth query: Received invalid user data, treating as unauthenticated
+protected-route.tsx:26 ProtectedRoute: User not authenticated, redirecting to auth from /change-learner-subjects
+protected-route.tsx:26 ProtectedRoute: User not authenticated, redirecting to auth from /change-learner-subjects
+auth-page.tsx:66 Auth page: User is not authenticated, showing login/register form
+auth-page.tsx:66 Auth page: User is not authenticated, showing login/register form
+queryClient.ts:86 
+            
+            
+           GET https://f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev:5000/api/user 401 (Unauthorized)
+(anonymous) @ xhr.js:195
+xhr @ xhr.js:15
+AC @ dispatchRequest.js:49
+_request @ Axios.js:187
+request @ Axios.js:40
+Jl.<computed> @ Axios.js:213
+(anonymous) @ bind.js:5
+(anonymous) @ queryClient.ts:86
+c @ query.js:193
+T @ retryer.js:80
+start @ retryer.js:121
+fetch @ query.js:275
+Md @ queryObserver.js:173
+onSubscribe @ queryObserver.js:56
+subscribe @ subscribable.js:9
+(anonymous) @ useBaseQuery.js:59
+Q1 @ react-dom-client.development.js:6108
+react-stack-bottom-frame @ react-dom-client.development.js:23949
+qe @ react-dom-client.development.js:1519
+Tc @ react-dom-client.development.js:11905
+UN @ react-dom-client.development.js:12028
+rw @ react-dom-client.development.js:13841
+Uo @ react-dom-client.development.js:13815
+rw @ react-dom-client.development.js:13957
+Uo @ react-dom-client.development.js:13815
+rw @ react-dom-client.development.js:13834
+Uo @ react-dom-client.development.js:13815
+rw @ react-dom-client.development.js:13957
+Uo @ react-dom-client.development.js:13815
+rw @ react-dom-client.development.js:13834
+Uo @ react-dom-client.development.js:13815
+rw @ react-dom-client.development.js:13957
+Uo @ react-dom-client.development.js:13815
+rw @ react-dom-client.development.js:13853
+Tw @ react-dom-client.development.js:15737
+(anonymous) @ react-dom-client.development.js:15379
+r @ scheduler.development.js:45
+<Sz>
+dh.jsxDEV @ react-jsx-dev-runtime.development.js:346
+(anonymous) @ index.tsx:16Understand this error
+use-auth.tsx:170 Auth query: Receive
