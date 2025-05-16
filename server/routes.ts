@@ -817,47 +817,27 @@ export function registerRoutes(app: Express): Server {
           // Generate varied lessons when AI is disabled
           console.log(`Generating varied lesson on ${subject}: ${category}`);
           
-          // Create a sample image to include with the lesson
-          const imagePath = `/images/subjects/${subject.toLowerCase()}.svg`;
+          // Create detailed, educational SVG images based on the subject
+          const svgImageData = getSubjectSVG(subject, category);
           const sampleImage = {
             id: crypto.randomUUID(),
-            description: `An illustration related to ${category}`,
-            alt: `${category} educational image`,
-            svgData: `<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
-              <rect width="200" height="200" fill="#f0f0f0" />
-              <text x="100" y="100" font-family="Arial" font-size="20" text-anchor="middle" fill="#333">${subject}: ${category}</text>
-            </svg>`,
-            promptUsed: `Create an illustration about ${category} in ${subject}`
+            description: `Educational illustration of ${category} in ${subject}`,
+            alt: `${category} educational illustration`,
+            svgData: svgImageData,
+            promptUsed: `Create an educational illustration about ${category} in ${subject}`
           };
           
-          // Create a varied lesson content based on subject and category
+          // Create rich, educational content appropriate for the grade level
+          const lessonContent = generateLessonContent(subject, category, learnerProfile.gradeLevel);
+          
+          // Generate age-appropriate quiz questions for the specific grade level
+          const quizQuestions = generateQuizQuestions(subject, category, learnerProfile.gradeLevel);
+          
+          // Create the full lesson specification with rich content
           lessonSpec = {
             title: `${category} in ${subject}`,
-            content: `# ${category} in ${subject}\n\nThis is an educational lesson about ${category} in the field of ${subject}. ${learnerProfile.gradeLevel ? `Designed for grade ${learnerProfile.gradeLevel}` : 'Designed for all learning levels'}.\n\n## Key Concepts\n\n- Important point 1 about ${category}\n- Important point 2 about ${category}\n- Important point 3 about ${category}\n\n## Examples\n\nHere are some real-world examples of ${category}.\n\n## Practice\n\nLet's practice what we've learned about ${category}.`,
-            questions: [
-              {
-                text: `Which of the following best describes ${category}?`,
-                options: [
-                  `A core concept in ${subject}`,
-                  `An advanced topic rarely studied in ${subject}`,
-                  `A historical figure associated with ${subject}`,
-                  `A modern technology used to study ${subject}`
-                ],
-                correctIndex: 0,
-                explanation: `${category} is indeed a core concept in ${subject} that helps us understand fundamental principles.`
-              },
-              {
-                text: `How would you apply knowledge of ${category} in real life?`,
-                options: [
-                  `To solve practical problems`,
-                  `Only in academic settings`,
-                  `It has no practical applications`,
-                  `Only in specialized research`
-                ],
-                correctIndex: 0,
-                explanation: `Knowledge of ${category} can be applied to solve many practical problems in daily life.`
-              }
-            ],
+            content: lessonContent,
+            questions: quizQuestions,
             images: [sampleImage]
           };
         }
