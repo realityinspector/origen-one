@@ -544,13 +544,45 @@ export function registerRoutes(app: Express): Server {
         `;
         
         // Use existing values for any undefined fields
+        // Process params carefully to ensure proper JSON handling
+        let graphValue = existingProfile.graph;
+        if (graph !== undefined) {
+          // Make sure graph is properly formatted as an object first
+          if (typeof graph === 'string') {
+            try {
+              // If it's a string, try to parse it
+              graphValue = JSON.parse(graph);
+            } catch (e) {
+              console.error('Error parsing graph JSON:', e);
+              // Use default empty graph on error
+              graphValue = { nodes: [], edges: [] };
+            }
+          } else {
+            // If it's already an object, use it directly
+            graphValue = graph;
+          }
+        }
+
+        // Process other JSON fields carefully
+        const subjectsValue = subjects !== undefined 
+          ? (Array.isArray(subjects) ? subjects : ['Math', 'Reading', 'Science'])
+          : existingProfile.subjects;
+          
+        const recommendedSubjectsValue = recommendedSubjects !== undefined
+          ? (Array.isArray(recommendedSubjects) ? recommendedSubjects : [])
+          : existingProfile.recommended_subjects;
+          
+        const strugglingAreasValue = strugglingAreas !== undefined
+          ? (Array.isArray(strugglingAreas) ? strugglingAreas : [])
+          : existingProfile.struggling_areas;
+
         const updateParams = [
           userId,
           gradeLevelNum !== undefined ? gradeLevelNum : existingProfile.grade_level,
-          graph !== undefined ? JSON.stringify(graph) : existingProfile.graph,
-          subjects !== undefined ? JSON.stringify(subjects) : existingProfile.subjects,
-          recommendedSubjects !== undefined ? JSON.stringify(recommendedSubjects) : existingProfile.recommended_subjects,
-          strugglingAreas !== undefined ? JSON.stringify(strugglingAreas) : existingProfile.struggling_areas
+          JSON.stringify(graphValue),
+          JSON.stringify(subjectsValue),
+          JSON.stringify(recommendedSubjectsValue),
+          JSON.stringify(strugglingAreasValue)
         ];
         
         console.log('Executing update query with parameters:', updateParams);
