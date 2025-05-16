@@ -12,26 +12,50 @@ const SimpleContentRenderer: React.FC<SimpleContentRendererProps> = ({ content, 
   
   // Convert markdown to simple HTML
   const convertToHtml = (markdown: string) => {
-    // Replace headings
-    let html = markdown
-      .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-      .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-      .replace(/^### (.*$)/gm, '<h3>$1</h3>');
-    
-    // Replace lists
-    html = html
-      .replace(/^\- (.*$)/gm, '<li>$1</li>')
-      .replace(/<\/li>\n<li>/g, '</li><li>');
-    
-    // Wrap lists
-    html = html.replace(/<li>([^<]*)<\/li>/g, '<ul><li>$1</li></ul>');
-    html = html.replace(/<\/ul>\n<ul>/g, '');
-    
-    // Replace paragraphs
-    html = html.replace(/^([^<#\-\n].*)/gm, '<p>$1</p>');
-    
-    // Replace line breaks
-    html = html.replace(/\n/g, '');
+    // Process the content line by line for better control
+    const lines = markdown.split('\n');
+    let html = '';
+    let inList = false;
+
+    for (let i = 0; i < lines.length; i++) {
+      let line = lines[i].trim();
+      
+      // Skip empty lines
+      if (line === '') {
+        html += '<br>';
+        continue;
+      }
+      
+      // Process headings
+      if (line.startsWith('# ')) {
+        html += `<h1>${line.substring(2)}</h1>`;
+      } 
+      else if (line.startsWith('## ')) {
+        html += `<h2>${line.substring(3)}</h2>`;
+      } 
+      else if (line.startsWith('### ')) {
+        html += `<h3>${line.substring(4)}</h3>`;
+      } 
+      // Process list items
+      else if (line.startsWith('- ')) {
+        if (!inList) {
+          html += '<ul>';
+          inList = true;
+        }
+        html += `<li>${line.substring(2)}</li>`;
+        
+        // Check if next line is not a list item
+        if ((i + 1 >= lines.length) || 
+            !lines[i + 1].trim().startsWith('- ')) {
+          html += '</ul>';
+          inList = false;
+        }
+      } 
+      // Process regular paragraphs
+      else {
+        html += `<p>${line}</p>`;
+      }
+    }
     
     return html;
   };
@@ -41,9 +65,11 @@ const SimpleContentRenderer: React.FC<SimpleContentRendererProps> = ({ content, 
     ? images.map(img => {
         if (img.svgData) {
           return `
-            <div style="margin: 20px 0; text-align: center;">
-              ${img.svgData}
-              ${img.description ? `<p style="color: #666; font-size: 14px;">${img.description}</p>` : ''}
+            <div style="margin: 20px 0; text-align: center; width: 100%;">
+              <div style="background-color: #f8f9fa; border-radius: 8px; padding: 16px; width: 100%; max-width: 500px; margin: 0 auto;">
+                ${img.svgData}
+              </div>
+              ${img.description ? `<p style="color: #666; font-size: 14px; margin-top: 8px;">${img.description}</p>` : ''}
             </div>
           `;
         }
