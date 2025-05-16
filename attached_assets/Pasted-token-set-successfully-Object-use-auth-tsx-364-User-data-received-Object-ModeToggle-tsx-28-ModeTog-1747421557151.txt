@@ -1,0 +1,55 @@
+token set successfully: Object
+use-auth.tsx:364 User data received: Object
+ModeToggle.tsx:28 ModeToggle rendering Object
+ModeToggle.tsx:28 ModeToggle rendering Object
+auth-page.tsx:44 Auth page: User is already authenticated Object
+auth-page.tsx:54 Auth page: Redirecting authenticated user to dashboard
+queryClient.ts:116 [REQ:mar5nycqznx97] Starting GET request to /api/learners?parentId=15
+auth-page.tsx:44 Auth page: User is already authenticated Object
+auth-page.tsx:54 Auth page: Redirecting authenticated user to dashboard
+ModeToggle.tsx:28 ModeToggle rendering Object
+ModeToggle.tsx:28 ModeToggle rendering Object
+ModeToggle.tsx:28 ModeToggle rendering Object
+ModeToggle.tsx:28 ModeToggle rendering Object
+queryClient.ts:171 [REQ:mar5nycqznx97] Response received (200): Object
+ModeToggle.tsx:28 ModeToggle rendering Object
+ModeToggle.tsx:28 ModeToggle rendering Object
+ModeToggle.tsx:28 ModeToggle rendering Object
+ModeToggle.tsx:28 ModeToggle rendering Object
+ModeToggle.tsx:28 ModeToggle rendering Object
+ModeToggle.tsx:28 ModeToggle rendering Object
+ModeToggle.tsx:28 ModeToggle rendering Object
+ModeToggle.tsx:28 ModeToggle rendering Object
+ModeToggle.tsx:28 ModeToggle rendering Object
+ModeToggle.tsx:28 ModeToggle rendering Object
+queryClient.ts:116 [REQ:mar5o0j20zqyw] Starting GET request to /api/learner-profile/19
+api/learner-profile/19:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+queryClient.ts:159 [REQ:mar5o0j20zqyw] Server returned 404 error: Object
+Bt @ queryClient.ts:159Understand this error
+queryClient.ts:198 [REQ:mar5o0j20zqyw] Request failed: Object
+Bt @ queryClient.ts:198Understand this error
+queryClient.ts:242 [REQ:mar5o0j20zqyw] Request configuration error: Object
+Bt @ queryClient.ts:242Understand this error
+learners-page.tsx:80 Failed to fetch profile for learner 19 Error: Request error: Learner profile not found
+    at Bt (queryClient.ts:243:13)
+    at async learners-page.tsx:77:30
+    at async Promise.all (index 0)
+    at async queryFn (learners-page.tsx:74:7)
+(anonymous) @ learners-page.tsx:80Understand this error
+ModeToggle.tsx:28 ModeToggle rendering Object
+ModeToggle.tsx:28 ModeToggle rendering Object
+queryClient.ts:116 [REQ:mar5o5l7cnf27] Starting PUT request to /api/learner-profile/19
+api/learner-profile/19:1 
+            
+            
+           Failed to load resource: the server responded with a status of 404 (Not Found)Understand this error
+queryClient.ts:159 [REQ:mar5o5l7cnf27] Server returned 404 error: Object
+Bt @ queryClient.ts:159Understand this error
+queryClient.ts:198 [REQ:mar5o5l7cnf27] Request failed: Object
+Bt @ queryClient.ts:198Understand this error
+queryClient.ts:242 [REQ:mar5o5l7cnf27] Request configuration error: Object
+Bt @ queryClient.ts:242Understand this error
+ModeToggle.tsx:28 ModeToggle rendering Obj
