@@ -15,6 +15,7 @@ import { ChevronRight, ArrowLeft } from 'react-feather';
 import Markdown from 'react-native-markdown-display';
 import OrigenHeader from '../components/OrigenHeader';
 import EnhancedLessonContent from '../components/EnhancedLessonContent';
+import LessonImage from '../components/LessonImage';
 
 const LessonPage = ({ route, navigation }: any) => {
   const { lessonId } = route.params;
@@ -113,9 +114,25 @@ const LessonPage = ({ route, navigation }: any) => {
           {lesson.spec.enhancedSpec ? (
             <EnhancedLessonContent enhancedSpec={lesson.spec.enhancedSpec} />
           ) : (
-            <Markdown style={markdownStyles}>
-              {lesson.spec.content}
-            </Markdown>
+            <>
+              <Markdown style={markdownStyles}>
+                {lesson.spec.content}
+              </Markdown>
+              
+              {/* Render lesson images if available */}
+              {lesson.spec.images && lesson.spec.images.length > 0 && (
+                <View style={styles.imagesContainer}>
+                  {lesson.spec.images.map((image, index) => (
+                    <LessonImage 
+                      key={image.id || index}
+                      svgData={image.svgData}
+                      altText={image.alt}
+                      description={image.description}
+                    />
+                  ))}
+                </View>
+              )}
+            </>
           )}
         </View>
 
@@ -195,6 +212,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: colors.divider,
     backgroundColor: colors.surfaceColor,
+  },
+  imagesContainer: {
+    marginTop: 16,
+    marginBottom: 8,
   },
   subheaderTitle: {
     ...typography.subtitle1,
