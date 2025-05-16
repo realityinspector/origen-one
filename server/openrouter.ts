@@ -74,6 +74,8 @@ export async function askOpenRouter(options: OpenRouterOptions): Promise<OpenRou
   }
 }
 
+import { LESSON_PROMPTS } from './prompts';
+
 /**
  * Generate a lesson for a specific grade level and topic
  */
@@ -81,17 +83,19 @@ export async function generateLessonContent(gradeLevel: number, topic: string): 
   const messages: Message[] = [
     {
       role: 'system',
-      content: 'You are an expert educational content creator specializing in creating engaging, age-appropriate learning materials for children. Create content that is clear, engaging, and designed for the specific grade level.'
+      content: LESSON_PROMPTS.STANDARD_LESSON(gradeLevel, topic)
     },
     {
       role: 'user',
-      content: `Create an educational lesson about "${topic}" for grade ${gradeLevel} students. The lesson should be engaging, informative, and appropriate for the age group. Include a brief introduction, key concepts, examples, and a summary. Format the content in Markdown.`
+      content: LESSON_PROMPTS.STANDARD_LESSON_USER(gradeLevel, topic)
     }
   ];
 
   const response = await askOpenRouter({ messages });
   return response.choices[0].message.content;
 }
+
+import { QUIZ_PROMPTS } from './prompts';
 
 /**
  * Generate quiz questions for a specific grade level and topic
@@ -100,11 +104,11 @@ export async function generateQuizQuestions(gradeLevel: number, topic: string, q
   const messages: Message[] = [
     {
       role: 'system',
-      content: 'You are an expert educational content creator specializing in creating age-appropriate quiz questions for children. Create multiple-choice questions that are clear, engaging, and appropriate for the specific grade level.'
+      content: QUIZ_PROMPTS.STANDARD_QUIZ(gradeLevel, topic)
     },
     {
       role: 'user',
-      content: `Create ${questionCount} multiple-choice quiz questions about "${topic}" for grade ${gradeLevel} students. For each question, provide 4 options with one correct answer.`
+      content: QUIZ_PROMPTS.STANDARD_QUIZ_USER(gradeLevel, topic, questionCount)
     }
   ];
 
@@ -160,6 +164,8 @@ export async function generateQuizQuestions(gradeLevel: number, topic: string, q
   }
 }
 
+import { FEEDBACK_PROMPTS } from './prompts';
+
 /**
  * Generate personalized feedback for a learner based on their quiz performance
  */
@@ -178,17 +184,19 @@ export async function generateFeedback(quizQuestions: any[], userAnswers: number
   const messages: Message[] = [
     {
       role: 'system',
-      content: 'You are an encouraging and supportive educational coach providing feedback to young learners. Focus on positive reinforcement while providing helpful guidance.'
+      content: FEEDBACK_PROMPTS.PERSONALIZED_FEEDBACK()
     },
     {
       role: 'user',
-      content: `Provide personalized feedback for a student who scored ${score}% on a quiz. Here are the details of their performance:\n\n${JSON.stringify(questionAnalysis)}\n\nProvide encouragement, highlight strengths, and give specific recommendations for improvement. Format your response in a friendly tone appropriate for a young learner.`
+      content: FEEDBACK_PROMPTS.QUIZ_FEEDBACK_USER(quizQuestions, userAnswers, score)
     }
   ];
 
   const response = await askOpenRouter({ messages, temperature: 0.7 });
   return response.choices[0].message.content;
 }
+
+import { KNOWLEDGE_GRAPH_PROMPTS } from './prompts';
 
 /**
  * Generate a knowledge graph based on a topic
@@ -197,11 +205,11 @@ export async function generateKnowledgeGraph(topic: string, gradeLevel: number):
   const messages: Message[] = [
     {
       role: 'system',
-      content: 'You are an educational expert specializing in creating knowledge graphs for educational content. Create a simple knowledge graph of concepts related to the given topic, appropriate for the specified grade level.'
+      content: KNOWLEDGE_GRAPH_PROMPTS.KNOWLEDGE_GRAPH()
     },
     {
       role: 'user',
-      content: `Create a knowledge graph for "${topic}" appropriate for grade ${gradeLevel} students. Include key concepts and how they relate to each other.`
+      content: KNOWLEDGE_GRAPH_PROMPTS.KNOWLEDGE_GRAPH_USER(topic, gradeLevel)
     }
   ];
 
