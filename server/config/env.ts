@@ -1,47 +1,48 @@
 /**
- * Environment Configuration Module
- * 
- * This module centralizes access to environment variables,
- * supporting both Replit Secrets and .env file for local development.
+ * Centralized environment configuration
+ * Handles both .env file (for local development) and Replit Secrets (for production)
  */
 
-// Environment variables with their defaults
-export const env = {
-  // Database
-  DATABASE_URL: process.env.DATABASE_URL || '',
-  
-  // Authentication
-  JWT_SECRET: process.env.JWT_SECRET || 'origen-secure-jwt-secret-for-development',
-  SESSION_SECRET: process.env.SESSION_SECRET || 'session-secret',
-  
-  // Feature flags
-  USE_AI: process.env.USE_AI !== '0',
-  ENABLE_STATS: process.env.ENABLE_STATS !== '0',
-  
-  // API Keys
-  OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY || '',
-  
-  // Node environment
-  NODE_ENV: process.env.NODE_ENV || 'development',
-  
-  // TypeScript configuration
-  TS_NODE_TRANSPILE_ONLY: process.env.TS_NODE_TRANSPILE_ONLY === 'true',
-  
-  // Server configuration
-  PORT: Number(process.env.PORT || 5000),
-  HTTP_PORT: Number(process.env.HTTP_PORT || 8000),
-};
-
-// Validate required environment variables
-export function validateEnvironment(): void {
-  const requiredVars = [
-    'DATABASE_URL',
-    'JWT_SECRET'
-  ];
-  
-  const missing = requiredVars.filter(varName => !env[varName as keyof typeof env]);
-  
-  if (missing.length > 0) {
-    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+// Load environment variables from .env file during development
+// In production (Replit), environment variables are already available via Secrets
+if (process.env.NODE_ENV === 'development' && !process.env.REPL_ID) {
+  try {
+    // Dynamic import to avoid bundling dotenv in production
+    require('dotenv').config();
+  } catch (err) {
+    console.warn('Optional dependency dotenv not found. Using environment variables directly.');
   }
 }
+
+/**
+ * Get environment variable with optional fallback
+ */
+export function getEnv(key: string, fallback?: string): string {
+  const value = process.env[key];
+  if (value === undefined) {
+    if (fallback !== undefined) {
+      return fallback;
+    }
+    throw new Error(`Environment variable ${key} is required but not set`);
+  }
+  return value;
+}
+
+// Database configuration
+export const DATABASE_URL = getEnv('DATABASE_URL');
+export const DATABASE_SSL = getEnv('DATABASE_SSL', 'true') === 'true';
+
+// Server configuration
+export const PORT = parseInt(getEnv('PORT', '5000'));
+export const NODE_ENV = getEnv('NODE_ENV', 'development');
+export const SESSION_SECRET = getEnv('SESSION_SECRET', 'dev-secret-change-me');
+
+// Authentication
+export const JWT_SECRET = getEnv('JWT_SECRET', SESSION_SECRET);
+export const JWT_EXPIRY = getEnv('JWT_EXPIRY', '7d');
+
+// For OpenRouter integration
+export const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
+
+// For Perplexity integration
+export const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY || '';
