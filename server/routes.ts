@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { generateLesson, checkForAchievements } from "./utils";
-import { asyncHandler, authenticateJwt, hasRoleMiddleware, AuthRequest } from "./middleware/auth";
+import { asyncHandler, authenticateJwt, hasRoleMiddleware, AuthRequest, comparePasswords, generateToken } from "./middleware/auth";
 import { synchronizeToExternalDatabase } from "./sync-utils";
 import { InsertDbSyncConfig } from "../shared/schema";
 import { USE_AI } from "./config/flags";
@@ -39,12 +39,43 @@ export function registerRoutes(app: Express): Server {
   });
   
   // Special API route to handle the root-level login/register/user for production deployment
-  app.post("/login", (req: Request, res: Response) => {
-    // Forward the request to the real API endpoint
+  app.post("/login", asyncHandler(async (req: Request, res: Response) => {
     console.log("Proxy: Forwarding login request to /api/login");
-    // Just redirect to the API endpoint
-    res.redirect(307, "/api/login");
-  });
+    
+    const { username, password } = req.body;
+    
+    if (!username || !password) {
+      return res.status(400).json({ error: "Username and password are required" });
+    }
+    
+    // Find user by username
+    const user = await storage.getUserByUsername(username);
+    
+    if (!user) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    
+    // Verify password
+    const isPasswordValid = user.password ? await comparePasswords(password, user.password) : false;
+    
+    if (!isPasswordValid) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+    
+    // Generate JWT token
+    console.log(`Generating token for user ID: ${user.id} with role: ${user.role}`);
+    const token = generateToken({ id: user.id, role: user.role });
+    console.log(`Using JWT_SECRET: ${process.env.JWT_SECRET?.substring(0, 3)}...${process.env.JWT_SECRET?.substring(process.env.JWT_SECRET.length - 3)}`);
+    console.log(`Token generated successfully, length: ${token.length}`);
+    
+    // Return user details and token
+    const { password: _, ...userWithoutPassword } = user;
+    
+    res.json({
+      token,
+      user: userWithoutPassword
+    });
+  }));
   
   app.post("/register", (req: Request, res: Response) => {
     // Forward the request to the real API endpoint
