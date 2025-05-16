@@ -489,6 +489,22 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
+  async getLearnerLessons(learnerId: string): Promise<Lesson[]> {
+    try {
+      // Get all lessons for a learner (used for determining previous lesson subjects)
+      const result = await db
+        .select()
+        .from(lessons)
+        .where(eq(lessons.learnerId, learnerId))
+        .orderBy(desc(lessons.createdAt));
+      
+      return Array.isArray(result) ? result.map(lesson => lesson as Lesson) : [result as Lesson];
+    } catch (error) {
+      console.error('Error in getLearnerLessons:', error);
+      return [];
+    }
+  }
+
   async getLessonHistory(learnerId: string, limit: number = 10): Promise<Lesson[]> {
     try {
       // Try to get the full lesson history first
@@ -511,7 +527,12 @@ export class DatabaseStorage implements IStorage {
           learnerId: lessons.learnerId,
           moduleId: lessons.moduleId,
           status: lessons.status,
+          subject: lessons.subject,
+          category: lessons.category,
+          difficulty: lessons.difficulty,
           spec: lessons.spec,
+          enhancedSpec: lessons.enhancedSpec,
+          imagePaths: lessons.imagePaths,
           score: lessons.score,
           createdAt: lessons.createdAt,
           completedAt: lessons.completedAt,
@@ -524,11 +545,11 @@ export class DatabaseStorage implements IStorage {
       // Add default values for potentially missing columns
       return result.map(baseLesson => ({
         ...baseLesson,
-        enhancedSpec: null,
-        subject: null,
-        category: null,
-        difficulty: 'beginner' as const,
-        imagePaths: null
+        enhancedSpec: baseLesson.enhancedSpec || null,
+        subject: baseLesson.subject || null,
+        category: baseLesson.category || null,
+        difficulty: baseLesson.difficulty || 'beginner' as const,
+        imagePaths: baseLesson.imagePaths || null
       })) as Lesson[];
     } catch (error) {
       console.error('Error in getLessonHistory:', error);
