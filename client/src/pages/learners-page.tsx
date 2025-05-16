@@ -20,7 +20,7 @@ import { Plus, BarChart2, Download, Edit } from 'react-feather';
 const LearnersPage: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [, navigate] = useLocation();
+  const [, setLocation] = useLocation();
   const [modalVisible, setModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [subjectsModalVisible, setSubjectsModalVisible] = useState(false); 
@@ -472,8 +472,8 @@ const LearnersPage: React.FC = () => {
             style={[styles.actionButton, styles.subjectsButton]}
             onPress={() => {
               // Navigate to the dedicated subjects management page with the learner ID
-              // Use setLocation instead of window.location to maintain the auth state
-              setLocation(`/change-learner-subjects?id=${item.id}`);
+              const subjectsUrl = `/change-learner-subjects?id=${item.id}`;
+              setLocation(subjectsUrl);
             }}
           >
             <Edit size={16} color={colors.onPrimary} />
@@ -490,7 +490,7 @@ const LearnersPage: React.FC = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.actionButton, styles.progressButton]}
-            onPress={() => navigate(`/progress?learnerId=${item.id}`)}
+            onPress={() => setLocation(`/progress?learnerId=${item.id}`)}
           >
             <BarChart2 size={16} color={colors.onPrimary} />
             <Text style={styles.actionButtonText}>Progress</Text>
