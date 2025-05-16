@@ -137,9 +137,9 @@ export class DatabaseStorage implements IStorage {
         userData.role = "LEARNER";
       }
       
-      // Set a name if not provided but firstName is available
-      if (!userData.name && userData.firstName) {
-        userData.name = `${userData.firstName}${userData.lastName ? ' ' + userData.lastName : ''}`;
+      // Make sure name is set
+      if (!userData.name) {
+        userData.name = userData.username || userData.email?.split('@')[0] || 'New User';
       }
       
       // Set username if not provided
