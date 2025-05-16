@@ -74,8 +74,8 @@ task = "shell.exec"
 args = "ts-node scripts/seed-clean.ts"
 
 [deployment]
-run = ["sh", "-c", "NODE_ENV=production PORT=5000 HTTP_PORT=8000 node dist/server/index.js"]
-build = ["sh", "-c", "cd client && npm run build && cd .. && npx tsc"]
+run = ["sh", "-c", "NODE_ENV=production PORT=5000 HTTP_PORT=8000 HOST=0.0.0.0 node dist/server/index.js"]
+build = ["sh", "-c", "cd client && npm run build && cd .. && TS_NODE_TRANSPILE_ONLY=true npx tsc"]
 
 [[ports]]
 localPort = 5000
