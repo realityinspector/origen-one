@@ -4,7 +4,7 @@ const config: PlaywrightTestConfig = {
   testDir: './tests/e2e',
   timeout: 30000,
   webServer: {
-    command: 'NODE_ENV=test ts-node -r dotenv/config server/index.ts',
+    command: 'NODE_ENV=test ts-node server/index.ts',
     port: 5000,
     reuseExistingServer: !process.env.CI,
   },
