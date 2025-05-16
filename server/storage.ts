@@ -597,11 +597,17 @@ export class DatabaseStorage implements IStorage {
 
   async getLearnerLessons(learnerId: string): Promise<Lesson[]> {
     try {
+      const learnerIdNum = parseInt(learnerId);
+      if (isNaN(learnerIdNum)) {
+        console.error(`Invalid learner ID: ${learnerId}`);
+        return [];
+      }
+
       // Get all lessons for a learner (used for determining previous lesson subjects)
       const result = await db
         .select()
         .from(lessons)
-        .where(eq(lessons.learnerId, learnerId))
+        .where(eq(lessons.learnerId, learnerIdNum))
         .orderBy(desc(lessons.createdAt));
 
       return Array.isArray(result) ? result.map(lesson => lesson as Lesson) : [result as Lesson];
