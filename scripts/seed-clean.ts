@@ -2,8 +2,8 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import * as schema from '../shared/schema';
 import { hashPassword } from '../server/middleware/auth';
-import { randomBytes } from 'crypto';
 import crypto from 'crypto';
+const { randomBytes } = crypto;
 import ws from 'ws';
 
 // Configure Neon to use ws instead of browser WebSocket
@@ -76,13 +76,19 @@ async function main() {
   console.log('Creating learner profile...');
   console.log(`Creating profile for user ID: ${learner.id} (type: ${typeof learner.id})`);
   
-  const profileResult = await db.insert(schema.learnerProfiles).values({
-    id: crypto.randomUUID(), // Explicitly generate a UUID
-    userId: Number(learner.id), // Ensure this is a number
-    gradeLevel: 6,
-    graph: { nodes: [], edges: [] }
-  }).returning();
-  const profile = profileResult[0];
+  // Use raw SQL to avoid field name mapping issues
+  const profileResult = await pool.query(
+    `INSERT INTO learner_profiles (id, user_id, grade_level, graph) 
+     VALUES ($1, $2, $3, $4)
+     RETURNING *`,
+    [
+      crypto.randomUUID(),
+      learner.id,
+      6,
+      JSON.stringify({ nodes: [], edges: [] })
+    ]
+  );
+  const profile = profileResult.rows[0];
   console.log(`Learner profile created with ID: ${profile.id}`);
 
   // Create static lessons
@@ -110,19 +116,20 @@ async function main() {
     );
     
     const lesson = lessonResult.rows[0];
-    const lesson = lessonResult[0];
     console.log(`Lesson created: ${topic} (ID: ${lesson.id})`);
   }
 
   // Mark the first lesson as active
-  const lessons = await db.query.lessons.findMany({
-    where: (lessons, { eq }) => eq(lessons.learnerId, learner.id),
-    orderBy: (lessons, { asc }) => asc(lessons.createdAt),
-    limit: 1
-  });
+  const lessonsResult = await pool.query(
+    `SELECT * FROM lessons 
+     WHERE learner_id = $1 
+     ORDER BY created_at ASC 
+     LIMIT 1`, 
+    [learner.id]
+  );
   
-  if (lessons.length > 0) {
-    const lessonId = lessons[0].id;
+  if (lessonsResult.rows.length > 0) {
+    const lessonId = lessonsResult.rows[0].id;
     await pool.query(`UPDATE lessons SET status = 'ACTIVE' WHERE id = $1`, [lessonId]);
     console.log(`Marked lesson ${lessonId} as active`);
   }
