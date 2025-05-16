@@ -457,10 +457,31 @@ export function registerRoutes(app: Express): Server {
     
     // Update the profile
     try {
+      // First check if profile exists
+      let profile = await storage.getLearnerProfile(userId);
+      
+      // If profile doesn't exist, create one with default values
+      if (!profile) {
+        console.log(`Creating learner profile for user ${userId} during update`);
+        profile = await storage.createLearnerProfile({
+          id: crypto.randomUUID(),
+          userId,
+          gradeLevel: updateData.gradeLevel || 5, // Use provided grade level or default to 5
+          graph: updateData.graph || { nodes: [], edges: [] },
+          subjects: updateData.subjects || ['Math', 'Reading', 'Science'],
+          subjectPerformance: updateData.subjectPerformance || {},
+          recommendedSubjects: updateData.recommendedSubjects || [],
+          strugglingAreas: updateData.strugglingAreas || []
+        });
+        
+        return res.json(profile);
+      }
+      
+      // Otherwise update the existing profile
       const updatedProfile = await storage.updateLearnerProfile(userId, updateData);
       
       if (!updatedProfile) {
-        return res.status(404).json({ error: "Learner profile not found" });
+        return res.status(500).json({ error: "Failed to update learner profile" });
       }
       
       return res.json(updatedProfile);
