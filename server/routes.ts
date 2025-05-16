@@ -734,7 +734,7 @@ export function registerRoutes(app: Express): Server {
       // Create a new lesson
       const newLesson = await storage.createLesson({
         id: crypto.randomUUID(),
-        learnerId: req.user.id,
+        learnerId: Number(req.user.id),
         moduleId: `custom-${Date.now()}`,
         status: "ACTIVE",
         subject,
@@ -1047,7 +1047,7 @@ export function registerRoutes(app: Express): Server {
     // Award any new achievements
     for (const achievement of newAchievements) {
       await storage.createAchievement({
-        learnerId: req.user.id,
+        learnerId: Number(req.user.id),
         type: achievement.type,
         payload: achievement.payload
       });
@@ -1133,7 +1133,7 @@ export function registerRoutes(app: Express): Server {
         // Create the new lesson with UUID and varied content
         await storage.createLesson({
           id: crypto.randomUUID(),
-          learnerId: req.user.id,
+          learnerId: Number(req.user.id),
           moduleId: `generated-${Date.now()}`,
           status: "ACTIVE",
           subject,
