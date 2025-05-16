@@ -13,6 +13,7 @@ import { useLocation } from 'wouter';
 import { apiRequest } from '../lib/queryClient';
 import { colors, typography, commonStyles } from '../styles/theme';
 import { ChevronRight, ArrowLeft } from 'react-feather';
+import SimpleMarkdownRenderer from '../components/SimpleMarkdownRenderer';
 
 const ActiveLessonPage = () => {
   const [, setLocation] = useLocation();
@@ -121,9 +122,10 @@ const ActiveLessonPage = () => {
             </View>
           )}
           
-          <Text style={styles.lessonText}>
-            {lesson.spec.content}
-          </Text>
+          {/* Use SimpleMarkdownRenderer for markdown formatting */}
+          <SimpleMarkdownRenderer 
+            content={lesson.spec.content}
+          />
         </View>
 
         <View style={styles.quizPrompt}>
