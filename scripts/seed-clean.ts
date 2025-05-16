@@ -2,11 +2,8 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import * as schema from '../shared/schema';
 import { hashPassword } from '../server/middleware/auth';
-import dotenv from 'dotenv';
 import { randomBytes } from 'crypto';
 import ws from 'ws';
-
-dotenv.config();
 
 // Configure Neon to use ws instead of browser WebSocket
 neonConfig.webSocketConstructor = ws;
