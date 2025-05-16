@@ -31,7 +31,6 @@ export const users = pgTable("users", {
   password: text("password"), // For non-Replit auth users
   parentId: varchar("parent_id").references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at").defaultNow(),
-  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 export const usersRelations = relations(users, ({ one, many }) => ({
