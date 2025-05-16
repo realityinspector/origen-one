@@ -470,6 +470,74 @@ export function registerRoutes(app: Express): Server {
     }
   }));
   
+  // Create custom lesson from subject dashboard
+  app.post("/api/lessons/create", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    const { subject, category, difficulty, gradeLevel } = req.body;
+    
+    if (!subject || !category) {
+      return res.status(400).json({ error: "Subject and category are required" });
+    }
+    
+    try {
+      // Get the learner profile
+      const learnerProfile = await storage.getLearnerProfile(req.user.id);
+      if (!learnerProfile) {
+        return res.status(404).json({ error: "Learner profile not found" });
+      }
+      
+      // Create SVG image based on subject and category
+      const svgImageData = getSubjectSVG(subject, category);
+      const sampleImage = {
+        id: crypto.randomUUID(),
+        description: `Educational illustration of ${category} in ${subject}`,
+        alt: `${category} educational illustration`,
+        svgData: svgImageData,
+        promptUsed: `Create an educational illustration about ${category} in ${subject}`
+      };
+      
+      // Generate content appropriate for the grade level
+      const userGradeLevel = gradeLevel || learnerProfile.gradeLevel || 5;
+      const lessonContent = generateLessonContent(subject, category, userGradeLevel);
+      const quizQuestions = generateQuizQuestions(subject, category, userGradeLevel);
+      
+      // Create lesson specification
+      const lessonSpec = {
+        title: `${category} in ${subject}`,
+        content: lessonContent,
+        questions: quizQuestions,
+        images: [sampleImage]
+      };
+      
+      // Create a new lesson
+      const newLesson = await storage.createLesson({
+        id: crypto.randomUUID(),
+        learnerId: req.user.id,
+        moduleId: `custom-${Date.now()}`,
+        status: "ACTIVE",
+        subject,
+        category,
+        difficulty: difficulty || "beginner",
+        spec: lessonSpec,
+        imagePaths: [{
+          path: `/images/subjects/${subject.toLowerCase()}.svg`,
+          alt: `${category} educational image`,
+          description: `An illustration related to ${category}`
+        }]
+      });
+      
+      // Return the created lesson
+      res.json(newLesson);
+      
+    } catch (error) {
+      console.error("Error creating custom lesson:", error);
+      res.status(500).json({ error: "Failed to create lesson" });
+    }
+  }));
+  
   // Get active lesson for learner
   app.get("/api/lessons/active", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
     if (!req.user) {

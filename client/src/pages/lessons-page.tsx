@@ -7,7 +7,7 @@ import { PageContainer, LoadingSpinner } from '../components/ui-components';
 import { useAuth } from '../hooks/use-auth';
 
 export function LessonsPage() {
-  const { user, isAuthenticated } = useAuth();
+  const { user } = useAuth();
   
   // Fetch learner profile to get grade level and subjects
   const { data: profile, isLoading } = useQuery({
