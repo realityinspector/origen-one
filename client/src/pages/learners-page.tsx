@@ -472,7 +472,7 @@ const LearnersPage: React.FC = () => {
             style={[styles.actionButton, styles.subjectsButton]}
             onPress={() => {
               // Navigate to the dedicated subjects management page with the learner ID
-              const subjectsUrl = `/change-learner-subjects?id=${item.id}`;
+              const subjectsUrl = `/change-learner-subjects/${item.id}`;
               setLocation(subjectsUrl);
             }}
           >
