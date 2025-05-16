@@ -423,7 +423,7 @@ export function registerRoutes(app: Express): Server {
     
     console.log(`Updating learner profile for userId: ${userId}`, {
       gradeLevel, 
-      subjects: Array.isArray(subjects) ? subjects.length : 'undefined',
+      subjects: Array.isArray(subjects) ? `Array with ${subjects.length} items: ${JSON.stringify(subjects)}` : subjects,
       recommendedSubjects: Array.isArray(recommendedSubjects) ? recommendedSubjects.length : 'undefined',
       strugglingAreas: Array.isArray(strugglingAreas) ? strugglingAreas.length : 'undefined',
       graph: graph ? 'provided' : 'undefined'
@@ -639,10 +639,24 @@ export function registerRoutes(app: Express): Server {
         ];
         
         console.log('Executing update query with parameters:', updateParams);
+        // Log the actual subjects value being sent to the database
+        console.log('Subjects being saved to database:', JSON.stringify(subjectsValue));
+        
         const updateResult = await pool.query(updateQuery, updateParams);
         
         if (updateResult.rowCount > 0) {
           console.log('Learner profile updated successfully');
+          
+          // Log the subjects value returned from the database after update
+          let returnedSubjects;
+          try {
+            returnedSubjects = typeof updateResult.rows[0].subjects === 'string' ? 
+              JSON.parse(updateResult.rows[0].subjects) : updateResult.rows[0].subjects;
+            console.log('Subjects returned from database after update:', JSON.stringify(returnedSubjects));
+          } catch (e) {
+            console.error('Error parsing returned subjects:', e);
+          }
+          
           // Convert database row to expected profile format
           const profile = updateResult.rows[0];
           return res.json({
