@@ -12,10 +12,9 @@ import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '../lib/queryClient';
 import { colors, typography, commonStyles } from '../styles/theme';
 import { ChevronRight, ArrowLeft } from 'react-feather';
-import Markdown from 'react-native-markdown-display';
 import OrigenHeader from '../components/OrigenHeader';
 import EnhancedLessonContent from '../components/EnhancedLessonContent';
-import LessonImage from '../components/LessonImage';
+import LessonContentRenderer from '../components/LessonContentRenderer';
 
 const LessonPage = ({ route, navigation }: any) => {
   const { lessonId } = route.params;
@@ -114,25 +113,10 @@ const LessonPage = ({ route, navigation }: any) => {
           {lesson.spec.enhancedSpec ? (
             <EnhancedLessonContent enhancedSpec={lesson.spec.enhancedSpec} />
           ) : (
-            <>
-              <Markdown style={markdownStyles}>
-                {lesson.spec.content}
-              </Markdown>
-              
-              {/* Render lesson images if available */}
-              {lesson.spec.images && lesson.spec.images.length > 0 && (
-                <View style={styles.imagesContainer}>
-                  {lesson.spec.images.map((image, index) => (
-                    <LessonImage 
-                      key={image.id || index}
-                      svgData={image.svgData}
-                      altText={image.alt}
-                      description={image.description}
-                    />
-                  ))}
-                </View>
-              )}
-            </>
+            <LessonContentRenderer 
+              content={lesson.spec.content}
+              images={lesson.spec.images}
+            />
           )}
         </View>
 
