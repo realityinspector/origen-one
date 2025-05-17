@@ -1,37 +1,43 @@
 /**
- * This script fixes syntax errors in the storage.ts file
+ * This script fixes syntax errors in the storage.ts file 
  * that are preventing deployment and running the application.
  */
 
 const fs = require('fs');
 const path = require('path');
 
-try {
-  console.log('Fixing syntax errors in storage.ts file...');
-  const filePath = path.join(process.cwd(), 'server/storage.ts');
-  let content = fs.readFileSync(filePath, 'utf8');
+// Path to storage.ts file
+const storageFilePath = path.join(__dirname, '..', 'server', 'storage.ts');
 
-  // Fix getAchievements method (line 751) - Remove extra parentheses
+function fixStorageFile() {
+  console.log('Fixing syntax errors in storage.ts...');
+  
+  // Read the file content
+  let content = fs.readFileSync(storageFilePath, 'utf8');
+  
+  // Fix the syntax error in getAchievements method (extra parenthesis)
   content = content.replace(
-    /\.where\(eq\(achievements\.learnerId, learnerId\.toString\(\)\)\)\)\)/g,
+    /\.where\(eq\(achievements\.learnerId, learnerId\.toString\(\)\)\)\)/g,
     '.where(eq(achievements.learnerId, learnerId.toString()))'
   );
   
-  // Fix deleteUser method (line 850) - Remove extra parentheses
+  // Fix the syntax error in deleteUser method (extra parenthesis)
   content = content.replace(
-    /\.where\(eq\(achievements\.learnerId, id\.toString\(\)\)\)\)\)\)\)\)\);/g,
-    '.where(eq(achievements.learnerId, id.toString()));'
+    /\.where\(eq\(achievements\.learnerId, id\.toString\(\)\)\)\)/g, 
+    '.where(eq(achievements.learnerId, id.toString()))'
   );
   
-  // Also try a more general pattern replacement
+  // Fix any other possible duplicate orderBy lines
   content = content.replace(
-    /\.where\(eq\(achievements\.learnerId, (.*?)\.toString\(\)\)\)+\)/g,
-    '.where(eq(achievements.learnerId, $1.toString()))'
+    /\.orderBy\(desc\(achievements\.awardedAt\)\);\s+\.orderBy\(desc\(achievements\.awardedAt\)\);/g,
+    '.orderBy(desc(achievements.awardedAt));'
   );
-
-  // Write fixed content back to file
-  fs.writeFileSync(filePath, content, 'utf8');
+  
+  // Write the fixed content back to the file
+  fs.writeFileSync(storageFilePath, content, 'utf8');
+  
   console.log('Fixed syntax errors in storage.ts successfully');
-} catch (error) {
-  console.error('Error fixing syntax errors:', error);
 }
+
+// Execute the fix
+fixStorageFile();
