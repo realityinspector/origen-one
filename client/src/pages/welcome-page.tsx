@@ -220,14 +220,17 @@ const WelcomePage: React.FC = () => {
         {/* How It Works Section */}
         <View style={[styles.section, styles.howItWorks]}>
           <Text style={[styles.sectionTitle, styles.lightText]}>How It Works</Text>
+          
+          {/* Getting Started Section */}
+          <Text style={[styles.subSectionTitle, styles.lightText]}>Getting Started Is Easy</Text>
           <View style={styles.timelineContainer}>
             <View style={styles.timelineItem}>
               <View style={styles.timelineBullet}>
                 <Text style={styles.timelineNumber}>1</Text>
               </View>
               <View style={styles.timelineContent}>
-                <Text style={styles.timelineTitle}>Create an Account</Text>
-                <Text style={styles.timelineText}>Sign up as a parent or educator and add your learners</Text>
+                <Text style={styles.timelineTitle}>Create Your Parent Account</Text>
+                <Text style={styles.timelineText}>Sign up with your email and password. No credit card required to begin.</Text>
               </View>
             </View>
 
@@ -236,8 +239,8 @@ const WelcomePage: React.FC = () => {
                 <Text style={styles.timelineNumber}>2</Text>
               </View>
               <View style={styles.timelineContent}>
-                <Text style={styles.timelineTitle}>Set Learning Goals</Text>
-                <Text style={styles.timelineText}>Choose topics and grade levels for personalized lessons</Text>
+                <Text style={styles.timelineTitle}>Add Your Children</Text>
+                <Text style={styles.timelineText}>Create profiles for each child. Just enter their name and grade level. No email or passwords needed for children's accounts.</Text>
               </View>
             </View>
 
@@ -246,8 +249,42 @@ const WelcomePage: React.FC = () => {
                 <Text style={styles.timelineNumber}>3</Text>
               </View>
               <View style={styles.timelineContent}>
-                <Text style={styles.timelineTitle}>Learn and Grow</Text>
-                <Text style={styles.timelineText}>AI generates custom lessons and adaptive quizzes</Text>
+                <Text style={styles.timelineTitle}>Start Learning</Text>
+                <Text style={styles.timelineText}>Switch to Learner View to see what your child will experience. Choose subjects that interest your child. Watch as our AI creates personalized learning content.</Text>
+              </View>
+            </View>
+          </View>
+          
+          {/* Daily Learning Section */}
+          <Text style={[styles.subSectionTitle, styles.lightText]}>Daily Learning Made Simple</Text>
+          <View style={styles.timelineContainer}>
+            <View style={styles.timelineItem}>
+              <View style={styles.timelineBullet}>
+                <Text style={styles.timelineNumber}>1</Text>
+              </View>
+              <View style={styles.timelineContent}>
+                <Text style={styles.timelineTitle}>Choose a Subject</Text>
+                <Text style={styles.timelineText}>Select from recommended subjects or explore new ones. Each subject has age-appropriate content for your child.</Text>
+              </View>
+            </View>
+
+            <View style={styles.timelineItem}>
+              <View style={styles.timelineBullet}>
+                <Text style={styles.timelineNumber}>2</Text>
+              </View>
+              <View style={styles.timelineContent}>
+                <Text style={styles.timelineTitle}>Complete Interactive Lessons</Text>
+                <Text style={styles.timelineText}>Engage with multimedia content. Answer questions to check understanding. Receive immediate feedback and guidance.</Text>
+              </View>
+            </View>
+
+            <View style={styles.timelineItem}>
+              <View style={styles.timelineBullet}>
+                <Text style={styles.timelineNumber}>3</Text>
+              </View>
+              <View style={styles.timelineContent}>
+                <Text style={styles.timelineTitle}>Build Knowledge Connections</Text>
+                <Text style={styles.timelineText}>See how different topics connect through our Knowledge Graph. Add new topics and watch the connections grow. Visualize learning progress across subjects.</Text>
               </View>
             </View>
 
@@ -256,29 +293,72 @@ const WelcomePage: React.FC = () => {
                 <Text style={styles.timelineNumber}>4</Text>
               </View>
               <View style={styles.timelineContent}>
-                <Text style={styles.timelineTitle}>Track Progress</Text>
-                <Text style={styles.timelineText}>Monitor achievements and learning milestones</Text>
+                <Text style={styles.timelineTitle}>Track Progress Together</Text>
+                <Text style={styles.timelineText}>Parents can review completed lessons and quiz results. Celebrate achievements together. Identify opportunities for additional support or challenges.</Text>
               </View>
             </View>
           </View>
         </View>
+        
+        {/* Real Solutions Section */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Real Solutions for Real Families</Text>
+          
+          <View style={styles.solutionsContainer}>
+            <View style={styles.solutionItem}>
+              <Text style={styles.solutionProblem}>"I don't have time to research educational content for three different grade levels."</Text>
+              <Text style={styles.solutionAnswer}>→ Origen automatically generates grade-appropriate content for each child, saving you hours of research and planning.</Text>
+            </View>
+            
+            <View style={styles.solutionItem}>
+              <Text style={styles.solutionProblem}>"My child loses interest in traditional learning apps after a few days."</Text>
+              <Text style={styles.solutionAnswer}>→ Our AI creates fresh, engaging content that adapts to your child's interests, keeping learning exciting day after day.</Text>
+            </View>
+            
+            <View style={styles.solutionItem}>
+              <Text style={styles.solutionProblem}>"My child is struggling with certain concepts and needs more support."</Text>
+              <Text style={styles.solutionAnswer}>→ Origen identifies areas where your child needs help and provides additional practice and explanations tailored to their learning style.</Text>
+            </View>
+            
+            <View style={styles.solutionItem}>
+              <Text style={styles.solutionProblem}>"The standard curriculum isn't challenging enough for my child."</Text>
+              <Text style={styles.solutionAnswer}>→ Our platform recognizes when your child masters concepts quickly and automatically increases difficulty to keep them engaged and growing.</Text>
+            </View>
+            
+            <View style={styles.solutionItem}>
+              <Text style={styles.solutionProblem}>"We're always on the move and need learning that works anywhere."</Text>
+              <Text style={styles.solutionAnswer}>→ Access Origen on any device, anytime, with progress synced automatically across all platforms.</Text>
+            </View>
+          </View>
+          
+          <Text style={styles.solutionsConclusion}>
+            Origen isn't just another learning app—it's a complete educational partner that grows with your family. 
+            Our AI technology creates a truly personalized experience that makes learning a joy rather than a chore.
+          </Text>
+        </View>
 
         {/* CTA Section */}
         <View style={styles.ctaSection}>
-          <Text style={styles.ctaTitle}>Ready to Transform Learning?</Text>
-          <Text style={styles.ctaSubtitle}>Join thousands of families using Origen AI Tutor</Text>
+          <Text style={styles.ctaTitle}>Ready to Begin?</Text>
+          <View style={styles.ctaSteps}>
+            <Text style={styles.ctaStep}>1. Log in to your account</Text>
+            <Text style={styles.ctaStep}>2. Add your first learner profile</Text>
+            <Text style={styles.ctaStep}>3. Explore subjects together</Text>
+            <Text style={styles.ctaStep}>4. Watch the magic of personalized learning unfold!</Text>
+          </View>
           <TouchableOpacity 
             style={[styles.ctaButton, styles.ctaButtonLarge]}
             onPress={() => {
-              console.log("Start Your Journey button clicked, navigating to /auth");
+              console.log("Get Started button clicked, navigating to /auth");
               // Use both methods for navigation to ensure it works in all environments
               if (typeof window !== 'undefined') {
                 window.location.href = '/auth';
               }
             }}
           >
-            <Text style={styles.ctaButtonText}>Start Your Journey</Text>
+            <Text style={styles.ctaButtonText}>Get Started</Text>
           </TouchableOpacity>
+          <Text style={styles.ctaSupport}>Have questions? We're here to help at support@origen.edu</Text>
         </View>
 
         {/* Footer */}
@@ -498,6 +578,14 @@ const styles = StyleSheet.create({
   },
   lightText: {
     color: colors.onPrimary,
+  },
+  subSectionTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 24,
+    marginTop: 20,
+    color: colors.textPrimary,
+    textAlign: 'left',
   },
   featuresGrid: {
     flexDirection: 'row',
