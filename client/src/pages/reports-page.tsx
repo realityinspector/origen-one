@@ -39,41 +39,26 @@ const ReportsPage: React.FC = () => {
     enabled: (user?.role === 'PARENT' || user?.role === 'ADMIN') && !!user?.id,
   });
 
-  // Fetch selected learner data
+  // Fetch report data
   const {
-    data: learnerProfile,
-    isLoading: profileLoading,
-    error: profileError,
+    data: reportData,
+    isLoading: reportLoading,
+    error: reportError,
   } = useQuery({
-    queryKey: [`/api/learner-profile/${selectedLearnerId}`],
-    queryFn: () => apiRequest('GET', `/api/learner-profile/${selectedLearnerId}`).then(res => res.data),
+    queryKey: [`/api/reports`, selectedLearnerId, selectedReportType],
+    queryFn: () => apiRequest('GET', `/api/reports?learnerId=${selectedLearnerId}&type=${selectedReportType}`).then(res => res.data),
     enabled: !!selectedLearnerId,
   });
 
-  // Fetch lesson history
-  const {
-    data: lessons,
-    isLoading: lessonsLoading,
-    error: lessonsError,
-  } = useQuery({
-    queryKey: [`/api/lessons?learnerId=${selectedLearnerId}`],
-    queryFn: () => apiRequest('GET', `/api/lessons?learnerId=${selectedLearnerId}`).then(res => res.data),
-    enabled: !!selectedLearnerId,
-  });
+  // Extract data based on report type
+  const learnerProfile = reportData?.profile;
+  const lessons = selectedReportType === 'lessons' ? reportData?.lessons : 
+                 (reportData?.analytics ? [] : []);
+  const achievements = selectedReportType === 'achievements' ? reportData?.achievements : [];
+  const analytics = reportData?.analytics;
 
-  // Fetch achievements
-  const {
-    data: achievements,
-    isLoading: achievementsLoading,
-    error: achievementsError,
-  } = useQuery({
-    queryKey: [`/api/achievements?learnerId=${selectedLearnerId}`],
-    queryFn: () => apiRequest('GET', `/api/achievements?learnerId=${selectedLearnerId}`).then(res => res.data),
-    enabled: !!selectedLearnerId,
-  });
-
-  const isLoading = learnersLoading || (selectedLearnerId && (profileLoading || lessonsLoading || achievementsLoading));
-  const hasError = learnersError || profileError || lessonsError || achievementsError;
+  const isLoading = learnersLoading || (selectedLearnerId && reportLoading);
+  const hasError = learnersError || reportError;
 
   const handleDownloadReport = () => {
     if (!selectedLearnerId) return;
@@ -172,20 +157,65 @@ const ReportsPage: React.FC = () => {
                   <View style={styles.reportContent}>
                     <View style={styles.statsContainer}>
                       <View style={styles.statCard}>
-                        <Text style={styles.statValue}>{learnerProfile?.graph?.nodes?.length || 0}</Text>
+                        <Text style={styles.statValue}>{analytics?.conceptsLearned || 0}</Text>
                         <Text style={styles.statLabel}>Concepts Learned</Text>
                       </View>
                       <View style={styles.statCard}>
-                        <Text style={styles.statValue}>{lessons?.filter((l: any) => l.status === 'DONE').length || 0}</Text>
+                        <Text style={styles.statValue}>{analytics?.lessonsCompleted || 0}</Text>
                         <Text style={styles.statLabel}>Lessons Completed</Text>
                       </View>
                       <View style={styles.statCard}>
-                        <Text style={styles.statValue}>{achievements?.length || 0}</Text>
+                        <Text style={styles.statValue}>{analytics?.achievementsCount || 0}</Text>
                         <Text style={styles.statLabel}>Achievements</Text>
                       </View>
                     </View>
 
-                    {/* You could add more detailed progress metrics here */}
+                    <Text style={styles.reportSectionTitle}>Learning Progress</Text>
+                    <View style={styles.progressContainer}>
+                      <View style={styles.progressBarContainer}>
+                        <View 
+                          style={[
+                            styles.progressBar, 
+                            { width: `${analytics?.progressRate || 0}%` }
+                          ]} 
+                        />
+                      </View>
+                      <Text style={styles.progressText}>
+                        {Math.round(analytics?.progressRate || 0)}% Complete
+                      </Text>
+                    </View>
+
+                    <Text style={styles.reportSectionTitle}>Subject Distribution</Text>
+                    <View style={styles.subjectDistribution}>
+                      {analytics?.subjectDistribution && Object.keys(analytics.subjectDistribution).length > 0 ? (
+                        Object.entries(analytics.subjectDistribution).map(([subject, count], index) => (
+                          <View key={index} style={styles.subjectItem}>
+                            <View style={styles.subjectItemHeader}>
+                              <Text style={styles.subjectName}>{subject}</Text>
+                              <Text style={styles.subjectCount}>{count} lessons</Text>
+                            </View>
+                            <View style={styles.subjectBarContainer}>
+                              <View 
+                                style={[
+                                  styles.subjectBar, 
+                                  { 
+                                    width: `${(count as number / analytics.totalLessons) * 100}%`,
+                                    backgroundColor: 
+                                      index % 4 === 0 ? colors.primary : 
+                                      index % 4 === 1 ? colors.secondary : 
+                                      index % 4 === 2 ? colors.accent1 : 
+                                      colors.accent2
+                                  }
+                                ]} 
+                              />
+                            </View>
+                          </View>
+                        ))
+                      ) : (
+                        <Text style={styles.emptyStateText}>No subjects recorded yet.</Text>
+                      )}
+                    </View>
+
                     <Text style={styles.reportSectionTitle}>Knowledge Areas</Text>
                     <View style={styles.knowledgeAreas}>
                       {learnerProfile?.graph?.nodes ? (
@@ -277,6 +307,63 @@ const ReportsPage: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  // Progress bar styles
+  progressContainer: {
+    marginBottom: 24,
+  },
+  progressBarContainer: {
+    height: 12,
+    backgroundColor: colors.background,
+    borderRadius: 6,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginBottom: 8,
+  },
+  progressBar: {
+    height: '100%',
+    backgroundColor: colors.success,
+    borderRadius: 6,
+  },
+  progressText: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    textAlign: 'right',
+  },
+  // Subject distribution styles
+  subjectDistribution: {
+    marginBottom: 24,
+  },
+  subjectItem: {
+    marginBottom: 12,
+  },
+  subjectItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  subjectName: {
+    ...typography.body2,
+    color: colors.text,
+    fontWeight: 'bold',
+  },
+  subjectCount: {
+    ...typography.caption,
+    color: colors.textSecondary,
+  },
+  subjectBarContainer: {
+    height: 8,
+    backgroundColor: colors.background,
+    borderRadius: 4,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  subjectBar: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  
   container: {
     flex: 1,
     backgroundColor: colors.background,
