@@ -54,10 +54,20 @@ const OrigenHeader: React.FC<OrigenHeaderProps> = ({ subtitle }) => {
   return (
     <View style={styles.header}>
       <View style={styles.headerContent}>
-        <View style={styles.titleContainer}>
-          <Text style={styles.headerTitle}>ORIGEN™</Text>
-          {subtitle && <Text style={styles.headerSubtitle}>{subtitle}</Text>}
-        </View>
+        <TouchableOpacity 
+        style={styles.titleContainer}
+        onPress={() => {
+          // Navigate to home/index page for all users
+          if (typeof window !== 'undefined') {
+            window.location.href = '/';
+          } else {
+            navigate('/');
+          }
+        }}
+      >
+        <Text style={styles.headerTitle}>ORIGEN™</Text>
+        {subtitle && <Text style={styles.headerSubtitle}>{subtitle}</Text>}
+      </TouchableOpacity>
         
         {user && (
           <View style={styles.navigation}>
