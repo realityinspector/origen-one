@@ -192,9 +192,26 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getUsersByParentId(parentId: string): Promise<User[]> {
+  async getUsersByParentId(parentId: string | number): Promise<User[]> {
     try {
-      const result = await db.select().from(users).where(eq(users.parentId, Number(Number(parentId))));
+      // Safely convert parentId to number
+      let parentIdNum: number;
+      
+      if (typeof parentId === 'number') {
+        parentIdNum = parentId;
+      } else if (typeof parentId === 'string') {
+        parentIdNum = parseInt(parentId, 10);
+        if (isNaN(parentIdNum)) {
+          console.error(`Invalid parentId format: "${parentId}" is not a valid number`);
+          return [];
+        }
+      } else {
+        console.error(`Invalid parentId type: ${typeof parentId}`);
+        return [];
+      }
+      
+      console.log(`Querying for learners with parentId: ${parentIdNum} (original value: ${parentId})`);
+      const result = await db.select().from(users).where(eq(users.parentId, parentIdNum));
       return Array.isArray(result) ? result.map(user => user as User) : [result as User];
     } catch (error) {
       console.error(`Error in getUsersByParentId for parent ID "${parentId}":`, error);
