@@ -123,7 +123,8 @@ export function registerRoutes(app: Express): Server {
       let learners;
       if (req.user?.role === "ADMIN" && req.query.parentId) {
         console.log(`Admin getting learners for parent ID: ${req.query.parentId}`);
-        learners = await storage.getUsersByParentId(req.query.parentId as string);
+        const parentId = typeof req.query.parentId === 'string' ? req.query.parentId : String(req.query.parentId);
+        learners = await storage.getUsersByParentId(parentId);
       } else if (req.user?.role === "PARENT") {
         console.log(`Parent ${req.user.id} getting their learners`);
         learners = await storage.getUsersByParentId(req.user.id);
