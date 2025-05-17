@@ -158,37 +158,34 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
-      // Handle the required email field
+      // Email is optional for learners
       let email = req.body.email;
       
-      // Generate a temporary email if one wasn't provided
-      if (!email) {
-        const timestamp = Date.now();
-        email = `${name.toLowerCase().replace(/\s+/g, '-')}-${timestamp}@temporary.edu`;
-        console.log(`Generated temporary email for learner: ${email}`);
-      } else {
-        // If email was provided, validate it
+      // If email is provided, validate it
+      if (email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
           return res.status(400).json({ error: "Invalid email format" });
         }
-      }
-
-      // Check if email already exists - first check by username
-      const existingUserByUsername = await storage.getUserByUsername(email);
-      if (existingUserByUsername) {
-        return res.status(409).json({ error: "Email already in use as a username" });
-      }
-
-      // Also check the email field directly to prevent database constraint violations
-      try {
-        const emailCheckResult = await db.select().from(users).where(sql`LOWER(email) = LOWER(${email})`);
-        if (emailCheckResult.length > 0) {
-          return res.status(409).json({ error: "Email already in use" });
+        
+        // Check if email already exists - first check by username
+        const existingUserByUsername = await storage.getUserByUsername(email);
+        if (existingUserByUsername) {
+          return res.status(409).json({ error: "Email already in use as a username" });
         }
-      } catch (emailCheckError) {
-        console.error("Error checking email existence:", emailCheckError);
-        // Continue with the operation
+
+        // Also check the email field directly to prevent database constraint violations
+        try {
+          const emailCheckResult = await db.select().from(users).where(sql`LOWER(email) = LOWER(${email})`);
+          if (emailCheckResult.length > 0) {
+            return res.status(409).json({ error: "Email already in use" });
+          }
+        } catch (emailCheckError) {
+          console.error("Error checking email existence:", emailCheckError);
+          // Continue with the operation
+        }
+      } else {
+        console.log("No email provided for learner - this is allowed");
       }
 
       // Set parent ID based on the user's role
