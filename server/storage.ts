@@ -26,6 +26,7 @@ export interface IStorage {
   createUser(insertUser: InsertUser): Promise<User>;
   getUsersByParentId(parentId: string | number): Promise<User[]>;
   getAllParents(): Promise<User[]>;
+  getAllLearners(): Promise<User[]>;
   upsertUser(userData: UpsertUser): Promise<User>;
 
   // Learner profile operations
@@ -225,6 +226,16 @@ export class DatabaseStorage implements IStorage {
       return Array.isArray(result) ? result.map(user => user as User) : [result as User];
     } catch (error) {
       console.error('Error in getAllParents:', error);
+      return [];
+    }
+  }
+  
+  async getAllLearners(): Promise<User[]> {
+    try {
+      const result = await db.select().from(users).where(eq(users.role, "LEARNER"));
+      return Array.isArray(result) ? result.map(user => user as User) : [result as User];
+    } catch (error) {
+      console.error('Error in getAllLearners:', error);
       return [];
     }
   }
