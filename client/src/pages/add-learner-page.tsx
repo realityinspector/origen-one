@@ -48,8 +48,7 @@ const AddLearnerPage = () => {
       // Show success toast
       toast({
         title: 'Success',
-        message: 'Learner account created successfully',
-        type: 'success',
+        description: 'Learner account created successfully',
       });
 
       // Refresh learners list
@@ -70,7 +69,7 @@ const AddLearnerPage = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <OrigenHeader title="Add New Learner" />
+      <OrigenHeader subtitle="Add New Learner" />
       
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.formContainer}>
