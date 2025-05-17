@@ -347,7 +347,7 @@ export function registerRoutes(app: Express): Server {
     // Check authorization (parents can only delete their own learners)
     if (req.user?.role === "PARENT") {
       // Check if the learner belongs to this parent
-      if (learner.parentId !== req.user.id) {
+      if (learner.parentId !== req.user.id && learner.parentId.toString() !== req.user.id.toString()) {
         return res.status(403).json({ error: "Not authorized to delete this learner" });
       }
     }
@@ -369,8 +369,8 @@ export function registerRoutes(app: Express): Server {
     // Admins can view any profile, parents can view their children, learners can view their own
     if (
       req.user?.role === "ADMIN" ||
-      (req.user?.role === "PARENT" && (await storage.getUsersByParentId(req.user.id)).some(u => u.id === userId)) ||
-      (req.user?.id === userId)
+      (req.user?.role === "PARENT" && (await storage.getUsersByParentId(req.user.id)).some(u => u.id.toString() === userId.toString())) ||
+      (req.user?.id.toString() === userId.toString())
     ) {
       try {
         // Get existing profile or create a new one
@@ -811,7 +811,7 @@ export function registerRoutes(app: Express): Server {
     // Parents can only create for their children
     if (req.user.role === "PARENT") {
       const children = await storage.getUsersByParentId(req.user.id);
-      if (!children.some(child => child.id === targetLearnerId)) {
+      if (!children.some(child => child.id.toString() === targetLearnerId.toString())) {
         return res.status(403).json({ error: "Parent can only create lessons for their children" });
       }
     }

@@ -316,12 +316,12 @@ export class DatabaseStorage implements IStorage {
         // Create with only the essential fields
         const minimalProfile = {
           id: profile.id || crypto.randomUUID(),
-          userId: profile.userId,
+          userId: typeof profile.userId === 'string' ? Number(profile.userId) : profile.userId,
           gradeLevel: profile.gradeLevel,
           graph: profile.graph || { nodes: [], edges: [] }
         };
 
-        const minResult = await db.insert(learnerProfiles).values(minimalProfile).returning();
+        const minResult = await db.insert(learnerProfiles).values(minimalProfile as any).returning();
         const minProfile = Array.isArray(minResult) ? minResult[0] : minResult;
         return minProfile as LearnerProfile;
       }
