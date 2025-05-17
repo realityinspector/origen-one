@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ImageBackground, ScrollView, Linking, Image, To
 import { Link, useLocation, Redirect } from 'wouter';
 import { useAuth } from '../hooks/use-auth';
 import { colors, typography, commonStyles } from '../styles/theme';
-import { GitHub, BookOpen, Eye, Shield, Users, Award, ExternalLink } from 'react-feather';
+import { GitHub, BookOpen, Eye, Shield, Users, Award, ExternalLink, BarChart2 } from 'react-feather';
 
 const WelcomePage: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -44,11 +44,11 @@ const WelcomePage: React.FC = () => {
           <View style={styles.heroContent}>
             <View style={styles.heroFlex}>
               <View style={styles.heroTextContent}>
-                <Text style={styles.heroTitle}>ORIGEN™ AI TUTOR</Text>
-                <Text style={styles.heroSubtitle}>Personalized learning powered by artificial intelligence</Text>
-                <Text style={styles.heroOpenSource}>100% Open Source Educational Platform</Text>
-                <Text style={styles.heroPhilosophy}>
-                  We believe access to AI Tutors should be free as in freedom. (Not free as in snacks.) So we are making Origen always open source; and we'll provide a paid hosted version in the future, at a price point that motivates the development team to pursue excellence over the long run through competitive salaries.
+                <Text style={styles.heroTitle}>ORIGEN™</Text>
+                <Text style={styles.heroSubtitle}>Your Child's AI Learning Partner</Text>
+                <Text style={styles.heroTagline}>Designed for Busy Parents and Curious Kids</Text>
+                <Text style={styles.heroDescription}>
+                  Welcome to Origen, the AI-powered learning platform that makes education fun, personalized, and effective for your children.
                 </Text>
                 <View style={styles.heroCta}>
                   <TouchableOpacity 
@@ -118,38 +118,101 @@ const WelcomePage: React.FC = () => {
 
         {/* Features Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Why Choose Origen?</Text>
+          <Text style={styles.sectionTitle}>What Origen Does for You and Your Family</Text>
+          
+          {/* For Parents Section */}
+          <Text style={styles.subSectionTitle}>For Parents</Text>
           <View style={styles.featuresGrid}>
-            <View style={styles.featureCard}>
-              <View style={styles.featureIconContainer}>
-                <BookOpen size={24} color={colors.primary} />
-              </View>
-              <Text style={styles.featureTitle}>Personalized Learning</Text>
-              <Text style={styles.featureDescription}>AI-driven content that adapts to your child's learning pace and style</Text>
-            </View>
-
             <View style={styles.featureCard}>
               <View style={styles.featureIconContainer}>
                 <Eye size={24} color={colors.primary} />
               </View>
-              <Text style={styles.featureTitle}>Visual Learning</Text>
-              <Text style={styles.featureDescription}>Interactive knowledge graphs that make complex topics easy to understand</Text>
-            </View>
-
-            <View style={styles.featureCard}>
-              <View style={styles.featureIconContainer}>
-                <Shield size={24} color={colors.primary} />
-              </View>
-              <Text style={styles.featureTitle}>Safe Environment</Text>
-              <Text style={styles.featureDescription}>Privacy-focused platform with age-appropriate content</Text>
+              <Text style={styles.featureTitle}>See Your Child's Learning Journey</Text>
+              <Text style={styles.featureDescription}>
+                Watch your child's progress in real-time. Get insights into strengths and areas needing improvement. 
+                Receive regular updates on achievements and milestones.
+              </Text>
             </View>
 
             <View style={styles.featureCard}>
               <View style={styles.featureIconContainer}>
                 <Users size={24} color={colors.primary} />
               </View>
-              <Text style={styles.featureTitle}>Parent Dashboard</Text>
-              <Text style={styles.featureDescription}>Detailed insights into your child's progress and achievements</Text>
+              <Text style={styles.featureTitle}>Easy Account Management</Text>
+              <Text style={styles.featureDescription}>
+                Create separate profiles for each of your children. No need to remember multiple passwords - 
+                children's accounts link directly to yours. Easily switch between parent view and learner view with one click.
+              </Text>
+            </View>
+
+            <View style={styles.featureCard}>
+              <View style={styles.featureIconContainer}>
+                <BarChart2 size={24} color={colors.primary} />
+              </View>
+              <Text style={styles.featureTitle}>Simple Progress Tracking</Text>
+              <Text style={styles.featureDescription}>
+                Beautiful visual reports show exactly what your child is learning. Track improvement across 
+                different subjects. Identify areas where your child might need extra support.
+              </Text>
+            </View>
+
+            <View style={styles.featureCard}>
+              <View style={styles.featureIconContainer}>
+                <Shield size={24} color={colors.primary} />
+              </View>
+              <Text style={styles.featureTitle}>Access Anywhere</Text>
+              <Text style={styles.featureDescription}>
+                Use Origen on any device - computer, tablet, or phone. Data syncs automatically 
+                so you never lose progress. Optional backup to your own database for complete peace of mind.
+              </Text>
+            </View>
+          </View>
+
+          {/* For Learners Section */}
+          <Text style={styles.subSectionTitle}>For Learners</Text>
+          <View style={styles.featuresGrid}>
+            <View style={styles.featureCard}>
+              <View style={styles.featureIconContainer}>
+                <Award size={24} color={colors.primary} />
+              </View>
+              <Text style={styles.featureTitle}>Learning That Feels Like Play</Text>
+              <Text style={styles.featureDescription}>
+                Interactive lessons that adapt to your child's learning style. Knowledge presented through 
+                engaging visuals and activities. Achievement system that rewards progress and encourages exploration.
+              </Text>
+            </View>
+
+            <View style={styles.featureCard}>
+              <View style={styles.featureIconContainer}>
+                <BookOpen size={24} color={colors.primary} />
+              </View>
+              <Text style={styles.featureTitle}>Personalized Learning Experience</Text>
+              <Text style={styles.featureDescription}>
+                Content adjusts to your child's grade level automatically. Lessons build on previous knowledge. 
+                Difficulty increases gradually as skills improve.
+              </Text>
+            </View>
+
+            <View style={styles.featureCard}>
+              <View style={styles.featureIconContainer}>
+                <Eye size={24} color={colors.primary} />
+              </View>
+              <Text style={styles.featureTitle}>Explore Any Subject</Text>
+              <Text style={styles.featureDescription}>
+                Start with core subjects like Math, Reading, and Science. Add custom subjects based on your 
+                child's interests. Visual knowledge maps show how different topics connect.
+              </Text>
+            </View>
+
+            <View style={styles.featureCard}>
+              <View style={styles.featureIconContainer}>
+                <Award size={24} color={colors.primary} />
+              </View>
+              <Text style={styles.featureTitle}>Celebrate Every Achievement</Text>
+              <Text style={styles.featureDescription}>
+                Earn badges and rewards for completing lessons. Track progress with visual indicators. 
+                Build confidence through steady improvement.
+              </Text>
             </View>
           </View>
         </View>
@@ -304,6 +367,19 @@ const styles = StyleSheet.create({
     ...typography.subtitle2,
     color: colors.textSecondary,
     marginBottom: 12,
+  },
+  heroTagline: {
+    ...typography.subtitle2,
+    color: colors.textSecondary,
+    marginBottom: 8,
+    maxWidth: 600,
+  },
+  heroDescription: {
+    ...typography.body2,
+    color: colors.textSecondary,
+    marginBottom: 20,
+    maxWidth: 600,
+    lineHeight: 22,
   },
   heroPhilosophy: {
     ...typography.body2,
