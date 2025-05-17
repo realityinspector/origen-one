@@ -226,13 +226,17 @@ export function registerRoutes(app: Express): Server {
         parentId,
       };
 
-      // Add email and password if provided (for backward compatibility)
+      // Add email if provided, but only for backward compatibility
       if (req.body.email) {
         userObj.email = req.body.email;
       }
 
-      if (req.body.password) {
+      // Only add password for parent accounts, not for learners
+      if (role !== "LEARNER" && req.body.password) {
         userObj.password = req.body.password;
+      } else if (role === "LEARNER") {
+        // For learners, password is not needed
+        console.log('Creating learner without password - passwords only required for parent accounts');
       }
 
       // Create the new user
