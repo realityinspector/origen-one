@@ -757,6 +757,55 @@ const styles = StyleSheet.create({
     color: colors.onPrimary + '99',
     textAlign: 'center',
   },
+  ctaSteps: {
+    marginBottom: 30,
+    width: '100%',
+    maxWidth: 600,
+    alignSelf: 'center',
+  },
+  ctaStep: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  ctaSupport: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  solutionsContainer: {
+    width: '100%',
+    maxWidth: 800,
+    marginVertical: 20,
+    alignSelf: 'center',
+  },
+  solutionItem: {
+    marginBottom: 24,
+    paddingHorizontal: 20,
+  },
+  solutionProblem: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    color: colors.textPrimary,
+  },
+  solutionAnswer: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    marginBottom: 8,
+  },
+  solutionsConclusion: {
+    fontSize: 16,
+    fontStyle: 'italic',
+    textAlign: 'center',
+    maxWidth: 700,
+    marginTop: 20,
+    marginHorizontal: 'auto',
+    color: colors.textSecondary,
+    paddingHorizontal: 20,
+  },
 });
 
 export default WelcomePage;
