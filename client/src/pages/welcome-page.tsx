@@ -40,12 +40,12 @@ const WelcomePage: React.FC = () => {
   };
 
   return (
-    <ScrollView style={styles.scrollView}>
-      <View style={styles.container}>
+    <ScrollView style={newStyles.scrollView}>
+      <View style={newStyles.container}>
         {/* Enhanced Hero Section */}
-        <View style={styles.heroSection}>
-          <View style={styles.heroWrapper}>
-            <View style={styles.heroContent}>
+        <View style={newStyles.heroSection}>
+          <View style={newStyles.sectionInner}>
+            <View style={{width: '100%'}}>
               <View style={styles.heroFlex}>
                 <View style={styles.heroTextContent}>
                   <View style={styles.brandBadge}>
@@ -535,7 +535,7 @@ const WelcomePage: React.FC = () => {
   );
 };
 
-// Define styles for the Welcome Page with mobile-first, responsive approach
+// Define modern, cleanly separated styles for the Welcome Page
 const newStyles = StyleSheet.create({
   // Base layout
   scrollView: {
@@ -558,17 +558,302 @@ const newStyles = StyleSheet.create({
     marginHorizontal: 'auto',
   },
   
-  // Hero section
+  // Hero section with warm gradient background
   heroSection: {
     backgroundColor: colors.primary,
     minHeight: 500,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingVertical: 48,
   },
-  heroWrapper: {
-    maxWidth: 1200,
-    width: '100%',
-    padding: 16,
+  
+  // Text content styles
+  heroText: {
+    flex: 1,
+    minWidth: 300,
+    maxWidth: 600,
+  },
+  heroTitle: {
+    fontSize: windowWidth < 768 ? 32 : 42,
+    fontWeight: '700',
+    color: colors.onPrimary,
+    marginBottom: 20,
+    lineHeight: windowWidth < 768 ? 40 : 52,
+  },
+  heroSubtitle: {
+    fontSize: windowWidth < 768 ? 18 : 20,
+    lineHeight: windowWidth < 768 ? 26 : 30,
+    color: colors.onPrimary + 'DD', // Semi-transparent for better hierarchy
+    marginBottom: 24,
+  },
+  
+  // Layout helpers
+  row: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  flexCenter: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  spaceBetween: {
+    justifyContent: 'space-between',
+  },
+  gap20: {
+    gap: 20,
+  },
+  gap40: {
+    gap: 40,
+  },
+  
+  // Badge and icon styles
+  badge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 50,
+    alignSelf: 'flex-start',
+    marginBottom: 24,
+  },
+  badgeText: {
+    color: colors.onPrimary,
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 6,
+    letterSpacing: 1,
+  },
+  
+  // Button styles
+  primaryButton: {
+    backgroundColor: colors.onPrimary,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 8,
+    elevation: 2,
+  },
+  primaryButtonText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  outlineButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: colors.onPrimary,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  outlineButtonText: {
+    color: colors.onPrimary,
+    fontSize: 15,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  
+  // Benefits list
+  benefitsList: {
+    marginTop: 16,
+    marginBottom: 32,
+  },
+  benefitItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  benefitIcon: {
+    width: 24, 
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  benefitText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.onPrimary,
+  },
+  
+  // Feature cards
+  featureCard: {
+    width: windowWidth < 768 ? '100%' : windowWidth < 1024 ? '45%' : '22%',
+    backgroundColor: colors.surfaceColor,
+    borderRadius: 12,
+    padding: 24,
+    marginBottom: 24,
+  },
+  featureIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    backgroundColor: colors.primaryLight + '30',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  featureTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 10,
+  },
+  featureDescription: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.textSecondary,
+  },
+  
+  // Section headers
+  sectionHeader: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  sectionTitle: {
+    fontSize: windowWidth < 768 ? 28 : 36,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  titleUnderline: {
+    width: 80,
+    height: 4,
+    backgroundColor: colors.primary,
+    borderRadius: 2,
+  },
+  lightTitle: {
+    color: colors.onPrimary,
+  },
+  lightUnderline: {
+    backgroundColor: colors.onPrimary,
+  },
+  
+  // Timeline process
+  timelineItem: {
+    flexDirection: 'row',
+    marginBottom: 32,
+  },
+  timelineBullet: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.onPrimary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 24,
+  },
+  timelineNumber: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.primary,
+  },
+  timelineContent: {
+    flex: 1,
+    paddingTop: 4,
+  },
+  timelineTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.onPrimary,
+    marginBottom: 8,
+  },
+  timelineText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.onPrimary + 'DD',
+  },
+  
+  // Testimonial/solutions cards
+  testimonialCard: {
+    flex: 1,
+    minWidth: windowWidth < 768 ? '100%' : 300,
+    backgroundColor: colors.surfaceColor,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  testimonialHeader: {
+    backgroundColor: colors.primaryLight + '20',
+    padding: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+  },
+  testimonialQuote: {
+    fontSize: 16,
+    fontWeight: '600',
+    fontStyle: 'italic',
+    color: colors.primary,
+    lineHeight: 24,
+  },
+  testimonialBody: {
+    padding: 24,
+  },
+  testimonialText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.textSecondary,
+  },
+  
+  // CTA section
+  ctaSection: {
+    backgroundColor: colors.primaryLight + '20',
+    alignItems: 'center',
+  },
+  ctaTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 32,
+    textAlign: 'center',
+  },
+  ctaSteps: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginBottom: 40,
+    gap: windowWidth < 768 ? 20 : 40,
+  },
+  ctaStep: {
+    alignItems: 'center',
+    width: windowWidth < 768 ? '40%' : 'auto',
+    marginBottom: 16,
+  },
+  ctaStepCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  ctaStepNumber: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.onPrimary,
+  },
+  ctaStepText: {
+    fontSize: 16,
+    color: colors.textPrimary,
+    textAlign: 'center',
+  },
+  
+  // Footer
+  footer: {
+    backgroundColor: colors.primaryDark,
+    padding: 32,
+  }
+});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
   },
   heroContent: {
     width: '100%',
