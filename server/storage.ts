@@ -368,31 +368,31 @@ export class DatabaseStorage implements IStorage {
 
       if (data.graph !== undefined) {
         setStatements.push(`graph = $${paramCounter}`);
-        queryParams.push(JSON.stringify(data.graph));
+        queryParams.push(JSON.stringify(data.graph) as unknown as number);
         paramCounter++;
       }
 
       if (data.subjects !== undefined) {
         setStatements.push(`subjects = $${paramCounter}`);
-        queryParams.push(JSON.stringify(data.subjects));
+        queryParams.push(JSON.stringify(data.subjects) as unknown as number);
         paramCounter++;
       }
 
       if (data.subjectPerformance !== undefined) {
         setStatements.push(`subject_performance = $${paramCounter}`);
-        queryParams.push(JSON.stringify(data.subjectPerformance));
+        queryParams.push(JSON.stringify(data.subjectPerformance) as unknown as number);
         paramCounter++;
       }
 
       if (data.recommendedSubjects !== undefined) {
         setStatements.push(`recommended_subjects = $${paramCounter}`);
-        queryParams.push(JSON.stringify(data.recommendedSubjects));
+        queryParams.push(JSON.stringify(data.recommendedSubjects) as unknown as number);
         paramCounter++;
       }
 
       if (data.strugglingAreas !== undefined) {
         setStatements.push(`struggling_areas = $${paramCounter}`);
-        queryParams.push(JSON.stringify(data.strugglingAreas));
+        queryParams.push(JSON.stringify(data.strugglingAreas) as unknown as number);
         paramCounter++;
       }
 
