@@ -392,9 +392,17 @@ export function registerRoutes(app: Express): Server {
         // Get existing profile or create a new one
         let profile = await storage.getLearnerProfile(userId);
 
-        // If no profile exists and it's the current user, create one
-        if (!profile && req.user?.id === userId) {
-          console.log(`Creating learner profile for user ${userId}`);
+        // If no profile exists, create one - but we need to check first if the user exists
+        if (!profile) {
+          // Get the user to verify they exist
+          const user = await storage.getUser(userId);
+          
+          if (!user) {
+            return res.status(404).json({ error: "User not found" });
+          }
+
+          console.log(`Creating learner profile for user ${userId} with role ${user.role}`);
+          
           // Create a default profile with grade level 5 and a generated ID
           profile = await storage.createLearnerProfile({
             id: crypto.randomUUID(), // Add a UUID for the ID field
@@ -406,8 +414,10 @@ export function registerRoutes(app: Express): Server {
             recommendedSubjects: [],
             strugglingAreas: []
           });
-        } else if (!profile) {
-          return res.status(404).json({ error: "Learner profile not found" });
+          
+          if (!profile) {
+            return res.status(500).json({ error: "Failed to create learner profile" });
+          }
         }
 
         return res.json(profile);
