@@ -65,12 +65,20 @@ export const ModeProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         
         // Check if we have valid data
-        if (!response || !response.data || !Array.isArray(response.data)) {
-          console.error('Invalid learners data received:', response);
+        if (!response) {
+          console.error('No response received from API');
           return [];
         }
         
-        return response.data;
+        // Handle both direct data and data wrapped in a data property
+        const learnerData = response.data ? response.data : response;
+        
+        if (!Array.isArray(learnerData)) {
+          console.error('Invalid learners data received, expected array:', response);
+          return [];
+        }
+        
+        return learnerData;
       } catch (error) {
         console.error('Error fetching learners:', error);
         return [];
