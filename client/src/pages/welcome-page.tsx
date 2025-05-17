@@ -367,63 +367,129 @@ const WelcomePage: React.FC = () => {
         
         {/* Real Solutions Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Real Solutions for Real Families</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Real Solutions for Modern Families</Text>
+            <View style={styles.sectionTitleUnderline} />
+          </View>
           
-          <View style={styles.solutionsContainer}>
-            <View style={styles.solutionItem}>
-              <Text style={styles.solutionProblem}>"I don't have time to research educational content for three different grade levels."</Text>
-              <Text style={styles.solutionAnswer}>→ Origen automatically generates grade-appropriate content for each child, saving you hours of research and planning.</Text>
-            </View>
-            
-            <View style={styles.solutionItem}>
-              <Text style={styles.solutionProblem}>"My child loses interest in traditional learning apps after a few days."</Text>
-              <Text style={styles.solutionAnswer}>→ Our AI creates fresh, engaging content that adapts to your child's interests, keeping learning exciting day after day.</Text>
-            </View>
-            
-            <View style={styles.solutionItem}>
-              <Text style={styles.solutionProblem}>"My child is struggling with certain concepts and needs more support."</Text>
-              <Text style={styles.solutionAnswer}>→ Origen identifies areas where your child needs help and provides additional practice and explanations tailored to their learning style.</Text>
-            </View>
-            
-            <View style={styles.solutionItem}>
-              <Text style={styles.solutionProblem}>"The standard curriculum isn't challenging enough for my child."</Text>
-              <Text style={styles.solutionAnswer}>→ Our platform recognizes when your child masters concepts quickly and automatically increases difficulty to keep them engaged and growing.</Text>
-            </View>
-            
-            <View style={styles.solutionItem}>
-              <Text style={styles.solutionProblem}>"We're always on the move and need learning that works anywhere."</Text>
-              <Text style={styles.solutionAnswer}>→ Access Origen on any device, anytime, with progress synced automatically across all platforms.</Text>
+          <View style={styles.testimonialsWrapper}>
+            <View style={styles.solutionsGrid}>
+              <View style={styles.testimonialCard}>
+                <View style={styles.testimonialQuoteContainer}>
+                  <Text style={styles.testimonialQuote}>"I don't have time to research educational content for three different grade levels."</Text>
+                </View>
+                <View style={styles.testimonialSolution}>
+                  <Text style={styles.testimonialSolutionText}>
+                    Origen automatically generates grade-appropriate content for each child, saving you hours of research and planning.
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.testimonialCard}>
+                <View style={styles.testimonialQuoteContainer}>
+                  <Text style={styles.testimonialQuote}>"My child loses interest in traditional learning apps after a few days."</Text>
+                </View>
+                <View style={styles.testimonialSolution}>
+                  <Text style={styles.testimonialSolutionText}>
+                    Our AI creates fresh, engaging content that adapts to your child's interests, keeping learning exciting day after day.
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.testimonialCard}>
+                <View style={styles.testimonialQuoteContainer}>
+                  <Text style={styles.testimonialQuote}>"My child is struggling with certain concepts and needs more support."</Text>
+                </View>
+                <View style={styles.testimonialSolution}>
+                  <Text style={styles.testimonialSolutionText}>
+                    Origen identifies areas where your child needs help and provides additional practice and explanations tailored to their learning style.
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.testimonialCard}>
+                <View style={styles.testimonialQuoteContainer}>
+                  <Text style={styles.testimonialQuote}>"The standard curriculum isn't challenging enough for my child."</Text>
+                </View>
+                <View style={styles.testimonialSolution}>
+                  <Text style={styles.testimonialSolutionText}>
+                    Our platform recognizes when your child masters concepts quickly and automatically increases difficulty to keep them engaged and growing.
+                  </Text>
+                </View>
+              </View>
+              
+              <View style={styles.testimonialCard}>
+                <View style={styles.testimonialQuoteContainer}>
+                  <Text style={styles.testimonialQuote}>"We're always on the move and need learning that works anywhere."</Text>
+                </View>
+                <View style={styles.testimonialSolution}>
+                  <Text style={styles.testimonialSolutionText}>
+                    Access Origen on any device, anytime, with progress synced automatically across all platforms.
+                  </Text>
+                </View>
+              </View>
             </View>
           </View>
           
-          <Text style={styles.solutionsConclusion}>
-            Origen isn't just another learning app—it's a complete educational partner that grows with your family. 
-            Our AI technology creates a truly personalized experience that makes learning a joy rather than a chore.
-          </Text>
+          <View style={styles.solutionsSummaryContainer}>
+            <Text style={styles.solutionsSummaryText}>
+              Origen isn't just another learning app—it's a complete educational partner that grows with your family. 
+              Our AI technology creates a truly personalized experience that makes learning a joy rather than a chore.
+            </Text>
+          </View>
         </View>
 
-        {/* CTA Section */}
+        {/* Enhanced CTA Section */}
         <View style={styles.ctaSection}>
-          <Text style={styles.ctaTitle}>Ready to Begin?</Text>
-          <View style={styles.ctaSteps}>
-            <Text style={styles.ctaStep}>1. Log in to your account</Text>
-            <Text style={styles.ctaStep}>2. Add your first learner profile</Text>
-            <Text style={styles.ctaStep}>3. Explore subjects together</Text>
-            <Text style={styles.ctaStep}>4. Watch the magic of personalized learning unfold!</Text>
+          <View style={styles.ctaContainer}>
+            <View style={styles.ctaContentWrapper}>
+              <Text style={styles.ctaTitle}>Start Your Child's Learning Journey Today</Text>
+              
+              <View style={styles.ctaStepsContainer}>
+                <View style={styles.ctaStepItem}>
+                  <View style={styles.ctaStepNumber}>
+                    <Text style={styles.ctaStepNumberText}>1</Text>
+                  </View>
+                  <Text style={styles.ctaStepText}>Create your account</Text>
+                </View>
+                <View style={styles.ctaStepItem}>
+                  <View style={styles.ctaStepNumber}>
+                    <Text style={styles.ctaStepNumberText}>2</Text>
+                  </View>
+                  <Text style={styles.ctaStepText}>Add your child's profile</Text>
+                </View>
+                <View style={styles.ctaStepItem}>
+                  <View style={styles.ctaStepNumber}>
+                    <Text style={styles.ctaStepNumberText}>3</Text>
+                  </View>
+                  <Text style={styles.ctaStepText}>Explore subjects together</Text>
+                </View>
+                <View style={styles.ctaStepItem}>
+                  <View style={styles.ctaStepNumber}>
+                    <Text style={styles.ctaStepNumberText}>4</Text>
+                  </View>
+                  <Text style={styles.ctaStepText}>Watch personalized learning unfold</Text>
+                </View>
+              </View>
+              
+              <View style={styles.ctaButtonWrapper}>
+                <TouchableOpacity 
+                  style={styles.ctaButtonLarge}
+                  onPress={() => {
+                    console.log("Get Started button clicked, navigating to /auth");
+                    if (typeof window !== 'undefined') {
+                      window.location.href = '/auth';
+                    }
+                  }}
+                >
+                  <Text style={styles.ctaButtonText}>Get Started Free</Text>
+                </TouchableOpacity>
+                <Text style={styles.ctaSubtext}>No credit card required • Set up in minutes</Text>
+              </View>
+              
+              <Text style={styles.ctaSupport}>Have questions? We're here to help at <Text style={styles.ctaSupportLink}>support@origen.edu</Text></Text>
+            </View>
           </View>
-          <TouchableOpacity 
-            style={[styles.ctaButton, styles.ctaButtonLarge]}
-            onPress={() => {
-              console.log("Get Started button clicked, navigating to /auth");
-              // Use both methods for navigation to ensure it works in all environments
-              if (typeof window !== 'undefined') {
-                window.location.href = '/auth';
-              }
-            }}
-          >
-            <Text style={styles.ctaButtonText}>Get Started</Text>
-          </TouchableOpacity>
-          <Text style={styles.ctaSupport}>Have questions? We're here to help at support@origen.edu</Text>
         </View>
 
         {/* Footer */}
@@ -470,6 +536,461 @@ const WelcomePage: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
+  // Responsive helpers
+  container: {
+    flex: 1,
+  },
+  scrollView: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  
+  // Hero Section - Enhanced with modern design
+  heroSection: {
+    backgroundColor: colors.primary,
+    backgroundImage: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryDark} 100%)`,
+    padding: 32,
+    minHeight: 500,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  heroWrapper: {
+    maxWidth: 1200,
+    width: '100%',
+    padding: 16,
+  },
+  heroContent: {
+    width: '100%',
+  },
+  heroFlex: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 40,
+  },
+  heroTextContent: {
+    flex: 1,
+    minWidth: 300,
+    maxWidth: 600,
+  },
+  brandBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 50,
+    alignSelf: 'flex-start',
+    marginBottom: 24,
+  },
+  brandBadgeText: {
+    color: colors.onPrimary,
+    fontSize: 14,
+    fontWeight: '600',
+    marginLeft: 6,
+    letterSpacing: 1,
+  },
+  heroTitle: {
+    fontSize: windowWidth < 768 ? 32 : 42,
+    fontWeight: '700',
+    color: colors.onPrimary,
+    marginBottom: 20,
+    lineHeight: windowWidth < 768 ? 40 : 52,
+  },
+  heroSubtitle: {
+    fontSize: windowWidth < 768 ? 18 : 20,
+    lineHeight: windowWidth < 768 ? 26 : 30,
+    color: colors.onPrimary + 'DD',
+    marginBottom: 24,
+  },
+  heroBenefits: {
+    marginTop: 16,
+    marginBottom: 32,
+  },
+  benefitItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  benefitIcon: {
+    width: 24, 
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  benefitText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.onPrimary,
+  },
+  heroCta: {
+    flexDirection: windowWidth < 480 ? 'column' : 'row',
+    alignItems: windowWidth < 480 ? 'flex-start' : 'center',
+    gap: 16,
+  },
+  ctaButton: {
+    backgroundColor: colors.onPrimary,
+    paddingVertical: 14,
+    paddingHorizontal: 28,
+    borderRadius: 8,
+    elevation: 2,
+    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+  },
+  ctaButtonText: {
+    color: colors.primary,
+    fontSize: 16,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  githubButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: colors.onPrimary,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  githubButtonText: {
+    color: colors.onPrimary,
+    fontSize: 15,
+    fontWeight: '600',
+    marginLeft: 8,
+  },
+  heroGraphicContainer: {
+    flex: 1,
+    minWidth: 300,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  graphicWrapper: {
+    position: 'relative',
+    width: 320,
+    height: 320,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  
+  // Features Section
+  featuresSection: {
+    padding: 60,
+    backgroundColor: colors.background,
+  },
+  sectionContainer: {
+    maxWidth: 1200,
+    width: '100%',
+    marginHorizontal: 'auto',
+    padding: 16,
+  },
+  sectionHeader: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  sectionTitle: {
+    fontSize: windowWidth < 768 ? 28 : 36,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  sectionTitleUnderline: {
+    width: 80,
+    height: 4,
+    backgroundColor: colors.primary,
+    borderRadius: 2,
+  },
+  lightText: {
+    color: colors.onPrimary,
+  },
+  lightUnderline: {
+    backgroundColor: colors.onPrimary,
+  },
+  audienceSection: {
+    marginBottom: 60,
+  },
+  audienceTitleContainer: {
+    marginBottom: 24,
+  },
+  audienceTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  featuresGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: -12,
+  },
+  featureCard: {
+    width: windowWidth < 768 ? '100%' : windowWidth < 1024 ? '50%' : '25%',
+    padding: 12,
+    marginBottom: 24,
+  },
+  featureIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 12,
+    backgroundColor: colors.primaryLight + '30',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+  },
+  featureTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 10,
+  },
+  featureDescription: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.textSecondary,
+  },
+  
+  // How It Works Section
+  howItWorksSection: {
+    backgroundColor: colors.primary,
+    backgroundImage: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryDark} 100%)`,
+    padding: 60,
+  },
+  processSection: {
+    marginBottom: 48,
+  },
+  processSectionTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.onPrimary,
+    marginBottom: 32,
+  },
+  timelineContainer: {
+    position: 'relative',
+  },
+  timelineItem: {
+    flexDirection: 'row',
+    marginBottom: 32,
+    position: 'relative',
+    zIndex: 1,
+  },
+  timelineBullet: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.onPrimary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 24,
+    boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
+  },
+  timelineNumber: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.primary,
+  },
+  timelineContent: {
+    flex: 1,
+    paddingTop: 4,
+    paddingRight: 16,
+  },
+  timelineTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: colors.onPrimary,
+    marginBottom: 8,
+  },
+  timelineText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.onPrimary + 'DD',
+  },
+  
+  // Testimonials/Solutions Section
+  testimonialSection: {
+    backgroundColor: colors.background,
+    padding: 60,
+  },
+  testimonialsWrapper: {
+    maxWidth: 1200,
+    width: '100%',
+    marginHorizontal: 'auto',
+  },
+  solutionsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 24,
+    marginBottom: 40,
+  },
+  testimonialCard: {
+    flex: 1,
+    minWidth: windowWidth < 768 ? '100%' : 300,
+    backgroundColor: colors.surfaceColor,
+    borderRadius: 12,
+    overflow: 'hidden',
+    boxShadow: '0 6px 12px rgba(0, 0, 0, 0.08)',
+  },
+  testimonialQuoteContainer: {
+    backgroundColor: colors.primaryLight + '20',
+    padding: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.divider,
+  },
+  testimonialQuote: {
+    fontSize: 16,
+    fontWeight: '600',
+    fontStyle: 'italic',
+    color: colors.primary,
+    lineHeight: 24,
+  },
+  testimonialSolution: {
+    padding: 24,
+  },
+  testimonialSolutionText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.textSecondary,
+  },
+  solutionsSummaryContainer: {
+    maxWidth: 800,
+    marginHorizontal: 'auto',
+    marginTop: 40,
+    textAlign: 'center',
+  },
+  solutionsSummaryText: {
+    fontSize: 18,
+    lineHeight: 28,
+    color: colors.textPrimary,
+    textAlign: 'center',
+  },
+  
+  // Enhanced CTA Section
+  ctaSection: {
+    backgroundColor: colors.primaryLight + '20',
+    padding: 60,
+  },
+  ctaContainer: {
+    maxWidth: 900,
+    marginHorizontal: 'auto',
+  },
+  ctaContentWrapper: {
+    alignItems: 'center',
+    textAlign: 'center',
+  },
+  ctaTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: colors.textPrimary,
+    marginBottom: 32,
+    textAlign: 'center',
+  },
+  ctaStepsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginBottom: 40,
+    gap: windowWidth < 768 ? 20 : 40,
+  },
+  ctaStepItem: {
+    alignItems: 'center',
+    width: windowWidth < 768 ? '40%' : 'auto',
+    marginBottom: 16,
+  },
+  ctaStepNumber: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  ctaStepNumberText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.onPrimary,
+  },
+  ctaStepText: {
+    fontSize: 16,
+    color: colors.textPrimary,
+    textAlign: 'center',
+  },
+  ctaButtonWrapper: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  ctaButtonLarge: {
+    backgroundColor: colors.primary,
+    paddingVertical: 16,
+    paddingHorizontal: 36,
+    borderRadius: 8,
+    marginBottom: 12,
+    boxShadow: '0 6px 12px rgba(0, 0, 0, 0.1)',
+  },
+  ctaSubtext: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 8,
+  },
+  ctaSupport: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginTop: 24,
+  },
+  ctaSupportLink: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  
+  // Footer
+  footer: {
+    backgroundColor: colors.primaryDark,
+    padding: 32,
+  },
+  footerContent: {
+    maxWidth: 1200,
+    marginHorizontal: 'auto',
+  },
+  footerTop: {
+    flexDirection: windowWidth < 768 ? 'column' : 'row',
+    justifyContent: 'space-between',
+    marginBottom: 40,
+  },
+  footerMainInfo: {
+    marginBottom: windowWidth < 768 ? 32 : 0,
+  },
+  footerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.onPrimary,
+    marginBottom: 8,
+  },
+  footerSubtitle: {
+    fontSize: 16,
+    color: colors.onPrimary + 'AA',
+    marginBottom: 24,
+  },
+  footerLinks: {
+    marginTop: 16,
+  },
+  footerLinkItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  footerLinkText: {
+    fontSize: 16,
+    color: colors.onPrimary + 'DD',
+    marginLeft: 10,
+  },
+  footerLogoSection: {
+    alignItems: windowWidth < 768 ? 'flex-start' : 'flex-end',
+  },
+  footerLogoContainer: {
+    alignItems: 'center',
+  },
   scrollView: {
     flex: 1,
     backgroundColor: colors.background,
