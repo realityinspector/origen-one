@@ -121,15 +121,23 @@ export function registerRoutes(app: Express): Server {
       console.log('Query params:', req.query);
 
       let learners;
-      if (req.user?.role === "ADMIN" && req.query.parentId) {
-        console.log(`Admin getting learners for parent ID: ${req.query.parentId}`);
-        const parentId = typeof req.query.parentId === 'string' ? req.query.parentId : String(req.query.parentId);
-        learners = await storage.getUsersByParentId(parentId);
+      if (req.user?.role === "ADMIN") {
+        // For admin users, if parentId is provided, get learners for that parent
+        // If no parentId is provided, get all learners with role=LEARNER
+        if (req.query.parentId) {
+          console.log(`Admin getting learners for parent ID: ${req.query.parentId}`);
+          const parentId = typeof req.query.parentId === 'string' ? req.query.parentId : String(req.query.parentId);
+          learners = await storage.getUsersByParentId(parentId);
+        } else {
+          // When no parentId is provided for admin, return all learners
+          console.log('Admin getting all learners');
+          learners = await storage.getAllLearners();
+        }
       } else if (req.user?.role === "PARENT") {
         console.log(`Parent ${req.user.id} getting their learners`);
         learners = await storage.getUsersByParentId(req.user.id);
       } else {
-        console.log('Invalid request, missing parent ID or not a parent');
+        console.log('Invalid request, user is not a parent or admin');
         return res.status(400).json({ error: "Invalid request" });
       }
 
@@ -150,31 +158,37 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
-      // For backward compatibility, check email if provided
-      if (req.body.email) {
-        const email = req.body.email;
-        // Validate email format
+      // Handle the required email field
+      let email = req.body.email;
+      
+      // Generate a temporary email if one wasn't provided
+      if (!email) {
+        const timestamp = Date.now();
+        email = `${name.toLowerCase().replace(/\s+/g, '-')}-${timestamp}@temporary.edu`;
+        console.log(`Generated temporary email for learner: ${email}`);
+      } else {
+        // If email was provided, validate it
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
           return res.status(400).json({ error: "Invalid email format" });
         }
+      }
 
-        // Check if email already exists - first check by username
-        const existingUserByUsername = await storage.getUserByUsername(email);
-        if (existingUserByUsername) {
-          return res.status(409).json({ error: "Email already in use as a username" });
-        }
+      // Check if email already exists - first check by username
+      const existingUserByUsername = await storage.getUserByUsername(email);
+      if (existingUserByUsername) {
+        return res.status(409).json({ error: "Email already in use as a username" });
+      }
 
-        // Also check the email field directly to prevent database constraint violations
-        try {
-          const emailCheckResult = await db.select().from(users).where(sql`LOWER(email) = LOWER(${email})`);
-          if (emailCheckResult.length > 0) {
-            return res.status(409).json({ error: "Email already in use" });
-          }
-        } catch (emailCheckError) {
-          console.error("Error checking email existence:", emailCheckError);
-          // Continue with the operation
+      // Also check the email field directly to prevent database constraint violations
+      try {
+        const emailCheckResult = await db.select().from(users).where(sql`LOWER(email) = LOWER(${email})`);
+        if (emailCheckResult.length > 0) {
+          return res.status(409).json({ error: "Email already in use" });
         }
+      } catch (emailCheckError) {
+        console.error("Error checking email existence:", emailCheckError);
+        // Continue with the operation
       }
 
       // Set parent ID based on the user's role
