@@ -12,6 +12,8 @@
   <a href="https://github.com/realityinspector/origen-one">GitHub Repository</a>
 </p>
 
+<h1><a href="https://github.com/realityinspector/origen-one/blob/main/WELCOME.md">WELCOME GUIDE FOR NON-TECHNICAL USERS</a></h1>
+
 ## Table of Contents
 
 - [Introduction](#introduction)
