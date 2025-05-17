@@ -618,7 +618,7 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getLessonHistory(learnerId: string | number | number | number | number | number, limit: number = 10): Promise<Lesson[]> {
+  async getLessonHistory(learnerId: string | number | number | number | number | number | number, limit: number = 10): Promise<Lesson[]> {
     try {
       // Try to get the full lesson history first
       try {
