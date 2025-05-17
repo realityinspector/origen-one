@@ -110,64 +110,16 @@ export function LearnerSelector({ onToggle }: LearnerSelectorProps) {
     if (canCreateLearners) {
       return (
         <View style={styles.container}>
-          <TouchableOpacity style={styles.createButton} onPress={openCreateModal}>
+          <TouchableOpacity 
+            style={styles.createButton} 
+            onPress={() => {
+              // Navigate to the Add Learner page
+              window.location.href = '/add-learner';
+            }}
+          >
             <Plus size={16} color="#ffffff" />
             <Text style={styles.createButtonText}>Add Learner</Text>
           </TouchableOpacity>
-          
-          {/* Create Learner Modal */}
-          <Modal
-            visible={createModalVisible}
-            transparent
-            animationType="fade"
-            onRequestClose={closeCreateModal}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Create New Learner</Text>
-                
-                {error ? <Text style={styles.errorText}>{error}</Text> : null}
-                
-                <Text style={styles.inputLabel}>Name</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Learner Name"
-                  value={newLearner.name}
-                  onChangeText={(text) => setNewLearner({ ...newLearner, name: text })}
-                />
-                
-                <Text style={styles.inputLabel}>Grade Level</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="Grade Level (1-12)"
-                  value={newLearner.gradeLevel}
-                  keyboardType="numeric"
-                  onChangeText={(text) => setNewLearner({ ...newLearner, gradeLevel: text })}
-                />
-                
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity 
-                    style={[styles.modalButton, styles.cancelButton]} 
-                    onPress={closeCreateModal}
-                  >
-                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                  </TouchableOpacity>
-                  
-                  <TouchableOpacity 
-                    style={[styles.modalButton, styles.createModalButton]} 
-                    onPress={handleCreateLearner}
-                    disabled={isCreating}
-                  >
-                    {isCreating ? (
-                      <ActivityIndicator size="small" color="#ffffff" />
-                    ) : (
-                      <Text style={styles.createModalButtonText}>Create</Text>
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
-          </Modal>
         </View>
       );
     }
@@ -228,7 +180,8 @@ export function LearnerSelector({ onToggle }: LearnerSelectorProps) {
                   style={styles.addLearnerButton}
                   onPress={() => {
                     setDropdownVisible(false);
-                    openCreateModal();
+                    // Navigate to the Add Learner page
+                    window.location.href = '/add-learner';
                   }}
                 >
                   <Plus size={16} color="#6366F1" />
