@@ -598,7 +598,7 @@ export class DatabaseStorage implements IStorage {
 
   async getLearnerLessons(learnerId: string | number): Promise<Lesson[]> {
     try {
-      const learnerIdNum = parseInt(learnerId);
+      const learnerIdNum = typeof learnerId === 'string' ? parseInt(learnerId) : learnerId;
       if (isNaN(learnerIdNum)) {
         console.error(`Invalid learner ID: ${learnerId}`);
         return [];
