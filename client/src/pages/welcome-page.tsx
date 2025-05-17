@@ -1,9 +1,12 @@
 import React from 'react';
-import { View, Text, StyleSheet, ImageBackground, ScrollView, Linking, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ImageBackground, ScrollView, Linking, Image, TouchableOpacity, Dimensions } from 'react-native';
 import { Link, useLocation, Redirect } from 'wouter';
 import { useAuth } from '../hooks/use-auth';
-import { colors, typography, commonStyles } from '../styles/theme';
-import { GitHub, BookOpen, Eye, Shield, Users, Award, ExternalLink, BarChart2 } from 'react-feather';
+import { colors, typography, commonStyles, animations } from '../styles/theme';
+import { GitHub, BookOpen, Eye, Shield, Users, Award, ExternalLink, BarChart2, BookOpen as Book, Star } from 'react-feather';
+
+// Get screen dimensions for responsive design
+const windowWidth = Dimensions.get('window').width;
 
 const WelcomePage: React.FC = () => {
   const { user, isLoading } = useAuth();
@@ -39,180 +42,231 @@ const WelcomePage: React.FC = () => {
   return (
     <ScrollView style={styles.scrollView}>
       <View style={styles.container}>
-        {/* Hero Section */}
+        {/* Enhanced Hero Section */}
         <View style={styles.heroSection}>
-          <View style={styles.heroContent}>
-            <View style={styles.heroFlex}>
-              <View style={styles.heroTextContent}>
-                <Text style={styles.heroTitle}>ORIGEN™</Text>
-                <Text style={styles.heroSubtitle}>Your Child's AI Learning Partner</Text>
-                <Text style={styles.heroTagline}>Designed for Busy Parents and Curious Kids</Text>
-                <Text style={styles.heroDescription}>
-                  Welcome to Origen, the AI-powered learning platform that makes education fun, personalized, and effective for your children.
-                </Text>
-                <View style={styles.heroCta}>
-                  <TouchableOpacity 
-                    style={[styles.ctaButton, {marginRight: 16}]} 
-                    onPress={() => {
-                      console.log("GET STARTED button clicked, navigating to /auth");
-                      // Use both methods for navigation to ensure it works in all environments
-                      if (typeof window !== 'undefined') {
-                        window.location.href = '/auth';
-                      }
-                    }}
-                  >
-                    <Text style={styles.ctaButtonText}>GET STARTED</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.githubButton} onPress={openGitHub}>
-                    <GitHub size={20} color={colors.onPrimary} />
-                    <Text style={styles.githubButtonText}>VIEW ON GITHUB</Text>
-                  </TouchableOpacity>
+          <View style={styles.heroWrapper}>
+            <View style={styles.heroContent}>
+              <View style={styles.heroFlex}>
+                <View style={styles.heroTextContent}>
+                  <View style={styles.brandBadge}>
+                    <Book size={16} color={colors.onPrimary} />
+                    <Text style={styles.brandBadgeText}>ORIGEN™</Text>
+                  </View>
+                  <Text style={styles.heroTitle}>The Learning Experience Your Child Deserves</Text>
+                  <Text style={styles.heroSubtitle}>
+                    AI-powered education tailored to each child's unique learning style and pace
+                  </Text>
+                  <View style={styles.heroBenefits}>
+                    <View style={styles.benefitItem}>
+                      <View style={styles.benefitIcon}>
+                        <Star size={14} color={colors.onPrimary} />
+                      </View>
+                      <Text style={styles.benefitText}>Personalized learning paths</Text>
+                    </View>
+                    <View style={styles.benefitItem}>
+                      <View style={styles.benefitIcon}>
+                        <Star size={14} color={colors.onPrimary} />
+                      </View>
+                      <Text style={styles.benefitText}>Interactive lessons and quizzes</Text>
+                    </View>
+                    <View style={styles.benefitItem}>
+                      <View style={styles.benefitIcon}>
+                        <Star size={14} color={colors.onPrimary} />
+                      </View>
+                      <Text style={styles.benefitText}>Real-time progress tracking</Text>
+                    </View>
+                  </View>
+                  <View style={styles.heroCta}>
+                    <TouchableOpacity 
+                      style={styles.ctaButton} 
+                      onPress={() => {
+                        console.log("GET STARTED button clicked, navigating to /auth");
+                        if (typeof window !== 'undefined') {
+                          window.location.href = '/auth';
+                        }
+                      }}
+                    >
+                      <Text style={styles.ctaButtonText}>GET STARTED</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.githubButton} onPress={openGitHub}>
+                      <GitHub size={18} color={colors.onPrimary} />
+                      <Text style={styles.githubButtonText}>VIEW ON GITHUB</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-              </View>
-              <View style={styles.heroGraphicContainer}>
-                {/* SVG Graphic */}
-                <svg width="300" height="300" viewBox="0 0 300 300">
-                  {/* Brain outline */}
-                  <path 
-                    d="M150,50 C220,50 250,100 250,150 C250,220 200,250 150,250 C80,250 50,200 50,150 C50,80 100,50 150,50 Z" 
-                    fill="none" 
-                    stroke="#ffffff" 
-                    strokeWidth="3"
-                    opacity="0.6"
-                  />
+                
+                <View style={styles.heroGraphicContainer}>
+                  {/* SVG Graphic with enhanced styling */}
+                  <View style={styles.graphicWrapper}>
+                    <svg width="320" height="320" viewBox="0 0 320 320">
+                      {/* Glowing background effect */}
+                      <circle cx="160" cy="160" r="140" fill={colors.primaryDark} opacity="0.4" />
+                      <circle cx="160" cy="160" r="110" fill={colors.primary} opacity="0.3" />
+                      
+                      {/* Brain outline */}
+                      <path 
+                        d="M160,60 C230,60 260,110 260,160 C260,230 210,260 160,260 C90,260 60,210 60,160 C60,90 110,60 160,60 Z" 
+                        fill="none" 
+                        stroke="#ffffff" 
+                        strokeWidth="3"
+                        opacity="0.8"
+                      />
 
-                  {/* Neural network nodes */}
-                  <circle cx="150" cy="100" r="12" fill="#ffffff" />
-                  <circle cx="100" cy="150" r="12" fill="#ffffff" />
-                  <circle cx="200" cy="150" r="12" fill="#ffffff" />
-                  <circle cx="120" cy="200" r="12" fill="#ffffff" />
-                  <circle cx="180" cy="200" r="12" fill="#ffffff" />
-                  <circle cx="150" cy="150" r="18" fill="#ffffff" />
+                      {/* Neural network nodes */}
+                      <circle cx="160" cy="110" r="12" fill="#ffffff" />
+                      <circle cx="110" cy="160" r="12" fill="#ffffff" />
+                      <circle cx="210" cy="160" r="12" fill="#ffffff" />
+                      <circle cx="130" cy="210" r="12" fill="#ffffff" />
+                      <circle cx="190" cy="210" r="12" fill="#ffffff" />
+                      <circle cx="160" cy="160" r="18" fill="#ffffff" />
 
-                  {/* Neural network connections */}
-                  <line x1="150" y1="100" x2="100" y2="150" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-                  <line x1="150" y1="100" x2="200" y2="150" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-                  <line x1="150" y1="100" x2="150" y2="150" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-                  <line x1="100" y1="150" x2="120" y2="200" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-                  <line x1="200" y1="150" x2="180" y2="200" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-                  <line x1="150" y1="150" x2="120" y2="200" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-                  <line x1="150" y1="150" x2="180" y2="200" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-                  <line x1="100" y1="150" x2="150" y2="150" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-                  <line x1="200" y1="150" x2="150" y2="150" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                      {/* Neural network connections */}
+                      <line x1="160" y1="110" x2="110" y2="160" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                      <line x1="160" y1="110" x2="210" y2="160" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                      <line x1="160" y1="110" x2="160" y2="160" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                      <line x1="110" y1="160" x2="130" y2="210" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                      <line x1="210" y1="160" x2="190" y2="210" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                      <line x1="160" y1="160" x2="130" y2="210" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                      <line x1="160" y1="160" x2="190" y2="210" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                      <line x1="110" y1="160" x2="160" y2="160" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
+                      <line x1="210" y1="160" x2="160" y2="160" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
 
-                  {/* Animated pulses */}
-                  <circle cx="150" cy="150" r="18" fill="#ffffff" opacity="0.2">
-                    <animate attributeName="r" values="18;30;18" dur="3s" repeatCount="indefinite" />
-                    <animate attributeName="opacity" values="0.2;0.1;0.2" dur="3s" repeatCount="indefinite" />
-                  </circle>
-
-                  {/* Small book icon in the center */}
-                  <rect x="140" y="145" width="20" height="15" fill="#6200EE" rx="2" />
-                  <rect x="140" y="142" width="20" height="3" fill="#6200EE" rx="1" />
-                  <line x1="150" y1="145" x2="150" y2="160" stroke="#ffffff" strokeWidth="1" />
-                </svg>
+                      {/* Animated data pulses */}
+                      <circle cx="160" cy="160" r="22" fill="#ffffff" opacity="0.2">
+                        <animate attributeName="r" values="22;35;22" dur="3s" repeatCount="indefinite" />
+                        <animate attributeName="opacity" values="0.3;0.1;0.3" dur="3s" repeatCount="indefinite" />
+                      </circle>
+                      
+                      {/* Small book icon in the center */}
+                      <rect x="150" y="155" width="20" height="15" fill={colors.accent1} rx="2" />
+                      <rect x="150" y="152" width="20" height="3" fill={colors.accent1} rx="1" />
+                      <line x1="160" y1="155" x2="160" y2="170" stroke="#ffffff" strokeWidth="1" />
+                      
+                      {/* Animated small particles */}
+                      <circle cx="135" cy="135" r="3" fill="#ffffff" opacity="0.6">
+                        <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite" />
+                      </circle>
+                      <circle cx="185" cy="135" r="3" fill="#ffffff" opacity="0.6">
+                        <animate attributeName="opacity" values="0.2;0.6;0.2" dur="2.3s" repeatCount="indefinite" />
+                      </circle>
+                      <circle cx="135" cy="185" r="3" fill="#ffffff" opacity="0.6">
+                        <animate attributeName="opacity" values="0.4;0.7;0.4" dur="1.8s" repeatCount="indefinite" />
+                      </circle>
+                      <circle cx="185" cy="185" r="3" fill="#ffffff" opacity="0.6">
+                        <animate attributeName="opacity" values="0.7;0.3;0.7" dur="2.5s" repeatCount="indefinite" />
+                      </circle>
+                    </svg>
+                  </View>
+                </View>
               </View>
             </View>
           </View>
         </View>
 
-        {/* Features Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>What Origen Does for You and Your Family</Text>
-          
-          {/* For Parents Section */}
-          <Text style={styles.subSectionTitle}>For Parents</Text>
-          <View style={styles.featuresGrid}>
-            <View style={styles.featureCard}>
-              <View style={styles.featureIconContainer}>
-                <Eye size={24} color={colors.primary} />
+        {/* Enhanced Features Section */}
+        <View style={styles.featuresSection}>
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Why Families Love Origen</Text>
+              <View style={styles.sectionTitleUnderline} />
+            </View>
+            
+            {/* For Parents Section */}
+            <View style={styles.audienceSection}>
+              <View style={styles.audienceTitleContainer}>
+                <Text style={styles.audienceTitle}>For Parents</Text>
               </View>
-              <Text style={styles.featureTitle}>See Your Child's Learning Journey</Text>
-              <Text style={styles.featureDescription}>
-                Watch your child's progress in real-time. Get insights into strengths and areas needing improvement. 
-                Receive regular updates on achievements and milestones.
-              </Text>
+              
+              <View style={styles.featuresGrid}>
+                <View style={styles.featureCard}>
+                  <View style={styles.featureIconContainer}>
+                    <Eye size={24} color={colors.primary} />
+                  </View>
+                  <Text style={styles.featureTitle}>Real-time Learning Journey</Text>
+                  <Text style={styles.featureDescription}>
+                    Watch your child's progress as it happens. Get detailed insights into strengths and areas that need improvement. Receive notifications for achievements and milestones.
+                  </Text>
+                </View>
+
+                <View style={styles.featureCard}>
+                  <View style={styles.featureIconContainer}>
+                    <Users size={24} color={colors.primary} />
+                  </View>
+                  <Text style={styles.featureTitle}>Effortless Account Management</Text>
+                  <Text style={styles.featureDescription}>
+                    Create separate profiles for each child without multiple passwords. Children's accounts link directly to yours with seamless switching between parent and learner views.
+                  </Text>
+                </View>
+
+                <View style={styles.featureCard}>
+                  <View style={styles.featureIconContainer}>
+                    <BarChart2 size={24} color={colors.primary} />
+                  </View>
+                  <Text style={styles.featureTitle}>Beautiful Progress Tracking</Text>
+                  <Text style={styles.featureDescription}>
+                    View intuitive visual reports of your child's learning journey. Easily track improvement across various subjects and identify areas where your child might need extra support.
+                  </Text>
+                </View>
+
+                <View style={styles.featureCard}>
+                  <View style={styles.featureIconContainer}>
+                    <Shield size={24} color={colors.primary} />
+                  </View>
+                  <Text style={styles.featureTitle}>Seamless Multi-device Access</Text>
+                  <Text style={styles.featureDescription}>
+                    Use Origen on any device with automatic data synchronization. Your child can start on a tablet and continue on a computer with no interruption to their learning flow.
+                  </Text>
+                </View>
+              </View>
             </View>
 
-            <View style={styles.featureCard}>
-              <View style={styles.featureIconContainer}>
-                <Users size={24} color={colors.primary} />
+            {/* For Learners Section */}
+            <View style={styles.audienceSection}>
+              <View style={styles.audienceTitleContainer}>
+                <Text style={styles.audienceTitle}>For Learners</Text>
               </View>
-              <Text style={styles.featureTitle}>Easy Account Management</Text>
-              <Text style={styles.featureDescription}>
-                Create separate profiles for each of your children. No need to remember multiple passwords - 
-                children's accounts link directly to yours. Easily switch between parent view and learner view with one click.
-              </Text>
-            </View>
+              
+              <View style={styles.featuresGrid}>
+                <View style={styles.featureCard}>
+                  <View style={styles.featureIconContainer}>
+                    <Award size={24} color={colors.primary} />
+                  </View>
+                  <Text style={styles.featureTitle}>Learning That Feels Like Play</Text>
+                  <Text style={styles.featureDescription}>
+                    Enjoy interactive lessons that adapt to your unique learning style. Discover knowledge through engaging visuals and fun activities with rewards that encourage exploration.
+                  </Text>
+                </View>
 
-            <View style={styles.featureCard}>
-              <View style={styles.featureIconContainer}>
-                <BarChart2 size={24} color={colors.primary} />
-              </View>
-              <Text style={styles.featureTitle}>Simple Progress Tracking</Text>
-              <Text style={styles.featureDescription}>
-                Beautiful visual reports show exactly what your child is learning. Track improvement across 
-                different subjects. Identify areas where your child might need extra support.
-              </Text>
-            </View>
+                <View style={styles.featureCard}>
+                  <View style={styles.featureIconContainer}>
+                    <BookOpen size={24} color={colors.primary} />
+                  </View>
+                  <Text style={styles.featureTitle}>Made Just For You</Text>
+                  <Text style={styles.featureDescription}>
+                    Experience content that automatically adjusts to your grade level. Lessons intelligently build on what you've already learned as difficulty increases with your growing skills.
+                  </Text>
+                </View>
 
-            <View style={styles.featureCard}>
-              <View style={styles.featureIconContainer}>
-                <Shield size={24} color={colors.primary} />
-              </View>
-              <Text style={styles.featureTitle}>Access Anywhere</Text>
-              <Text style={styles.featureDescription}>
-                Use Origen on any device - computer, tablet, or phone. Data syncs automatically 
-                so you never lose progress. Optional backup to your own database for complete peace of mind.
-              </Text>
-            </View>
-          </View>
+                <View style={styles.featureCard}>
+                  <View style={styles.featureIconContainer}>
+                    <Eye size={24} color={colors.primary} />
+                  </View>
+                  <Text style={styles.featureTitle}>Explore What Interests You</Text>
+                  <Text style={styles.featureDescription}>
+                    Begin with core subjects and add custom topics based on what fascinates you. See how different subjects connect through visual knowledge maps that grow with your learning.
+                  </Text>
+                </View>
 
-          {/* For Learners Section */}
-          <Text style={styles.subSectionTitle}>For Learners</Text>
-          <View style={styles.featuresGrid}>
-            <View style={styles.featureCard}>
-              <View style={styles.featureIconContainer}>
-                <Award size={24} color={colors.primary} />
+                <View style={styles.featureCard}>
+                  <View style={styles.featureIconContainer}>
+                    <Award size={24} color={colors.primary} />
+                  </View>
+                  <Text style={styles.featureTitle}>Celebrate Your Progress</Text>
+                  <Text style={styles.featureDescription}>
+                    Collect badges and rewards as you complete lessons. Watch your progress grow with colorful visual indicators that help build confidence through consistent improvement.
+                  </Text>
+                </View>
               </View>
-              <Text style={styles.featureTitle}>Learning That Feels Like Play</Text>
-              <Text style={styles.featureDescription}>
-                Interactive lessons that adapt to your child's learning style. Knowledge presented through 
-                engaging visuals and activities. Achievement system that rewards progress and encourages exploration.
-              </Text>
-            </View>
-
-            <View style={styles.featureCard}>
-              <View style={styles.featureIconContainer}>
-                <BookOpen size={24} color={colors.primary} />
-              </View>
-              <Text style={styles.featureTitle}>Personalized Learning Experience</Text>
-              <Text style={styles.featureDescription}>
-                Content adjusts to your child's grade level automatically. Lessons build on previous knowledge. 
-                Difficulty increases gradually as skills improve.
-              </Text>
-            </View>
-
-            <View style={styles.featureCard}>
-              <View style={styles.featureIconContainer}>
-                <Eye size={24} color={colors.primary} />
-              </View>
-              <Text style={styles.featureTitle}>Explore Any Subject</Text>
-              <Text style={styles.featureDescription}>
-                Start with core subjects like Math, Reading, and Science. Add custom subjects based on your 
-                child's interests. Visual knowledge maps show how different topics connect.
-              </Text>
-            </View>
-
-            <View style={styles.featureCard}>
-              <View style={styles.featureIconContainer}>
-                <Award size={24} color={colors.primary} />
-              </View>
-              <Text style={styles.featureTitle}>Celebrate Every Achievement</Text>
-              <Text style={styles.featureDescription}>
-                Earn badges and rewards for completing lessons. Track progress with visual indicators. 
-                Build confidence through steady improvement.
-              </Text>
             </View>
           </View>
         </View>
