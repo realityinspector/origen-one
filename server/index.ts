@@ -148,6 +148,8 @@ console.log('Forwarding /logout to /api/logout');
 httpApp.post("/logout", createProxyMiddleware("/api/logout"));
 console.log('Forwarding /user to /api/user');
 httpApp.get("/user", createProxyMiddleware("/api/user"));
+console.log('Forwarding POST /api/learners properly');
+httpApp.post("/api/learners", createProxyMiddleware("/api/learners"));
 
 // Serve static files after API routes are defined
 httpApp.use(express.static(clientDistPath));
