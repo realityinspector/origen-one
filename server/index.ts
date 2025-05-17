@@ -76,7 +76,9 @@ function createProxyMiddleware(targetPath: string) {
         headers: {
           'Content-Type': 'application/json',
           // Forward cookies for authentication
-          'Cookie': req.headers?.cookie || ''
+          'Cookie': req.headers?.cookie || '',
+          // Forward the Authorization header for JWT token
+          'Authorization': req.headers?.authorization || ''
         }
       };
       
