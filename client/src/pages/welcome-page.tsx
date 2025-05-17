@@ -535,21 +535,32 @@ const WelcomePage: React.FC = () => {
   );
 };
 
-const styles = StyleSheet.create({
-  // Responsive helpers
-  container: {
-    flex: 1,
-  },
+// Define styles for the Welcome Page with mobile-first, responsive approach
+const newStyles = StyleSheet.create({
+  // Base layout
   scrollView: {
     flex: 1,
     backgroundColor: colors.background,
   },
+  container: {
+    flex: 1,
+  },
   
-  // Hero Section - Enhanced with modern design
+  // Reusable section styles
+  section: {
+    width: '100%',
+    paddingVertical: windowWidth < 768 ? 40 : 60,
+    paddingHorizontal: 16,
+  },
+  sectionInner: {
+    width: '100%',
+    maxWidth: 1200,
+    marginHorizontal: 'auto',
+  },
+  
+  // Hero section
   heroSection: {
     backgroundColor: colors.primary,
-    backgroundImage: `linear-gradient(135deg, ${colors.primary} 0%, ${colors.primaryDark} 100%)`,
-    padding: 32,
     minHeight: 500,
     alignItems: 'center',
     justifyContent: 'center',
@@ -991,19 +1002,17 @@ const styles = StyleSheet.create({
   footerLogoContainer: {
     alignItems: 'center',
   },
-  scrollView: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
-  container: {
-    flex: 1,
-  },
-  heroSection: {
-    backgroundColor: colors.primary,
+  // Legacy styles kept for compatibility
+  section: {
     padding: 32,
-    minHeight: 500,
     alignItems: 'center',
-    justifyContent: 'center',
+  },
+  solutionsContainer: {
+    width: '100%',
+    maxWidth: 1200,
+  },
+  howItWorks: {
+    backgroundColor: colors.primary,
   },
   heroContent: {
     maxWidth: 1000,
