@@ -48,12 +48,16 @@ Designed for children and educational institutions, Origen helps bridge learning
 - **Achievement System**: Gamified learning with badges and recognition for milestones
 - **Progress Tracking**: Detailed analytics on learning progress and areas for improvement
 - **Database Synchronization**: Parents can synchronize their data to external PostgreSQL databases for backup and multi-device access
+- **Multi-Learner Management**: Parents can create and manage multiple learner accounts linked to their user profile
 
 ### User Experience
 
 - **Dual-Mode Interface**: Toggle between learner mode (for students) and grown-up mode (for parents/teachers)
 - **Responsive Design**: Works on desktops, tablets, and mobile devices
 - **Accessibility-Focused**: Designed to be inclusive and usable by learners of all abilities
+- **Improved Modal Interfaces**: Enhanced styling for subjects and knowledge graph management
+- **Streamlined User Flow**: Navigation-based forms instead of modals for better usability
+- **Simplified Learner Creation**: No password or email required for learner accounts
 
 ### Administrative Tools
 
@@ -61,6 +65,7 @@ Designed for children and educational institutions, Origen helps bridge learning
 - **Admin Controls**: Manage users, content, and system settings
 - **Reporting Suite**: Generate comprehensive learning reports
 - **Database Synchronization**: Configure and manage external database connections for data replication
+- **User Role Management**: Support for ADMIN, PARENT, and LEARNER roles with appropriate permissions
 
 ## Technology Stack
 
