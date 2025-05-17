@@ -1047,7 +1047,7 @@ export function registerRoutes(app: Express): Server {
     // Award any new achievements
     for (const achievement of newAchievements) {
       await storage.createAchievement({
-        learnerId: Number(req.user.id),
+        learnerId: req.user.id.toString(),
         type: achievement.type,
         payload: achievement.payload
       });
