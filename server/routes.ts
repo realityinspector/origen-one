@@ -1013,7 +1013,7 @@ export function registerRoutes(app: Express): Server {
       return res.status(404).json({ error: "Lesson not found" });
     }
 
-    if (lesson.learnerId !== req.user.id) {
+    if (lesson.learnerId !== req.user.id.toString()) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
