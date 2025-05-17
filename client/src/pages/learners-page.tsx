@@ -521,7 +521,7 @@ const LearnersPage: React.FC = () => {
           {(user?.role === 'PARENT' || user?.role === 'ADMIN') && (
             <TouchableOpacity
               style={styles.addButton}
-              onPress={() => setModalVisible(true)}
+              onPress={() => setLocation('/add-learner')}
             >
               <Plus size={20} color={colors.onPrimary} />
               <Text style={styles.addButtonText}>{user?.role === 'ADMIN' ? 'Add Learner' : 'Add Child'}</Text>
