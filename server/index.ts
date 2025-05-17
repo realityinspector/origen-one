@@ -148,8 +148,14 @@ console.log('Forwarding /logout to /api/logout');
 httpApp.post("/logout", createProxyMiddleware("/api/logout"));
 console.log('Forwarding /user to /api/user');
 httpApp.get("/user", createProxyMiddleware("/api/user"));
+
+// Ensure all learner-related endpoints are properly proxied
+console.log('Forwarding GET /api/learners properly');
+httpApp.get("/api/learners", createProxyMiddleware("/api/learners"));
 console.log('Forwarding POST /api/learners properly');
 httpApp.post("/api/learners", createProxyMiddleware("/api/learners"));
+console.log('Forwarding GET /api/learner-profile/:userId properly');
+httpApp.get("/api/learner-profile/:userId", createProxyMiddleware("/api/learner-profile/:userId"));
 
 // Serve static files after API routes are defined
 httpApp.use(express.static(clientDistPath));
