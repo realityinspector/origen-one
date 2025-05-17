@@ -4,6 +4,7 @@ import AuthPage from './pages/auth-page';
 import HomePage from './pages/home-page';
 import DashboardPage from './pages/dashboard-page';
 import LearnersPage from './pages/learners-page';
+import AddLearnerPage from './pages/add-learner-page';
 import ChangeLearnerSubjectsPage from './pages/change-learner-subjects';
 import ReportsPage from './pages/reports-page';
 import AdminPage from './pages/admin-page';
@@ -97,6 +98,7 @@ export default function App() {
             {/* Protected parent/admin routes */}
             <ProtectedRoute path="/dashboard" component={DashboardPage} />
             <ProtectedRoute path="/learners" component={LearnersPage} />
+            <ProtectedRoute path="/add-learner" component={AddLearnerPage} />
             <ProtectedRoute path="/change-learner-subjects/:id" component={ChangeLearnerSubjectsPage} />
             <ProtectedRoute path="/reports" component={ReportsPage} />
             <ProtectedRoute path="/database-sync" component={DatabaseSyncPage} />

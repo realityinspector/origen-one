@@ -21,13 +21,11 @@ const LearnersPage: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
-  const [modalVisible, setModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [subjectsModalVisible, setSubjectsModalVisible] = useState(false); 
   const [graphModalVisible, setGraphModalVisible] = useState(false);
   const [currentEditLearner, setCurrentEditLearner] = useState<any>(null);
   const [currentProfile, setCurrentProfile] = useState<any>(null);
-  const [newLearner, setNewLearner] = useState({ name: '', gradeLevel: '5' });
   const [subjects, setSubjects] = useState<string[]>([]);
   const [recommendedSubjects, setRecommendedSubjects] = useState<string[]>([]);
   const [strugglingAreas, setStrugglingAreas] = useState<string[]>([]);
