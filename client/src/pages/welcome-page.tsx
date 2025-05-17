@@ -271,84 +271,95 @@ const WelcomePage: React.FC = () => {
           </View>
         </View>
 
-        {/* How It Works Section */}
-        <View style={[styles.section, styles.howItWorks]}>
-          <Text style={[styles.sectionTitle, styles.lightText]}>How It Works</Text>
-          
-          {/* Getting Started Section */}
-          <Text style={[styles.subSectionTitle, styles.lightText]}>Getting Started Is Easy</Text>
-          <View style={styles.timelineContainer}>
-            <View style={styles.timelineItem}>
-              <View style={styles.timelineBullet}>
-                <Text style={styles.timelineNumber}>1</Text>
-              </View>
-              <View style={styles.timelineContent}>
-                <Text style={styles.timelineTitle}>Create Your Parent Account</Text>
-                <Text style={styles.timelineText}>Sign up with your email and password. No credit card required to begin.</Text>
-              </View>
+        {/* Enhanced How It Works Section */}
+        <View style={styles.howItWorksSection}>
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, styles.lightText]}>How It Works</Text>
+              <View style={[styles.sectionTitleUnderline, styles.lightUnderline]} />
             </View>
+            
+            {/* Getting Started Section */}
+            <View style={styles.processSection}>
+              <Text style={[styles.processSectionTitle, styles.lightText]}>Getting Started Is Easy</Text>
+              
+              <View style={styles.timelineContainer}>
+                <View style={styles.timelineItem}>
+                  <View style={styles.timelineBullet}>
+                    <Text style={styles.timelineNumber}>1</Text>
+                  </View>
+                  <View style={styles.timelineContent}>
+                    <Text style={styles.timelineTitle}>Create Your Parent Account</Text>
+                    <Text style={styles.timelineText}>Sign up with your email and password. No credit card required to begin.</Text>
+                  </View>
+                </View>
 
-            <View style={styles.timelineItem}>
-              <View style={styles.timelineBullet}>
-                <Text style={styles.timelineNumber}>2</Text>
-              </View>
-              <View style={styles.timelineContent}>
-                <Text style={styles.timelineTitle}>Add Your Children</Text>
-                <Text style={styles.timelineText}>Create profiles for each child. Just enter their name and grade level. No email or passwords needed for children's accounts.</Text>
-              </View>
-            </View>
+                <View style={styles.timelineItem}>
+                  <View style={styles.timelineBullet}>
+                    <Text style={styles.timelineNumber}>2</Text>
+                  </View>
+                  <View style={styles.timelineContent}>
+                    <Text style={styles.timelineTitle}>Add Your Children</Text>
+                    <Text style={styles.timelineText}>Create profiles for each child with just their name and grade level. No separate accounts or passwords needed for children.</Text>
+                  </View>
+                </View>
 
-            <View style={styles.timelineItem}>
-              <View style={styles.timelineBullet}>
-                <Text style={styles.timelineNumber}>3</Text>
-              </View>
-              <View style={styles.timelineContent}>
-                <Text style={styles.timelineTitle}>Start Learning</Text>
-                <Text style={styles.timelineText}>Switch to Learner View to see what your child will experience. Choose subjects that interest your child. Watch as our AI creates personalized learning content.</Text>
-              </View>
-            </View>
-          </View>
-          
-          {/* Daily Learning Section */}
-          <Text style={[styles.subSectionTitle, styles.lightText]}>Daily Learning Made Simple</Text>
-          <View style={styles.timelineContainer}>
-            <View style={styles.timelineItem}>
-              <View style={styles.timelineBullet}>
-                <Text style={styles.timelineNumber}>1</Text>
-              </View>
-              <View style={styles.timelineContent}>
-                <Text style={styles.timelineTitle}>Choose a Subject</Text>
-                <Text style={styles.timelineText}>Select from recommended subjects or explore new ones. Each subject has age-appropriate content for your child.</Text>
+                <View style={styles.timelineItem}>
+                  <View style={styles.timelineBullet}>
+                    <Text style={styles.timelineNumber}>3</Text>
+                  </View>
+                  <View style={styles.timelineContent}>
+                    <Text style={styles.timelineTitle}>Start Learning</Text>
+                    <Text style={styles.timelineText}>Switch to Learner View to preview the experience. Choose subjects that interest your child and watch as our AI creates personalized content.</Text>
+                  </View>
+                </View>
               </View>
             </View>
+            
+            {/* Daily Learning Section */}
+            <View style={styles.processSection}>
+              <Text style={[styles.processSectionTitle, styles.lightText]}>Daily Learning Made Simple</Text>
+              
+              <View style={styles.timelineContainer}>
+                <View style={styles.timelineItem}>
+                  <View style={styles.timelineBullet}>
+                    <Text style={styles.timelineNumber}>1</Text>
+                  </View>
+                  <View style={styles.timelineContent}>
+                    <Text style={styles.timelineTitle}>Choose a Subject</Text>
+                    <Text style={styles.timelineText}>Select from recommended subjects or explore new ones based on interests. All content is age-appropriate and engaging.</Text>
+                  </View>
+                </View>
 
-            <View style={styles.timelineItem}>
-              <View style={styles.timelineBullet}>
-                <Text style={styles.timelineNumber}>2</Text>
-              </View>
-              <View style={styles.timelineContent}>
-                <Text style={styles.timelineTitle}>Complete Interactive Lessons</Text>
-                <Text style={styles.timelineText}>Engage with multimedia content. Answer questions to check understanding. Receive immediate feedback and guidance.</Text>
-              </View>
-            </View>
+                <View style={styles.timelineItem}>
+                  <View style={styles.timelineBullet}>
+                    <Text style={styles.timelineNumber}>2</Text>
+                  </View>
+                  <View style={styles.timelineContent}>
+                    <Text style={styles.timelineTitle}>Complete Interactive Lessons</Text>
+                    <Text style={styles.timelineText}>Engage with multimedia content designed to be both educational and entertaining. Receive immediate feedback as you learn.</Text>
+                  </View>
+                </View>
 
-            <View style={styles.timelineItem}>
-              <View style={styles.timelineBullet}>
-                <Text style={styles.timelineNumber}>3</Text>
-              </View>
-              <View style={styles.timelineContent}>
-                <Text style={styles.timelineTitle}>Build Knowledge Connections</Text>
-                <Text style={styles.timelineText}>See how different topics connect through our Knowledge Graph. Add new topics and watch the connections grow. Visualize learning progress across subjects.</Text>
-              </View>
-            </View>
+                <View style={styles.timelineItem}>
+                  <View style={styles.timelineBullet}>
+                    <Text style={styles.timelineNumber}>3</Text>
+                  </View>
+                  <View style={styles.timelineContent}>
+                    <Text style={styles.timelineTitle}>Build Knowledge Connections</Text>
+                    <Text style={styles.timelineText}>Visualize how different topics connect through our Knowledge Graph and see your learning journey expand across subjects.</Text>
+                  </View>
+                </View>
 
-            <View style={styles.timelineItem}>
-              <View style={styles.timelineBullet}>
-                <Text style={styles.timelineNumber}>4</Text>
-              </View>
-              <View style={styles.timelineContent}>
-                <Text style={styles.timelineTitle}>Track Progress Together</Text>
-                <Text style={styles.timelineText}>Parents can review completed lessons and quiz results. Celebrate achievements together. Identify opportunities for additional support or challenges.</Text>
+                <View style={styles.timelineItem}>
+                  <View style={styles.timelineBullet}>
+                    <Text style={styles.timelineNumber}>4</Text>
+                  </View>
+                  <View style={styles.timelineContent}>
+                    <Text style={styles.timelineTitle}>Track Progress Together</Text>
+                    <Text style={styles.timelineText}>Parents can easily review completed lessons and celebrate achievements with their children, identifying new learning opportunities.</Text>
+                  </View>
+                </View>
               </View>
             </View>
           </View>
