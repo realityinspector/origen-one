@@ -24,75 +24,11 @@ export function LearnerSelector({ onToggle }: LearnerSelectorProps) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [dropdownVisible, setDropdownVisible] = useState(false);
-  const [createModalVisible, setCreateModalVisible] = useState(false);
-  const [newLearner, setNewLearner] = useState({ name: '', gradeLevel: '5' });
-  const [error, setError] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
-
+  
   const canCreateLearners = user?.role === 'PARENT' || user?.role === 'ADMIN';
 
   const toggleDropdown = () => {
     setDropdownVisible(!dropdownVisible);
-  };
-
-  const openCreateModal = () => {
-    setCreateModalVisible(true);
-    setError('');
-    setNewLearner({ name: '', gradeLevel: '5' });
-  };
-
-  const closeCreateModal = () => {
-    setCreateModalVisible(false);
-  };
-
-  const handleCreateLearner = async () => {
-    if (!newLearner.name) {
-      setError('Please enter a learner name');
-      return;
-    }
-
-    if (!newLearner.gradeLevel) {
-      setError('Please select a grade level');
-      return;
-    }
-
-    // Validate grade level (should be a number from 1-12)
-    const gradeNum = parseInt(newLearner.gradeLevel);
-    if (isNaN(gradeNum) || gradeNum < 1 || gradeNum > 12) {
-      setError('Grade level should be a number between 1 and 12');
-      return;
-    }
-
-    try {
-      setIsCreating(true);
-      setError('');
-
-      // Create learner account
-      const response = await apiRequest('POST', '/api/learners', {
-        ...newLearner,
-        role: 'LEARNER',
-        parentId: user?.id,
-      });
-
-      setIsCreating(false);
-      closeCreateModal();
-
-      // Refresh learners list
-      queryClient.invalidateQueries({ queryKey: ['/api/learners', user?.id, user?.role] });
-
-      // Select the new learner
-      if (response.data) {
-        selectLearner(response.data);
-      }
-    } catch (err: any) {
-      setIsCreating(false);
-      if (err.response?.data?.error) {
-        setError(err.response.data.error);
-      } else {
-        setError('Failed to create learner account. Please try again.');
-      }
-      console.error('Create learner error:', err);
-    }
   };
 
   // If loading, show a spinner
@@ -193,59 +129,7 @@ export function LearnerSelector({ onToggle }: LearnerSelectorProps) {
         </View>
       )}
 
-      {/* Create Learner Modal */}
-      <Modal
-        visible={createModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={closeCreateModal}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Create New Learner</Text>
-            
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
-            
-            <Text style={styles.inputLabel}>Name</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Learner Name"
-              value={newLearner.name}
-              onChangeText={(text) => setNewLearner({ ...newLearner, name: text })}
-            />
-            
-            <Text style={styles.inputLabel}>Grade Level</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Grade Level (1-12)"
-              value={newLearner.gradeLevel}
-              keyboardType="numeric"
-              onChangeText={(text) => setNewLearner({ ...newLearner, gradeLevel: text })}
-            />
-            
-            <View style={styles.modalButtons}>
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.cancelButton]} 
-                onPress={closeCreateModal}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity 
-                style={[styles.modalButton, styles.createModalButton]} 
-                onPress={handleCreateLearner}
-                disabled={isCreating}
-              >
-                {isCreating ? (
-                  <ActivityIndicator size="small" color="#ffffff" />
-                ) : (
-                  <Text style={styles.createModalButtonText}>Create</Text>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+
     </View>
   );
 }
