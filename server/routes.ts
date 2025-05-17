@@ -981,7 +981,7 @@ export function registerRoutes(app: Express): Server {
       // Check if user is authorized to view this learner's lessons
       if (req.user.role === "PARENT") {
         const children = await storage.getUsersByParentId(req.user.id);
-        if (!children.some(child => child.id === learnerId)) {
+        if (!children.some(child => child.id.toString() === learnerId.toString())) {
           return res.status(403).json({ error: "Forbidden" });
         }
       }
@@ -1177,7 +1177,7 @@ export function registerRoutes(app: Express): Server {
       // Check if user is authorized to view this learner's achievements
       if (req.user.role === "PARENT") {
         const children = await storage.getUsersByParentId(req.user.id);
-        if (!children.some(child => child.id === learnerId)) {
+        if (!children.some(child => child.id.toString() === learnerId.toString())) {
           return res.status(403).json({ error: "Forbidden" });
         }
       }
@@ -1204,7 +1204,7 @@ export function registerRoutes(app: Express): Server {
     // Verify parent has access to this learner
     if (req.user.role === "PARENT") {
       const children = await storage.getUsersByParentId(req.user.id);
-      if (!children.some(child => child.id === learnerId)) {
+      if (!children.some(child => child.id.toString() === learnerId.toString())) {
         return res.status(403).json({ error: "Forbidden" });
       }
     }
