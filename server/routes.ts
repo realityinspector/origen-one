@@ -881,7 +881,7 @@ export function registerRoutes(app: Express): Server {
             // Create the lesson with enhanced spec
             const newLesson = await storage.createLesson({
               id: crypto.randomUUID(),
-              learnerId: targetLearnerId,
+              learnerId: Number(targetLearnerId),
               moduleId: `custom-${Date.now()}`,
               status: "ACTIVE",
               subject: finalSubject,
@@ -923,7 +923,7 @@ export function registerRoutes(app: Express): Server {
       // Create the lesson with basic spec
       const newLesson = await storage.createLesson({
         id: crypto.randomUUID(),
-        learnerId: targetLearnerId,
+        learnerId: Number(targetLearnerId),
         moduleId: `custom-${Date.now()}`,
         status: "ACTIVE",
         subject: finalSubject,
