@@ -62,68 +62,91 @@ httpApp.use(express.urlencoded({ extended: true }));
 // Create a simple proxy middleware that forwards requests from the HTTP server to the API server
 function createProxyMiddleware(targetPath: string) {
   return function(req: any, res: any) {
-    console.log(`HTTP proxy: Forwarding ${req.method} request to ${targetPath}`);
-    
-    // Create a simple http request to the API server
-    const options = {
-      hostname: 'localhost',
-      port: PORT, 
-      path: targetPath,
-      method: req.method,
-      headers: {
-        'Content-Type': 'application/json',
-        // Forward cookies for authentication
-        'Cookie': req.headers.cookie || ''
-      }
-    };
-    
-    const apiReq = require('http').request(options, (apiRes: any) => {
-      // Copy status code 
-      res.statusCode = apiRes.statusCode;
+    try {
+      console.log(`HTTP proxy: Forwarding ${req.method} request to ${targetPath}`);
       
-      // Copy headers (including cookies)
-      Object.keys(apiRes.headers).forEach(key => {
-        res.setHeader(key, apiRes.headers[key]);
-      });
+      // Create a simple http request to the API server
+      const http = require('http');
       
-      // Collect data chunks
-      let data = '';
-      apiRes.on('data', (chunk: any) => {
-        data += chunk;
-      });
-      
-      // When the response is complete, send it back
-      apiRes.on('end', () => {
-        try {
-          // Try to parse as JSON
-          const json = JSON.parse(data);
-          res.json(json);
-        } catch (e) {
-          // If not valid JSON, just send the raw data
-          res.send(data);
+      const options = {
+        hostname: 'localhost',
+        port: PORT, 
+        path: targetPath,
+        method: req.method,
+        headers: {
+          'Content-Type': 'application/json',
+          // Forward cookies for authentication
+          'Cookie': req.headers?.cookie || ''
         }
+      };
+      
+      // Create request with proper error handling
+      const apiReq = http.request(options);
+      
+      // Set up response handler
+      apiReq.on('response', (apiRes: any) => {
+        // Copy status code 
+        res.statusCode = apiRes.statusCode;
+        
+        // Copy headers (including cookies)
+        if (apiRes.headers) {
+          Object.keys(apiRes.headers).forEach(key => {
+            res.setHeader(key, apiRes.headers[key]);
+          });
+        }
+        
+        // Collect data chunks
+        let data = '';
+        apiRes.on('data', (chunk: any) => {
+          data += chunk;
+        });
+        
+        // When the response is complete, send it back
+        apiRes.on('end', () => {
+          try {
+            if (data && data.trim()) {
+              // Try to parse as JSON
+              const json = JSON.parse(data);
+              res.json(json);
+            } else {
+              // Handle empty response
+              res.end();
+            }
+          } catch (e) {
+            // If not valid JSON, just send the raw data
+            res.send(data);
+          }
+        });
       });
-    });
-    
-    // Handle errors
-    apiReq.on('error', (error: any) => {
-      console.error('Error forwarding request:', error);
-      res.status(500).json({ error: 'Failed to forward request' });
-    });
-    
-    // If this is a POST request, forward the body
-    if (req.method === 'POST' && req.body) {
-      apiReq.write(JSON.stringify(req.body));
+      
+      // Handle errors
+      apiReq.on('error', (error: any) => {
+        console.error('Error forwarding request:', error);
+        res.status(500).json({ error: 'Failed to forward request', details: error.message });
+      });
+      
+      // If this is a POST request, forward the body
+      if (req.method === 'POST' && req.body) {
+        apiReq.write(JSON.stringify(req.body));
+      }
+      
+      // End the request
+      apiReq.end();
+    } catch (error) {
+      console.error('Exception in proxy middleware:', error);
+      res.status(500).json({ error: 'Proxy middleware failed', details: error.message });
     }
-    
-    apiReq.end();
   };
 }
 
 // Configure the routes with our proxy middleware
+console.log('Forwarding /login to /api/login');
 httpApp.post("/login", createProxyMiddleware("/api/login"));
+console.log('Forwarding /register to /api/register');
 httpApp.post("/register", createProxyMiddleware("/api/register"));
+console.log('Forwarding /logout to /api/logout');
 httpApp.post("/logout", createProxyMiddleware("/api/logout"));
+console.log('Forwarding /user to /api/user');
 httpApp.get("/user", createProxyMiddleware("/api/user"));
 
 // Serve static files after API routes are defined
