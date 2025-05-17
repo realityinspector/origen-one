@@ -956,7 +956,7 @@ export function registerRoutes(app: Express): Server {
     // Check user's permission to access this lesson
     if (
       req.user.role === "ADMIN" ||
-      req.user.id === lesson.learnerId ||
+      req.user.id.toString() === lesson.learnerId.toString() ||
       (req.user.role === "PARENT" && (await storage.getUsersByParentId(req.user.id)).some(u => u.id === lesson.learnerId))
     ) {
       return res.json(lesson);
