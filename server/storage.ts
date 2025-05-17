@@ -748,7 +748,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db
       .select()
       .from(achievements)
-      .where(eq(achievements.learnerId, learnerId.toString()))))
+      .where(eq(achievements.learnerId, learnerId.toString()))
       .orderBy(desc(achievements.awardedAt));
     return Array.isArray(result) ? result.map(achievement => achievement as Achievement) : [result as Achievement];
   }
@@ -847,7 +847,7 @@ export class DatabaseStorage implements IStorage {
         await db.delete(lessons).where(eq(lessons.learnerId, Number(Number(id))));
 
         // Delete any achievements associated with this learner
-        await db.delete(achievements).where(eq(achievements.learnerId, id.toString()))))))));
+        await db.delete(achievements).where(eq(achievements.learnerId, id.toString()));
       }
 
       // Now delete the user
