@@ -1215,6 +1215,104 @@ export function registerRoutes(app: Express): Server {
     res.json(achievements);
   }));
 
+  // Get reports data
+  app.get("/api/reports", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    if (!req.query.learnerId) {
+      return res.status(400).json({ error: "learnerId is required" });
+    }
+
+    const learnerId = req.query.learnerId as string;
+    const reportType = (req.query.type as string) || 'all';
+
+    // Check if user is authorized to view this learner's reports
+    if (req.user.role !== 'ADMIN' && req.user.id.toString() !== learnerId.toString()) {
+      if (req.user.role === "PARENT") {
+        const children = await storage.getUsersByParentId(req.user.id);
+        if (!children.some(child => child.id.toString() === learnerId.toString())) {
+          return res.status(403).json({ error: "Forbidden" });
+        }
+      } else {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+    }
+
+    // Get the learner data based on report type
+    try {
+      if (reportType === 'progress' || reportType === 'all') {
+        const [learner, profile, lessons, achievements] = await Promise.all([
+          storage.getUser(learnerId),
+          storage.getLearnerProfile(learnerId),
+          storage.getLessonHistory(learnerId),
+          storage.getAchievements(learnerId)
+        ]);
+
+        if (!learner) {
+          return res.status(404).json({ error: "Learner not found" });
+        }
+
+        // Remove sensitive information
+        const { password: _, ...learnerData } = learner;
+
+        // Calculate statistics
+        const completedLessons = lessons.filter(lesson => lesson.status === 'DONE').length;
+        const activeLessons = lessons.filter(lesson => lesson.status === 'ACTIVE').length;
+        const queuedLessons = lessons.filter(lesson => lesson.status === 'QUEUED').length;
+
+        // Calculate subject performance if available
+        let subjectPerformance = profile?.subjectPerformance || {};
+        
+        // Calculate additional analytics
+        const analytics = {
+          lessonsCompleted: completedLessons,
+          lessonsActive: activeLessons,
+          lessonsQueued: queuedLessons,
+          totalLessons: lessons.length,
+          achievementsCount: achievements.length,
+          conceptsLearned: profile?.graph?.nodes?.length || 0,
+          progressRate: lessons.length > 0 ? (completedLessons / lessons.length) * 100 : 0,
+          subjectDistribution: {} as Record<string, number>
+        };
+
+        // Calculate subject distribution
+        lessons.forEach(lesson => {
+          if (lesson.subject) {
+            analytics.subjectDistribution[lesson.subject] = 
+              (analytics.subjectDistribution[lesson.subject] || 0) + 1;
+          }
+        });
+
+        res.json({
+          learner: learnerData,
+          profile,
+          analytics,
+          subjectPerformance,
+          reportGeneratedAt: new Date().toISOString()
+        });
+      } else if (reportType === 'lessons') {
+        const lessons = await storage.getLessonHistory(learnerId);
+        res.json({
+          lessons,
+          reportGeneratedAt: new Date().toISOString()
+        });
+      } else if (reportType === 'achievements') {
+        const achievements = await storage.getAchievements(learnerId);
+        res.json({
+          achievements,
+          reportGeneratedAt: new Date().toISOString()
+        });
+      } else {
+        return res.status(400).json({ error: "Invalid report type" });
+      }
+    } catch (error) {
+      console.error("Error generating report:", error);
+      return res.status(500).json({ error: "Failed to generate report" });
+    }
+  }));
+
   // Export learner data (for data portability)
   app.get("/api/export", hasRole(["PARENT", "ADMIN"]), asyncHandler(async (req: AuthRequest, res) => {
     if (!req.user) {
