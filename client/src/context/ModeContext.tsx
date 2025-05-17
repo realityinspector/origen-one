@@ -220,9 +220,9 @@ export const ModeProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.error('Cannot auto-select learner: Invalid first learner object', firstLearner);
           return;
         }
-      } else if (!selectedLearner) {
+      } else if (!selectedLearner && (!availableLearners || availableLearners.length === 0)) {
         console.log('Cannot switch to learner mode: no learners available');
-        return;
+        // Continue anyway to allow navigation to /learners page where they can add learners
       }
     }
     
@@ -239,8 +239,14 @@ export const ModeProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     // Navigate to the appropriate dashboard
     if (newMode === 'LEARNER') {
-      console.log('Navigating to learner view');
-      safeNavigate('/learner');
+      // If no learners are available, direct to the learners management page
+      if (!selectedLearner && (!availableLearners || availableLearners.length === 0)) {
+        console.log('No learners available, navigating to learners page');
+        safeNavigate('/learners');
+      } else {
+        console.log('Navigating to learner view');
+        safeNavigate('/learner');
+      }
     } else {
       console.log('Navigating to dashboard');
       safeNavigate('/dashboard');
