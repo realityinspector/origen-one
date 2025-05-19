@@ -352,7 +352,7 @@ export function registerRoutes(app: Express): Server {
 
           await storage.createLearnerProfile({
             id: crypto.randomUUID(),
-            userId: newUser.id,
+            userId: newUser.id.toString(),
             gradeLevel,
             graph: { nodes: [], edges: [] },
           });
@@ -415,7 +415,7 @@ export function registerRoutes(app: Express): Server {
 
             await storage.createLearnerProfile({
               id: crypto.randomUUID(),
-              userId: newUser.id,
+              userId: newUser.id.toString(),
               gradeLevel,
               graph: { nodes: [], edges: [] },
             });
@@ -495,7 +495,7 @@ export function registerRoutes(app: Express): Server {
         // If no profile exists, create one - but we need to check first if the user exists
         if (!profile) {
           // Get the user to verify they exist
-          const user = await storage.getUser(userId);
+          const user = await storage.getUser(userId.toString());
 
           if (!user) {
             return res.status(404).json({ error: "User not found" });
@@ -506,7 +506,7 @@ export function registerRoutes(app: Express): Server {
           // Create a default profile with grade level 5 and a generated ID
           profile = await storage.createLearnerProfile({
             id: crypto.randomUUID(), // Add a UUID for the ID field
-            userId: Number(userId),
+            userId: userId.toString(), // Convert number to string
             gradeLevel: 5,  // Default to grade 5
             graph: { nodes: [], edges: [] },
             subjects: ['Math', 'Reading', 'Science'],
@@ -617,7 +617,7 @@ export function registerRoutes(app: Express): Server {
 
         const insertResult = await pool.query(createQuery, [
           newProfileId,
-          Number(userId),
+          userId,
           gradeLevelNum || 5, // Default to grade 5
           JSON.stringify(graphValue),
           JSON.stringify(subjectsValue),
@@ -631,7 +631,7 @@ export function registerRoutes(app: Express): Server {
           // Convert database row to expected profile format
           return res.json({
             id: insertResult.rows[0].id,
-            userId: Number(userId),
+            userId: userId,
             gradeLevel: insertResult.rows[0].grade_level,
             graph: typeof insertResult.rows[0].graph === 'string' ? 
               JSON.parse(insertResult.rows[0].graph) : insertResult.rows[0].graph || { nodes: [], edges: [] },
@@ -756,7 +756,7 @@ export function registerRoutes(app: Express): Server {
         }
 
         const updateParams = [
-          Number(userId),
+          userId,
           gradeLevelNum !== undefined ? gradeLevelNum : existingProfile.grade_level,
           JSON.stringify(graphValue),
           JSON.stringify(subjectsValue),
@@ -787,7 +787,7 @@ export function registerRoutes(app: Express): Server {
           const profile = updateResult.rows[0];
           return res.json({
             id: profile.id,
-            userId: Number(userId),
+            userId: userId,
             gradeLevel: profile.grade_level,
             graph: typeof profile.graph === 'string' ? 
               JSON.parse(profile.graph) : profile.graph || { nodes: [], edges: [] },
@@ -1006,7 +1006,7 @@ export function registerRoutes(app: Express): Server {
             // Create the lesson with enhanced spec
             const newLesson = await storage.createLesson({
               id: crypto.randomUUID(),
-              learnerId: targetLearnerId.toString(),
+              learnerId: Number(targetLearnerId),
               moduleId: "custom-" + Date.now(),
               status: "ACTIVE",
               subject: finalSubject,
