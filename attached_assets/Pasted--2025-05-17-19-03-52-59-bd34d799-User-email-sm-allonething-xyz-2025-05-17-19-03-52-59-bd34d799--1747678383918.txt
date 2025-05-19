@@ -1,0 +1,113 @@
+,
+2025-05-17 19:03:52.59
+bd34d799
+User
+email: 'sm@allonething.xyz',
+2025-05-17 19:03:52.59
+bd34d799
+User
+username: 'realityinspector',
+2025-05-17 19:03:52.59
+bd34d799
+User
+name: 'Sean McDonald',
+2025-05-17 19:03:52.59
+bd34d799
+User
+role: 'ADMIN',
+2025-05-17 19:03:52.59
+bd34d799
+User
+password: '954d7f3808d1139d46ec12d0acf8c3c41bce809c89623505d78a53ca5d53c587b9790cbe6579278412e1ad6b7560fddffb5e12c28b23be761f01e1da14a13c53.6c5b02558248de086915fc48f9efafe7',
+2025-05-17 19:03:52.59
+bd34d799
+User
+parentId: null,
+2025-05-17 19:03:52.59
+bd34d799
+User
+createdAt: 2025-05-15T18:37:13.051Z
+2025-05-17 19:03:52.59
+bd34d799
+User
+}
+2025-05-17 19:03:52.59
+bd34d799
+User
+Query params: [Object: null prototype] {}
+2025-05-17 19:03:52.59
+bd34d799
+User
+Admin getting all learners
+2025-05-17 19:03:52.67
+bd34d799
+User
+Found 4 learners
+2025-05-17 19:03:58.76
+bd34d799
+User
+dataType: undefined,
+2025-05-17 19:03:58.76
+bd34d799
+User
+constraint: undefined,
+2025-05-17 19:03:58.76
+bd34d799
+User
+file: 'numutils.c',
+2025-05-17 19:03:58.76
+bd34d799
+User
+line: '617',
+2025-05-17 19:03:58.76
+bd34d799
+User
+routine: 'pg_strtoint32_safe'
+2025-05-17 19:03:58.76
+bd34d799
+User
+}
+2025-05-17 19:03:59.84
+bd34d799
+User
+HTTP proxy: Forwarding GET request to /api/learner-profile/:userId
+2025-05-17 19:04:00.10
+bd34d799
+User
+Searching for learner profile with userId: :userId (type: string)
+2025-05-17 19:04:00.16
+bd34d799
+User
+Error in getLearnerProfile: error: invalid input syntax for type integer: ":userId"
+2025-05-17 19:04:00.16
+bd34d799
+User
+at /home/runner/workspace/node_modules/@neondatabase/serverless/index.js:1081:33
+2025-05-17 19:04:00.16
+bd34d799
+User
+at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2025-05-17 19:04:00.16
+bd34d799
+User
+at async DatabaseStorage.getLearnerProfile (/home/runner/workspace/dist/server/storage.js:194:28)
+2025-05-17 19:04:00.16
+bd34d799
+User
+at async /home/runner/workspace/dist/server/routes.js:386:31 {
+2025-05-17 19:04:00.16
+bd34d799
+User
+length: 150,
+2025-05-17 19:04:00.16
+bd34d799
+User
+severity: 'ERROR',
+2025-05-17 19:04:00.16
+bd34d799
+User
+code: '22P02',
+2025-05-17 19:04:00.16
+bd34d799
+User
+detail: undefined,
