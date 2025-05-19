@@ -39,6 +39,17 @@ export async function checkDatabaseConnection() {
   }
 }
 
+// Set up a global keep-alive ping
+const KEEP_ALIVE_INTERVAL = 60000; // 1 minute
+setInterval(async () => {
+  try {
+    await pool.query('SELECT 1');
+    console.debug('Keep-alive ping successful');
+  } catch (error) {
+    console.error('Keep-alive ping failed:', error);
+  }
+}, KEEP_ALIVE_INTERVAL);
+
 // Initialize the Drizzle ORM with the pool
 export const db = drizzle(pool, { schema });
 
