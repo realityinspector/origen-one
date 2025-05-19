@@ -6,6 +6,22 @@ function fixRoutesFile() {
   const routesPath = path.join(process.cwd(), 'server/routes.ts');
   let content = fs.readFileSync(routesPath, 'utf8');
 
+  // Fix template literal syntax
+  content = content.replace(/`(.*?)\${(.*?)}\${(.*?)}`/g, '`$1${$2}${$3}`');
+  content = content.replace(/`(.*?)\${(.*?)}`/g, '`$1${$2}`');
+
+  // Fix string concatenation 
+  content = content.replace(/\)\s*\{/g, ') {');
+  content = content.replace(/(\w+):\s*`([^`]+)`([^\n,])/g, '$1: `$2`$3,');
+
+  fs.writeFileSync(routesPath, content);
+  console.log('Fixed TypeScript syntax in routes.ts');
+}
+
+fixRoutesFile();
+  const routesPath = path.join(process.cwd(), 'server/routes.ts');
+  let content = fs.readFileSync(routesPath, 'utf8');
+
   // Fix template literal syntax and missing commas
   content = content.replace(/`([^`]*)\$\{([^}]*)\}\$([^`]*)`/g, '`$1${$2}$3`');
   content = content.replace(/\+ '([^']*)'/g, "+ '$1'");
