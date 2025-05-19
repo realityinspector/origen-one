@@ -5,6 +5,7 @@ exports.checkForAchievements = checkForAchievements;
 const ai_1 = require("./services/ai");
 // Grade level topics for lesson generation
 const gradeTopics = {
+    0: ["Alphabet", "Counting", "Colors", "Shapes", "Animals"],
     1: ["Numbers", "Letters", "Colors", "Shapes"],
     2: ["Addition", "Subtraction", "Reading", "Time"],
     3: ["Multiplication", "Division", "Geography", "Science"],
@@ -13,54 +14,109 @@ const gradeTopics = {
     6: ["Algebra", "Literature", "Ancient Civilizations", "Ecosystems"],
     7: ["Geometry", "Poetry", "World Geography", "Chemistry"],
     8: ["Statistics", "Essay Writing", "American History", "Biology"],
+    9: ["Algebra II", "World Literature", "World History", "Biology II"],
+    10: ["Trigonometry", "American Literature", "European History", "Chemistry"],
+    11: ["Pre-Calculus", "British Literature", "Economics", "Physics"],
+    12: ["Calculus", "Advanced Literature", "Government", "Advanced Science"]
 };
 const flags_1 = require("./config/flags");
-// Function to generate a lesson based on grade level and topic
-async function generateLesson(gradeLevel, topic) {
-    // Check if we should use AI or static content based on feature flag
-    if (flags_1.USE_AI) {
-        try {
-            // Default to grade 3 if outside of range
-            const safeGradeLevel = gradeLevel >= 1 && gradeLevel <= 8 ? gradeLevel : 3;
-            // Select a random topic if none provided
-            const availableTopics = gradeTopics[safeGradeLevel];
-            const selectedTopic = topic || availableTopics[Math.floor(Math.random() * availableTopics.length)];
-            // Create async calls for both content and questions
-            const contentPromise = (0, ai_1.generateLessonContent)(safeGradeLevel, selectedTopic);
-            const questionsPromise = (0, ai_1.generateQuizQuestions)(safeGradeLevel, selectedTopic, 5);
-            const graphPromise = (0, ai_1.generateKnowledgeGraph)(selectedTopic, safeGradeLevel);
-            // Wait for all to complete
-            const [content, questions, graph] = await Promise.all([contentPromise, questionsPromise, graphPromise]);
-            // Return the lesson spec
-            return {
-                title: `${selectedTopic} for Grade ${safeGradeLevel}`,
-                content: content,
-                questions: questions,
-                graph: graph
-            };
-        }
-        catch (error) {
-            console.error('Error generating lesson with AI:', error);
-            // Fall back to static content in case of AI service failure
-            return generateStaticLesson(gradeLevel, topic);
-        }
+/**
+ * Formats an enhanced lesson spec into a standard content format
+ * This allows enhanced lessons to be displayed in clients that don't support the full enhanced format
+ */
+function formatEnhancedContentForStandardSpec(enhancedSpec) {
+    // Start with the title and summary
+    let formattedContent = `# ${enhancedSpec.title}\n\n`;
+    if (enhancedSpec.subtitle) {
+        formattedContent += `## ${enhancedSpec.subtitle}\n\n`;
     }
-    else {
+    formattedContent += `${enhancedSpec.summary}\n\n`;
+    // Add each section
+    enhancedSpec.sections.forEach(section => {
+        formattedContent += `## ${section.title}\n\n${section.content}\n\n`;
+    });
+    // Add metadata at the end
+    formattedContent += `---\n\n`;
+    formattedContent += `**Keywords:** ${enhancedSpec.keywords.join(', ')}\n\n`;
+    formattedContent += `**Related Topics:** ${enhancedSpec.relatedTopics.join(', ')}\n\n`;
+    formattedContent += `**Estimated Duration:** ${enhancedSpec.estimatedDuration} minutes | `;
+    formattedContent += `**Difficulty:** ${enhancedSpec.difficultyLevel}\n`;
+    return formattedContent;
+}
+// Function to generate a lesson based on grade level and topic
+async function generateLesson(gradeLevel, topic, useEnhanced = true) {
+    // Check if we should use AI or static content based on feature flag
+    if (!flags_1.USE_AI) {
         // Use static content when USE_AI is disabled
         console.log('Using static lesson content (USE_AI=0)');
+        return generateStaticLesson(gradeLevel, topic);
+    }
+    try {
+        // Default to grade 3 if outside of range (0 = Kindergarten, 1-12 = grades 1-12)
+        const safeGradeLevel = gradeLevel >= 0 && gradeLevel <= 12 ? gradeLevel : 3;
+        // Select a random topic if none provided
+        const availableTopics = gradeTopics[safeGradeLevel];
+        const selectedTopic = topic || availableTopics[Math.floor(Math.random() * availableTopics.length)];
+        // If enhanced lessons are requested, try to generate one
+        if (useEnhanced) {
+            try {
+                console.log(`Attempting to generate enhanced lesson for "${selectedTopic}" (Grade ${safeGradeLevel})`);
+                const enhancedSpec = await (0, ai_1.generateEnhancedLesson)(safeGradeLevel, selectedTopic);
+                // Create a standard spec from the enhanced spec
+                const standardSpec = {
+                    title: enhancedSpec.title,
+                    content: formatEnhancedContentForStandardSpec(enhancedSpec),
+                    questions: enhancedSpec.questions,
+                    graph: enhancedSpec.graph,
+                    // Store the enhanced spec in the main spec for clients that support it
+                    enhancedSpec: enhancedSpec
+                };
+                console.log('Enhanced lesson generated successfully');
+                return standardSpec;
+            }
+            catch (enhancedError) {
+                // Log the error but don't give up - fall back to standard generation
+                console.error('Error generating enhanced lesson:', enhancedError);
+                console.log('Falling back to standard lesson generation');
+            }
+        }
+        else {
+            console.log('Standard lesson format requested, skipping enhanced generation');
+        }
+        // Create async calls for both content and questions using standard methods
+        const contentPromise = (0, ai_1.generateLessonContent)(safeGradeLevel, selectedTopic);
+        const questionsPromise = (0, ai_1.generateQuizQuestions)(safeGradeLevel, selectedTopic, 5);
+        const graphPromise = (0, ai_1.generateKnowledgeGraph)(selectedTopic, safeGradeLevel);
+        // Wait for all to complete
+        const [content, questions, graph] = await Promise.all([contentPromise, questionsPromise, graphPromise]);
+        // Check if content is a string (from legacy generator) or an EnhancedLessonSpec (from enhanced generator)
+        const formattedContent = typeof content === 'string'
+            ? content
+            : formatEnhancedContentForStandardSpec(content);
+        // Return the lesson spec
+        return {
+            title: `${selectedTopic} for ${safeGradeLevel === 0 ? 'Kindergarten' : `Grade ${safeGradeLevel}`}`,
+            content: formattedContent,
+            questions: questions,
+            graph: graph
+        };
+    }
+    catch (error) {
+        console.error('Error generating lesson with AI:', error);
+        // Fall back to static content in case of AI service failure
         return generateStaticLesson(gradeLevel, topic);
     }
 }
 // Fallback function that provides static content if AI fails
 function generateStaticLesson(gradeLevel, topic) {
-    // Default to grade 3 if outside of range
-    const safeGradeLevel = gradeLevel >= 1 && gradeLevel <= 8 ? gradeLevel : 3;
+    // Default to grade 3 if outside of range (0 = Kindergarten, 1-12 = grades 1-12)
+    const safeGradeLevel = gradeLevel >= 0 && gradeLevel <= 12 ? gradeLevel : 3;
     // Select a random topic if none provided
     const availableTopics = gradeTopics[safeGradeLevel];
     const selectedTopic = topic || availableTopics[Math.floor(Math.random() * availableTopics.length)];
     // Generate basic lesson content
     const lessonContent = `
-    # ${selectedTopic} for Grade ${safeGradeLevel}
+    # ${selectedTopic} for ${safeGradeLevel === 0 ? 'Kindergarten' : `Grade ${safeGradeLevel}`}
     
     Today we're going to learn about ${selectedTopic.toLowerCase()}.
     
@@ -86,14 +142,25 @@ function generateStaticLesson(gradeLevel, topic) {
         ]
     };
     return {
-        title: `${selectedTopic} for Grade ${safeGradeLevel}`,
+        title: `${selectedTopic} for ${safeGradeLevel === 0 ? 'Kindergarten' : `Grade ${safeGradeLevel}`}`,
         content: lessonContent,
         questions: questions,
         graph: graph
     };
 }
 function getStaticContentForTopic(topic, gradeLevel) {
-    // Static content that doesn't rely on AI
+    // Special formatting for Kindergarten
+    if (gradeLevel === 0) {
+        const kindergartenContent = {
+            "Alphabet": "A is for Apple. B is for Ball. C is for Cat.\n\nLetters make sounds. We use letters to make words!",
+            "Counting": "Let's count together! 1, 2, 3, 4, 5.\n\nWe can count fingers. We can count toes. Counting is fun!",
+            "Colors": "Red like an apple. Blue like the sky. Yellow like the sun.\n\nColors are all around us!",
+            "Shapes": "Circle like a ball. Square like a box. Triangle has three sides.\n\nShapes are fun to find!",
+            "Animals": "Dogs say 'woof'. Cats say 'meow'. Cows say 'moo'.\n\nAnimals are our friends!"
+        };
+        return kindergartenContent[topic] || `Let's learn about ${topic.toLowerCase()} together!`;
+    }
+    // Static content that doesn't rely on AI (for grades 1-12)
     const contentMap = {
         "Numbers": "Numbers are the building blocks of mathematics. We use them to count, measure, and understand the world around us.",
         "Letters": "Letters are symbols that represent sounds in our language. When we put letters together, we create words.",
@@ -122,6 +189,96 @@ function getStaticContentForTopic(topic, gradeLevel) {
 function generateStaticQuizQuestions(topic, gradeLevel) {
     // Static questions that don't rely on AI
     const questions = [];
+    // Kindergarten-specific simpler questions with fewer options
+    if (gradeLevel === 0) {
+        switch (topic) {
+            case "Alphabet":
+                questions.push({
+                    text: "Which letter makes the 'mmm' sound?",
+                    options: ["A", "M", "Z"],
+                    correctIndex: 1,
+                    explanation: "M makes the 'mmm' sound like in 'mommy' and 'mouse'."
+                });
+                questions.push({
+                    text: "Which picture starts with the letter B?",
+                    options: ["Apple", "Ball", "Cat"],
+                    correctIndex: 1,
+                    explanation: "Ball starts with the letter B."
+                });
+                break;
+            case "Counting":
+                questions.push({
+                    text: "Count the stars: ★ ★ ★. How many stars?",
+                    options: ["2", "3", "4"],
+                    correctIndex: 1,
+                    explanation: "There are 3 stars."
+                });
+                questions.push({
+                    text: "What number comes after 2?",
+                    options: ["1", "3", "5"],
+                    correctIndex: 1,
+                    explanation: "3 comes after 2."
+                });
+                break;
+            case "Colors":
+                questions.push({
+                    text: "What color is the sky on a sunny day?",
+                    options: ["Red", "Blue", "Green"],
+                    correctIndex: 1,
+                    explanation: "The sky is blue on a sunny day."
+                });
+                questions.push({
+                    text: "What color are bananas?",
+                    options: ["Yellow", "Purple", "Orange"],
+                    correctIndex: 0,
+                    explanation: "Bananas are yellow."
+                });
+                break;
+            case "Shapes":
+                questions.push({
+                    text: "Which shape is round like a ball?",
+                    options: ["Square", "Circle", "Triangle"],
+                    correctIndex: 1,
+                    explanation: "A circle is round like a ball."
+                });
+                questions.push({
+                    text: "Which shape has 3 sides?",
+                    options: ["Circle", "Square", "Triangle"],
+                    correctIndex: 2,
+                    explanation: "A triangle has 3 sides."
+                });
+                break;
+            case "Animals":
+                questions.push({
+                    text: "Which animal says 'meow'?",
+                    options: ["Dog", "Cat", "Fish"],
+                    correctIndex: 1,
+                    explanation: "Cats say 'meow'."
+                });
+                questions.push({
+                    text: "Which animal has a very long neck?",
+                    options: ["Elephant", "Giraffe", "Monkey"],
+                    correctIndex: 1,
+                    explanation: "Giraffes have very long necks."
+                });
+                break;
+            default:
+                questions.push({
+                    text: `What do you like about ${topic}?`,
+                    options: ["It's fun!", "It's interesting!", "It's colorful!"],
+                    correctIndex: 0,
+                    explanation: `${topic} is really fun to learn about!`
+                });
+                questions.push({
+                    text: `Can you name something about ${topic}?`,
+                    options: ["Yes!", "Maybe!", "I'll try!"],
+                    correctIndex: 0,
+                    explanation: `Great job thinking about ${topic}!`
+                });
+        }
+        return questions;
+    }
+    // Regular questions for grades 1-12
     // Generate a few sample questions based on topic
     switch (topic) {
         case "Numbers":
