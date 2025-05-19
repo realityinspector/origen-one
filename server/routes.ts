@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { setupAuth } from "./auth";
 import { storage } from "./storage";
 import { generateLesson, checkForAchievements } from "./utils";
-import { asyncHandler, authenticateJwt, hasRoleMiddleware, AuthRequest, comparePasswords, generateToken } from "./middleware/auth";
+import { asyncHandler, authenticateJwt, hasRoleMiddleware, AuthRequest, comparePasswords, generateToken, hashPassword } from "./middleware/auth";
 import { synchronizeToExternalDatabase } from "./sync-utils";
 import { InsertDbSyncConfig } from "../shared/schema";
 import { USE_AI } from "./config/flags";
@@ -79,7 +79,7 @@ export function registerRoutes(app: Express): Server {
 
     try {
       console.log("Starting user registration process for:", username);
-      
+
       // Check if username already exists
       console.log("Checking if username exists:", username);
       const existingUser = await storage.getUserByUsername(username);
@@ -97,12 +97,13 @@ export function registerRoutes(app: Express): Server {
       const effectiveRole = isFirstUser ? "ADMIN" : role;
 
       // Create the user
+      const hashedPassword = await hashPassword(password);
       const user = await storage.createUser({
         username,
         email,
         name,
         role: effectiveRole,
-        password,
+        password: hashedPassword,
         parentId: parentId || null
       });
 
@@ -132,7 +133,7 @@ export function registerRoutes(app: Express): Server {
 
       res.status(200)
          .json(response);
-         
+
       console.log("=================== REGISTRATION SUCCESS ===================");
     } catch (error) {
       console.error('Registration error:', {
@@ -141,7 +142,7 @@ export function registerRoutes(app: Express): Server {
         stack: error.stack,
         code: error.code
       });
-      
+
       console.log("=================== REGISTRATION FAILED ===================");
       res.status(500).json({ error: "Registration failed", details: error.message });
     }
