@@ -5,7 +5,7 @@ channel = "stable-24_05"
 packages = ["tree"]
 
 [workflows]
-runButton = "Project"
+runButton = "Start Server"
 
 [[workflows.workflow]]
 name = "Project"
@@ -84,6 +84,15 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node scripts/fix-deployment-issues.js"
+
+[[workflows.workflow]]
+name = "Start Server"
+author = 42064034
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "NODE_ENV=development SESSION_SECRET=test-secret PORT=5000 HOST=0.0.0.0 TS_NODE_TRANSPILE_ONLY=true npx ts-node scripts/dev.ts"
 
 [deployment]
 run = ["sh", "-c", "NODE_ENV=production PORT=5000 HOST=0.0.0.0 node dist/server/index.js"]
