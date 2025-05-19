@@ -798,7 +798,8 @@ export function registerRoutes(app: Express): Server {
             recommendedSubjects: typeof profile.recommended_subjects === 'string' ? 
               JSON.parse(profile.recommended_subjects) : profile.recommended_subjects || [],
             strugglingAreas: typeof profile.struggling_areas === 'string' ? 
-              JSON.parse(profile.struggling_areas) : profile.struggling_areas || [],
+              JSON.parse(profile.struggling_areas) : profile.struggling_areas ||```text
+ [],
             createdAt: profile.created_at
           });
         } else {
@@ -1007,7 +1008,7 @@ export function registerRoutes(app: Express): Server {
             // Create the lesson with enhanced spec
             const newLesson = await storage.createLesson({
               id: crypto.randomUUID(),
-              learnerId: Number(targetLearnerId),
+              learnerId: targetLearnerId.toString(),
               moduleId: `custom-${Date.now()}`,
               status: "ACTIVE",
               subject: finalSubject,
