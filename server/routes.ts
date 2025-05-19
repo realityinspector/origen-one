@@ -798,7 +798,7 @@ export function registerRoutes(app: Express): Server {
             recommendedSubjects: typeof profile.recommended_subjects === 'string' ? 
               JSON.parse(profile.recommended_subjects) : profile.recommended_subjects || [],
             strugglingAreas: typeof profile.struggling_areas === 'string' ? 
-              JSON.parse(profile.struggling_areas) : profile.strugges || [],
+              JSON.parse(profile.struggling_areas) : profile.struggling_areas || [],
             createdAt: profile.created_at
           });
         } else {
@@ -963,7 +963,7 @@ export function registerRoutes(app: Express): Server {
         finalCategory = getSubjectCategory(finalSubject);
       }
 
-      console.log(`Generating lesson for "${topic}" (Grade ${gradeLevel}), Subject: ${finalSubject}, Category: ${finalCategory}`);
+      console.log("Generating varied lesson on " + subject + ": " + category);
 
       let lessonSpec;
       let imagePaths = [];
@@ -1033,9 +1033,9 @@ export function registerRoutes(app: Express): Server {
         title: topic || `${finalSubject || 'Sample'} Lesson`,
         content: `# ${topic || finalSubject || 'Sample'} Lesson\n\nThis is a lesson about ${topic || finalSubject || 'a sample topic'}`,
         questions: [{
-          text: `What is this lesson about?`,
+          text: "What is this lesson about?",
           options: [
-            `${topic || finalSubject || 'A sample topic'}`,
+            topic || finalSubject || 'A sample topic',
             "Something else",
             "I don't know",
             "None of the above"
@@ -1228,7 +1228,7 @@ export function registerRoutes(app: Express): Server {
           lessonSpec = await generateLesson(learnerProfile.gradeLevel);
         } else {
           // Generate varied lessons when AI is disabled
-          console.log(`Generating varied lesson on ${subject}: ${category}`);
+          console.log("Generating varied lesson on " + subject + ": " + category);
 
           // Create detailed, educational SVG images based on the subject
           const svgImageData = getSubjectSVG(subject, category);
