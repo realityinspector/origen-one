@@ -475,10 +475,11 @@ export function registerRoutes(app: Express): Server {
   // Get learner profile (create if needed)
   app.get("/api/learner-profile/:userId", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
     const userIdParam = req.params.userId;
-    const userId = userIdParam;
+    // Convert userIdParam to number since database expects integer
+    const userId = parseInt(userIdParam, 10);
 
-    if (!userId) {
-        return res.status(400).json({ error: "Invalid user ID format" });
+    if (isNaN(userId)) {
+        return res.status(400).json({ error: "Invalid user ID format - must be a number" });
     }
 
     // Admins can view any profile, parents can view their children, learners can view their own
