@@ -93,11 +93,21 @@ export function registerRoutes(app: Express): Server {
       // Remove password from response
       const { password: _, ...userWithoutPassword } = user;
 
-      res.json({
+      // Ensure proper JSON response
+      const response = {
         token,
-        user: userWithoutPassword,
-        wasPromotedToAdmin: isFirstUser
+        user: userWithoutPassword
+      };
+
+      // Log response before sending
+      console.log("Sending registration response:", {
+        status: 200,
+        contentType: 'application/json',
+        responseLength: JSON.stringify(response).length
       });
+
+      res.status(200)
+         .json(response);
     } catch (error) {
       console.error('Registration error:', error);
       res.status(500).json({ error: "Registration failed", details: error.message });
