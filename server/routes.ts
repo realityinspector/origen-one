@@ -49,8 +49,22 @@ export function registerRoutes(app: Express): Server {
 
   // Root-level registration handler
   app.post("/register", asyncHandler(async (req: Request, res: Response) => {
-    console.log("Direct registration request received");
+    console.log("=================== REGISTRATION START ===================");
+    console.log("Registration request details:", {
+      url: req.url,
+      method: req.method,
+      headers: req.headers,
+      contentType: req.headers['content-type'],
+      acceptHeader: req.headers['accept']
+    });
+
+    // Log request body without password
+    const { password: _, ...safeBody } = req.body;
+    console.log("Request body:", safeBody);
+
+    // Ensure proper headers
     res.setHeader('Content-Type', 'application/json');
+    console.log("Response headers set:", res.getHeaders());
 
     const { username, email, name, role, password, parentId } = req.body;
 
@@ -64,11 +78,16 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
+      console.log("Starting user registration process for:", username);
+      
       // Check if username already exists
+      console.log("Checking if username exists:", username);
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
+        console.log("Username already exists:", username);
         return res.status(400).json({ error: "Username already exists" });
       }
+      console.log("Username is available");
 
       // Check if this is the first user being registered
       const userCountResult = await db.select({ count: count() }).from(users);
@@ -106,10 +125,24 @@ export function registerRoutes(app: Express): Server {
         responseLength: JSON.stringify(response).length
       });
 
+      console.log("Preparing successful registration response:", {
+        status: 200,
+        responseData: { ...response, token: 'REDACTED' }
+      });
+
       res.status(200)
          .json(response);
+         
+      console.log("=================== REGISTRATION SUCCESS ===================");
     } catch (error) {
-      console.error('Registration error:', error);
+      console.error('Registration error:', {
+        name: error.name,
+        message: error.message,
+        stack: error.stack,
+        code: error.code
+      });
+      
+      console.log("=================== REGISTRATION FAILED ===================");
       res.status(500).json({ error: "Registration failed", details: error.message });
     }
   }));
