@@ -47,6 +47,62 @@ export function registerRoutes(app: Express): Server {
     res.json({ status: "ok", message: "Server is running" });
   });
 
+  // Root-level registration handler
+  app.post("/register", asyncHandler(async (req: Request, res: Response) => {
+    console.log("Direct registration request received");
+    
+    const { username, email, name, role, password, parentId } = req.body;
+    
+    if (!username || !email || !name || !role || !password) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Verify role is valid
+    if (!["ADMIN", "PARENT", "LEARNER"].includes(role)) {
+      return res.status(400).json({ error: "Invalid role" });
+    }
+
+    try {
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ error: "Username already exists" });
+      }
+
+      // Check if this is the first user being registered
+      const userCountResult = await db.select({ count: count() }).from(users);
+      const isFirstUser = userCountResult[0].count === 0;
+
+      // If this is the first user, make them an admin regardless of the requested role
+      const effectiveRole = isFirstUser ? "ADMIN" : role;
+      
+      // Create the user
+      const user = await storage.createUser({
+        username,
+        email,
+        name,
+        role: effectiveRole,
+        password,
+        parentId: parentId || null
+      });
+
+      // Generate JWT token
+      const token = generateToken({ id: user.id, role: user.role });
+      
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
+      
+      res.json({
+        token,
+        user: userWithoutPassword,
+        wasPromotedToAdmin: isFirstUser
+      });
+    } catch (error) {
+      console.error('Registration error:', error);
+      res.status(500).json({ error: "Registration failed", details: error.message });
+    }
+  }));
+
   // Special API route to handle the root-level login/register/user for production deployment
   app.post("/login", asyncHandler(async (req: Request, res: Response) => {
     console.log("Proxy: Forwarding login request to /api/login");
