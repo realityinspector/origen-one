@@ -96,7 +96,7 @@ export function registerRoutes(app: Express): Server {
       // If this is the first user, make them an admin regardless of the requested role
       const effectiveRole = isFirstUser ? "ADMIN" : role;
 
-      // Create the user
+      // Hash password and create user
       const hashedPassword = await hashPassword(password);
       const user = await storage.createUser({
         username,
