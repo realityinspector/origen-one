@@ -160,14 +160,14 @@ export function registerRoutes(app: Express): Server {
     try {
       // Email is optional for learners
       let email = req.body.email;
-      
+
       // If email is provided, validate it
       if (email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
           return res.status(400).json({ error: "Invalid email format" });
         }
-        
+
         // Check if email already exists - first check by username
         const existingUserByUsername = await storage.getUserByUsername(email);
         if (existingUserByUsername) {
@@ -380,7 +380,12 @@ export function registerRoutes(app: Express): Server {
 
   // Get learner profile (create if needed)
   app.get("/api/learner-profile/:userId", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
-    const userId = req.params.userId;
+    const userIdParam = req.params.userId;
+    const userId = userIdParam;
+
+    if (!userId) {
+        return res.status(400).json({ error: "Invalid user ID format" });
+    }
 
     // Admins can view any profile, parents can view their children, learners can view their own
     if (
@@ -396,13 +401,13 @@ export function registerRoutes(app: Express): Server {
         if (!profile) {
           // Get the user to verify they exist
           const user = await storage.getUser(userId);
-          
+
           if (!user) {
             return res.status(404).json({ error: "User not found" });
           }
 
           console.log(`Creating learner profile for user ${userId} with role ${user.role}`);
-          
+
           // Create a default profile with grade level 5 and a generated ID
           profile = await storage.createLearnerProfile({
             id: crypto.randomUUID(), // Add a UUID for the ID field
@@ -414,7 +419,7 @@ export function registerRoutes(app: Express): Server {
             recommendedSubjects: [],
             strugglingAreas: []
           });
-          
+
           if (!profile) {
             return res.status(500).json({ error: "Failed to create learner profile" });
           }
@@ -1264,7 +1269,7 @@ export function registerRoutes(app: Express): Server {
 
         // Calculate subject performance if available
         let subjectPerformance = profile?.subjectPerformance || {};
-        
+
         // Calculate additional analytics
         const analytics = {
           lessonsCompleted: completedLessons,
