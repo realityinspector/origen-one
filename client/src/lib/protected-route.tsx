@@ -22,8 +22,8 @@ export function ProtectedRoute({
     );
   }
 
-  if (!user) {
-    console.log(`ProtectedRoute: User not authenticated, redirecting to auth from ${path}`);
+  // Not logged in, redirect to auth
+  if (!user || !user.id) {
     return (
       <Route path={path}>
         <Redirect to="/auth" />
@@ -31,9 +31,12 @@ export function ProtectedRoute({
     );
   }
 
-  return (
-    <Route path={path}>
-      <Component />
-    </Route>
-  );
+  // Allow access if user is authenticated, even with 0 learners
+  if (user.role === 'PARENT' || user.role === 'ADMIN') {
+    return (
+      <Route path={path}>
+        {(params) => <Component params={params} />}
+      </Route>
+    );
+  }
 }
