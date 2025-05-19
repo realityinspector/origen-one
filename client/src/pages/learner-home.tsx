@@ -159,14 +159,24 @@ const LearnerHome = () => {
   const handleGenerateLesson = (subject?: { name: string; category: string; difficulty: 'beginner' | 'intermediate' | 'advanced' }) => {
     if (!user || !profile) return;
 
-    // Only pass the basic properties required by the API
+    // If no subject specified, pick a random one from the learner's subjects
+    let selectedSubject = subject;
+    if (!selectedSubject && profile.subjects && profile.subjects.length > 0) {
+      const randomSubject = profile.subjects[Math.floor(Math.random() * profile.subjects.length)];
+      selectedSubject = {
+        name: randomSubject,
+        category: 'General', // Default category
+        difficulty: 'beginner'
+      };
+    }
+
     generateLessonMutation.mutate({
       learnerId: user.id,
-      topic: subject?.name || '', // Use selected subject or empty for auto-selection
+      topic: selectedSubject?.name || 'Math', // Fallback to Math if no subjects available
       gradeLevel: profile.gradeLevel,
-      subject: subject?.name || '',
-      category: subject?.category || '',
-      difficulty: subject?.difficulty || 'beginner'
+      subject: selectedSubject?.name || 'Math',
+      category: selectedSubject?.category || 'General',
+      difficulty: selectedSubject?.difficulty || 'beginner'
     });
   };
 
