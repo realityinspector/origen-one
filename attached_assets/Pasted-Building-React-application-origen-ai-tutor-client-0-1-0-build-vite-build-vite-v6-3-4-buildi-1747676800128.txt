@@ -1,0 +1,141 @@
+Building React application...
+
+> origen-ai-tutor-client@0.1.0 build
+> vite build
+
+vite v6.3.4 building for production...
+✓ 771 modules transformed.
+dist/index.html                    1.37 kB │ gzip:   0.74 kB
+dist/assets/index-wtGaGS0T.js  1,023.56 kB │ gzip: 256.24 kB │ map: 3,519.26 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 4.90s
+React build successful!
+Starting the server...
+Client dist path: /home/runner/workspace/client/dist
+Server running on http://0.0.0.0:5000
+Serving index from: /home/runner/workspace/client/dist/index.html
+=================== REGISTRATION START ===================
+Registration request details: {
+  url: '/register',
+  method: 'POST',
+  headers: {
+    host: 'f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev',
+    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    'content-length': '127',
+    accept: 'application/json',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'accept-language': 'en-US,en;q=0.9',
+    'content-type': 'application/json',
+    origin: 'https://f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev:5000',
+    referer: 'https://f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev:5000/auth',
+    'sec-ch-ua': '"Chromium";v="136", "Google Chrome";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"macOS"',
+    'sec-fetch-dest': 'empty',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-site': 'same-origin',
+    'sec-fetch-storage-access': 'active',
+    'x-forwarded-for': '198.44.129.82, 10.82.5.101',
+    'x-forwarded-proto': 'https',
+    'x-replit-user-bio': '',
+    'x-replit-user-id': '',
+    'x-replit-user-name': '',
+    'x-replit-user-profile-image': '',
+    'x-replit-user-roles': '',
+    'x-replit-user-teams': '',
+    'x-replit-user-url': ''
+  },
+  contentType: 'application/json',
+  acceptHeader: 'application/json'
+}
+Request body: {
+  username: 'courtney-demo',
+  email: 'ck+5@allonething.xyz',
+  name: 'Courtney Klein',
+  role: 'PARENT'
+}
+Response headers set: [Object: null prototype] {
+  'x-powered-by': 'Express',
+  'access-control-allow-origin': 'https://f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev:5000',
+  vary: 'Origin',
+  'access-control-allow-credentials': 'true',
+  'content-type': 'application/json'
+}
+Starting user registration process for: courtney-demo
+Checking if username exists: courtney-demo
+Looking for user with username: courtney-demo
+Username is available
+Registration error: {
+  name: 'ReferenceError',
+  message: 'count is not defined',
+  stack: 'ReferenceError: count is not defined\n' +
+    '    at /home/runner/workspace/server/routes.ts:93:56\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:95:5)',
+  code: undefined
+}
+=================== REGISTRATION FAILED ===================
+=================== REGISTRATION START ===================
+Registration request details: {
+  url: '/register',
+  method: 'POST',
+  headers: {
+    host: 'f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev',
+    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36',
+    'content-length': '135',
+    accept: 'application/json',
+    'accept-encoding': 'gzip, deflate, br, zstd',
+    'accept-language': 'en-US,en;q=0.9',
+    'content-type': 'application/json',
+    origin: 'https://f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev:5000',
+    referer: 'https://f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev:5000/auth',
+    'sec-ch-ua': '"Chromium";v="136", "Google Chrome";v="136", "Not.A/Brand";v="99"',
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': '"macOS"',
+    'sec-fetch-dest': 'empty',
+    'sec-fetch-mode': 'cors',
+    'sec-fetch-site': 'same-origin',
+    'sec-fetch-storage-access': 'active',
+    'x-forwarded-for': '198.44.129.82, 10.82.7.15',
+    'x-forwarded-proto': 'https',
+    'x-replit-user-bio': '',
+    'x-replit-user-id': '',
+    'x-replit-user-name': '',
+    'x-replit-user-profile-image': '',
+    'x-replit-user-roles': '',
+    'x-replit-user-teams': '',
+    'x-replit-user-url': ''
+  },
+  contentType: 'application/json',
+  acceptHeader: 'application/json'
+}
+Request body: {
+  username: 'courtney-demo-account',
+  email: 'ck+6@allonething.xyz',
+  name: 'Courtney Klein',
+  role: 'PARENT'
+}
+Response headers set: [Object: null prototype] {
+  'x-powered-by': 'Express',
+  'access-control-allow-origin': 'https://f3eb6172-42a7-44df-ab59-8b482d4a3e5d-00-1z17at3qu2wai.spock.replit.dev:5000',
+  vary: 'Origin',
+  'access-control-allow-credentials': 'true',
+  'content-type': 'application/json'
+}
+Starting user registration process for: courtney-demo-account
+Checking if username exists: courtney-demo-account
+Looking for user with username: courtney-demo-account
+Username is available
+Registration error: {
+  name: 'ReferenceError',
+  message: 'count is not defined',
+  stack: 'ReferenceError: count is not defined\n' +
+    '    at /home/runner/workspace/server/routes.ts:93:56\n' +
+    '    at processTicksAndRejections (node:internal/process/task_queues:95:5)',
+  code: undefined
+}
+=================== REGISTRATION FAILED ===================
+Keep-alive ping successful
