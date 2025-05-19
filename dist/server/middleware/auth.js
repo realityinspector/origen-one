@@ -39,7 +39,7 @@ function asyncHandler(fn) {
     };
 }
 const scryptAsync = (0, util_1.promisify)(crypto_1.scrypt);
-const JWT_SECRET = process.env.JWT_SECRET || 'origen-ai-tutor-jwt-secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'origen-secure-jwt-secret-for-development-5a5b2f8e6c7d';
 const JWT_EXPIRES_IN = '7d'; // 7 days
 // Password hashing and verification
 async function hashPassword(password) {
@@ -48,7 +48,15 @@ async function hashPassword(password) {
     return `${buf.toString("hex")}.${salt}`;
 }
 async function comparePasswords(supplied, stored) {
+    if (!stored || !stored.includes('.')) {
+        console.error('Invalid stored password format');
+        return false;
+    }
     const [hashed, salt] = stored.split(".");
+    if (!hashed || !salt) {
+        console.error('Invalid hash or salt');
+        return false;
+    }
     const hashedBuf = Buffer.from(hashed, "hex");
     const suppliedBuf = (await scryptAsync(supplied, salt, 64));
     return (0, crypto_1.timingSafeEqual)(hashedBuf, suppliedBuf);

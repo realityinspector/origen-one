@@ -1,9 +1,14 @@
 /**
  * AI Service Adapter
  *
- * This module provides a unified interface for the OpenRouter AI provider
- * with Llama models.
+ * This module provides a unified interface for AI services including:
+ * - OpenRouter for text generation
+ * - Stability AI for image generation
+ * - Enhanced lesson generation
  */
+import { generateEnhancedLesson } from './enhanced-lesson-service';
+import { EnhancedLessonSpec } from '../../shared/schema';
+export { generateEnhancedLesson };
 export type Message = {
     role: "system" | "user" | "assistant";
     content: string;
@@ -14,7 +19,7 @@ export type ChatOptions = {
     max_tokens?: number;
     response_format?: {
         type: 'json_schema';
-        json_schema: any;
+        schema: any;
     };
 };
 export interface ChatResponse {
@@ -42,8 +47,10 @@ export interface ChatResponse {
 export declare function chat(messages: Message[], options?: ChatOptions): Promise<string>;
 /**
  * Generate a lesson for a specific grade level and topic
+ * This function can either return a simple markdown string (legacy)
+ * or generate a full enhanced lesson if the enhanced parameter is true
  */
-export declare function generateLessonContent(gradeLevel: number, topic: string): Promise<string>;
+export declare function generateLessonContent(gradeLevel: number, topic: string, enhanced?: boolean): Promise<string | EnhancedLessonSpec>;
 /**
  * Generate quiz questions for a specific grade level and topic
  */

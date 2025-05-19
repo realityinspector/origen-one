@@ -2,13 +2,16 @@
 /**
  * AI Service Adapter
  *
- * This module provides a unified interface for the OpenRouter AI provider
- * with Llama models.
+ * This module provides a unified interface for AI services including:
+ * - OpenRouter for text generation
+ * - Stability AI for image generation
+ * - Enhanced lesson generation
  */
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.generateEnhancedLesson = void 0;
 exports.chat = chat;
 exports.generateLessonContent = generateLessonContent;
 exports.generateQuizQuestions = generateQuizQuestions;
@@ -16,6 +19,9 @@ exports.generateFeedback = generateFeedback;
 exports.generateKnowledgeGraph = generateKnowledgeGraph;
 const flags_1 = require("../config/flags");
 const axios_1 = __importDefault(require("axios"));
+const enhanced_lesson_service_1 = require("./enhanced-lesson-service");
+Object.defineProperty(exports, "generateEnhancedLesson", { enumerable: true, get: function () { return enhanced_lesson_service_1.generateEnhancedLesson; } });
+const prompts_1 = require("../prompts");
 const ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
 const HEADERS = (key) => ({
     "Content-Type": "application/json",
@@ -30,7 +36,7 @@ async function chat(messages, options = {}) {
     if (!flags_1.USE_AI) {
         throw new Error('AI generation is disabled (USE_AI=0)');
     }
-    const { model = "openai/gpt-4o", temperature = 0.8, max_tokens, response_format } = options;
+    const { model = "anthropic/claude-3-haiku", temperature = 0.7, max_tokens, response_format } = options;
     try {
         const { data } = await axios_1.default.post(ENDPOINT, { model, messages, temperature, max_tokens, stream: false, response_format }, { headers: HEADERS(process.env.OPENROUTER_API_KEY) });
         return data.choices[0].message.content;
@@ -42,24 +48,43 @@ async function chat(messages, options = {}) {
 }
 /**
  * Generate a lesson for a specific grade level and topic
+ * This function can either return a simple markdown string (legacy)
+ * or generate a full enhanced lesson if the enhanced parameter is true
  */
-async function generateLessonContent(gradeLevel, topic) {
+async function generateLessonContent(gradeLevel, topic, enhanced = false) {
     if (!flags_1.USE_AI) {
         throw new Error('AI generation is disabled (USE_AI=0)');
     }
+    // If enhanced mode requested, use the enhanced lesson generator
+    if (enhanced) {
+        try {
+            console.log(`Generating enhanced lesson about "${topic}" for grade ${gradeLevel}`);
+            const enhancedLesson = await (0, enhanced_lesson_service_1.generateEnhancedLesson)(gradeLevel, topic, true);
+            if (!enhancedLesson) {
+                throw new Error('Enhanced lesson generation failed');
+            }
+            return enhancedLesson;
+        }
+        catch (error) {
+            console.error("Error generating enhanced lesson:", error);
+            throw error;
+        }
+    }
+    // Legacy lesson generation (simple markdown)
     try {
-        const systemPrompt = `You are an educational assistant creating a lesson for grade ${gradeLevel} students on the topic of "${topic}".
-      Create a comprehensive, age-appropriate lesson with clear explanations, examples, and engaging content.
-      Format the lesson with markdown headings, bullet points, and emphasis where appropriate.`;
-        const userPrompt = `Please create a lesson about ${topic} suitable for grade ${gradeLevel} students.`;
+        console.log(`Generating legacy lesson about "${topic}" for grade ${gradeLevel}`);
         const messages = [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
+            { role: "system", content: prompts_1.LESSON_PROMPTS.LEGACY_LESSON(gradeLevel, topic) },
+            { role: "user", content: prompts_1.LESSON_PROMPTS.STANDARD_LESSON_USER(gradeLevel, topic) }
         ];
-        return await chat(messages, { temperature: 0.7 });
+        return await chat(messages, {
+            model: "anthropic/claude-3-haiku",
+            temperature: 0.7,
+            max_tokens: 1500
+        });
     }
     catch (error) {
-        console.error('Failed to generate lesson content:', error);
+        console.error("Error generating lesson content:", error);
         throw error;
     }
 }
@@ -71,35 +96,37 @@ async function generateQuizQuestions(gradeLevel, topic, questionCount = 5) {
         throw new Error('AI generation is disabled (USE_AI=0)');
     }
     try {
-        const systemPrompt = `You are an educational quiz creator making questions for grade ${gradeLevel} students on "${topic}".
-      Create ${questionCount} multiple-choice questions with 4 options each. Each question should have one correct answer.
-      Return the questions as a JSON array where each question has: text, options (array of strings), correctIndex (0-3), and explanation.`;
-        const userPrompt = `Create ${questionCount} quiz questions about ${topic} suitable for grade ${gradeLevel} students.`;
-        const messages = [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-        ];
-        const jsonSchema = {
+        // Define the JSON schema
+        const schema = {
             type: 'array',
             items: {
                 type: 'object',
                 properties: {
                     text: { type: 'string' },
                     options: { type: 'array', items: { type: 'string' } },
-                    correctIndex: { type: 'integer', minimum: 0, maximum: 3 },
+                    correctIndex: { type: 'integer' },
                     explanation: { type: 'string' }
                 },
-                required: ['text', 'options', 'correctIndex']
+                required: ['text', 'options', 'correctIndex', 'explanation']
             }
         };
+        const messages = [
+            { role: "system", content: prompts_1.QUIZ_PROMPTS.STANDARD_QUIZ(gradeLevel, topic) },
+            { role: "user", content: prompts_1.QUIZ_PROMPTS.STANDARD_QUIZ_USER(gradeLevel, topic, questionCount) }
+        ];
         const response = await chat(messages, {
-            temperature: 0.7,
-            response_format: { type: 'json_schema', json_schema: jsonSchema }
+            model: "anthropic/claude-3-haiku",
+            temperature: 0.5,
+            response_format: {
+                type: 'json_schema',
+                schema
+            }
         });
+        // Parse the JSON response
         return JSON.parse(response);
     }
     catch (error) {
-        console.error('Failed to generate quiz questions:', error);
+        console.error("Error generating quiz questions:", error);
         throw error;
     }
 }
@@ -111,27 +138,18 @@ async function generateFeedback(quizQuestions, userAnswers, score) {
         throw new Error('AI generation is disabled (USE_AI=0)');
     }
     try {
-        const systemPrompt = `You are an educational assistant providing feedback on a student's quiz performance.
-      The student scored ${score}% on a quiz. Analyze their answers and provide constructive, supportive feedback.
-      Focus on areas of improvement while celebrating correct answers. Format using markdown with headings and bullet points.`;
-        // Construct a detailed prompt with the questions and answers
-        let userPrompt = `Please provide personalized feedback on this quiz result:\n\n`;
-        quizQuestions.forEach((question, index) => {
-            const isCorrect = userAnswers[index] === question.correctIndex;
-            userPrompt += `Question ${index + 1}: ${question.text}\n`;
-            userPrompt += `Student's answer: ${question.options[userAnswers[index]]}\n`;
-            userPrompt += `Correct answer: ${question.options[question.correctIndex]}\n`;
-            userPrompt += `Result: ${isCorrect ? 'Correct' : 'Incorrect'}\n\n`;
-        });
         const messages = [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
+            { role: "system", content: prompts_1.FEEDBACK_PROMPTS.PERSONALIZED_FEEDBACK() },
+            { role: "user", content: prompts_1.FEEDBACK_PROMPTS.QUIZ_FEEDBACK_USER(quizQuestions, userAnswers, score) }
         ];
-        return await chat(messages, { temperature: 0.7 });
+        return await chat(messages, {
+            model: "anthropic/claude-3-haiku",
+            temperature: 0.7
+        });
     }
     catch (error) {
-        console.error('Failed to generate feedback:', error);
-        throw error;
+        console.error("Error generating feedback:", error);
+        return "Great effort on your quiz! Keep practicing to improve your understanding of the topic.";
     }
 }
 /**
@@ -142,15 +160,7 @@ async function generateKnowledgeGraph(topic, gradeLevel) {
         throw new Error('AI generation is disabled (USE_AI=0)');
     }
     try {
-        const systemPrompt = `You are an educational knowledge graph creator for grade ${gradeLevel} students.
-      Create a simple knowledge graph about "${topic}" with key concepts as nodes and their relationships as edges.
-      Return a JSON object with two arrays: 'nodes' (each with id and label) and 'edges' (each with source and target node ids).`;
-        const userPrompt = `Create a knowledge graph about ${topic} suitable for grade ${gradeLevel} students.`;
-        const messages = [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userPrompt }
-        ];
-        const jsonSchema = {
+        const schema = {
             type: 'object',
             properties: {
                 nodes: {
@@ -178,15 +188,40 @@ async function generateKnowledgeGraph(topic, gradeLevel) {
             },
             required: ['nodes', 'edges']
         };
+        const messages = [
+            { role: "system", content: prompts_1.KNOWLEDGE_GRAPH_PROMPTS.KNOWLEDGE_GRAPH() },
+            { role: "user", content: prompts_1.KNOWLEDGE_GRAPH_PROMPTS.KNOWLEDGE_GRAPH_USER(topic, gradeLevel) }
+        ];
         const response = await chat(messages, {
-            temperature: 0.7,
-            response_format: { type: 'json_schema', json_schema: jsonSchema }
+            model: "anthropic/claude-3-haiku",
+            temperature: 0.5,
+            response_format: {
+                type: 'json_schema',
+                schema
+            }
         });
+        // Parse the JSON response
         return JSON.parse(response);
     }
     catch (error) {
-        console.error('Failed to generate knowledge graph:', error);
-        throw error;
+        console.error("Error generating knowledge graph:", error);
+        // Return a simple fallback graph
+        return {
+            nodes: [
+                { id: "main", label: topic },
+                { id: "sub1", label: `Basic ${topic}` },
+                { id: "sub2", label: `Advanced ${topic}` },
+                { id: "related1", label: "Related Concept 1" },
+                { id: "related2", label: "Related Concept 2" }
+            ],
+            edges: [
+                { source: "main", target: "sub1" },
+                { source: "main", target: "sub2" },
+                { source: "main", target: "related1" },
+                { source: "main", target: "related2" },
+                { source: "sub1", target: "related1" }
+            ]
+        };
     }
 }
 //# sourceMappingURL=ai.js.map
