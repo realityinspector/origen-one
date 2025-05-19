@@ -37,14 +37,76 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.db = exports.pool = void 0;
+exports.checkDatabaseConnection = checkDatabaseConnection;
+exports.withRetry = withRetry;
 const serverless_1 = require("@neondatabase/serverless");
 const neon_serverless_1 = require("drizzle-orm/neon-serverless");
 const ws_1 = __importDefault(require("ws"));
 const schema = __importStar(require("../shared/schema"));
+// Environment variables are accessed through the central config module
+// Configure Neon to use ws instead of browser WebSocket
 serverless_1.neonConfig.webSocketConstructor = ws_1.default;
-if (!process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL must be set. Did you forget to provision a database?");
+// Configure the connection pool with more robust settings
+exports.pool = new serverless_1.Pool({
+    connectionString: process.env.DATABASE_URL,
+    max: 20, // Maximum number of clients in the pool
+    idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
+    connectionTimeoutMillis: 5000, // Return an error after 5 seconds if a connection cannot be established
+    maxUses: 7500, // Close a connection after it has been used 7500 times
+});
+// Add event listeners to the pool for better error tracking
+exports.pool.on('error', (err, client) => {
+    console.error('Unexpected error on idle client', err);
+});
+// Create a connection health check function
+async function checkDatabaseConnection() {
+    let client;
+    try {
+        client = await exports.pool.connect();
+        await client.query('SELECT 1');
+        console.log('Database connection successful');
+        return true;
+    }
+    catch (error) {
+        console.error('Database connection failed:', error);
+        return false;
+    }
+    finally {
+        if (client)
+            client.release();
+    }
 }
-exports.pool = new serverless_1.Pool({ connectionString: process.env.DATABASE_URL });
+// Set up a global keep-alive ping
+const KEEP_ALIVE_INTERVAL = 60000; // 1 minute
+setInterval(async () => {
+    try {
+        await exports.pool.query('SELECT 1');
+        console.debug('Keep-alive ping successful');
+    }
+    catch (error) {
+        console.error('Keep-alive ping failed:', error);
+    }
+}, KEEP_ALIVE_INTERVAL);
+// Initialize the Drizzle ORM with the pool
 exports.db = (0, neon_serverless_1.drizzle)(exports.pool, { schema });
+// Expose a function to retry database operations with exponential backoff
+async function withRetry(operation, maxRetries = 3, initialDelay = 300) {
+    let retries = 0;
+    while (true) {
+        try {
+            return await operation();
+        }
+        catch (error) {
+            if (retries >= maxRetries ||
+                // Don't retry on certain types of errors
+                (error.code && ['23505', '23503', '42P01', '42703'].includes(error.code))) {
+                throw error;
+            }
+            const delay = initialDelay * Math.pow(2, retries);
+            console.log(`Retrying database operation in ${delay}ms. Attempt ${retries + 1}/${maxRetries}`);
+            await new Promise(resolve => setTimeout(resolve, delay));
+            retries++;
+        }
+    }
+}
 //# sourceMappingURL=db.js.map

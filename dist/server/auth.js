@@ -1,162 +1,100 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.isAuthenticated = void 0;
 exports.setupAuth = setupAuth;
 const storage_1 = require("./storage");
+const schema_1 = require("../shared/schema");
 const auth_1 = require("./middleware/auth");
 const db_1 = require("./db");
-const schema_1 = require("../shared/schema");
 const drizzle_orm_1 = require("drizzle-orm");
+const passport_1 = __importDefault(require("passport"));
 /**
- * Sets up JWT authentication routes
+ * Sets up authentication routes (JWT auth only for now)
  */
-function setupAuth(app) {
+async function setupAuth(app) {
     app.set("trust proxy", 1);
-    // Register a new user
-    app.post("/api/register", (0, auth_1.asyncHandler)(async (req, res, next) => {
-        const { username, email, name, role, password, parentId } = req.body;
-        if (!username || !email || !name || !role || !password) {
-            return res.status(400).json({ error: "Missing required fields" });
-        }
-        // Verify role is valid
-        if (!["ADMIN", "PARENT", "LEARNER"].includes(role)) {
-            return res.status(400).json({ error: "Invalid role" });
-        }
-        // Check if username already exists
-        const existingUser = await storage_1.storage.getUserByUsername(username);
-        if (existingUser) {
-            return res.status(400).json({ error: "Username already exists" });
-        }
-        // Check if this is the first user being registered
-        const userCountResult = await db_1.db.select({ count: (0, drizzle_orm_1.count)() }).from(schema_1.users);
-        const isFirstUser = userCountResult[0].count === 0;
-        // If this is the first user, make them an admin regardless of the requested role
-        const effectiveRole = isFirstUser ? "ADMIN" : role;
-        if (isFirstUser) {
-            console.log(`First user registration detected. Setting ${username} as ADMIN.`);
-        }
-        // Create the user
-        const user = await storage_1.storage.createUser({
-            username,
-            email,
-            name,
-            role: effectiveRole, // Use admin role if first user
-            password: await (0, auth_1.hashPassword)(password),
-            parentId: parentId || null,
-        });
-        // If role is LEARNER, create a learner profile
-        if (effectiveRole === "LEARNER" && req.body.gradeLevel) {
-            await storage_1.storage.createLearnerProfile({
-                userId: user.id,
-                gradeLevel: req.body.gradeLevel,
-                graph: { nodes: [], edges: [] },
+    app.use(passport_1.default.initialize());
+    // Endpoint to check server and database health
+    app.get("/api/healthcheck", (0, auth_1.asyncHandler)(async (req, res) => {
+        try {
+            // Count users for basic DB query test
+            const result = await db_1.db.select({ count: (0, drizzle_orm_1.count)() }).from(schema_1.users);
+            const userCount = result[0]?.count || 0;
+            return res.json({
+                status: "ok",
+                db: "connected",
+                userCount
             });
         }
-        // Generate JWT token with additional safeguards
-        let token;
-        try {
-            token = (0, auth_1.generateToken)(user);
-            if (!token) {
-                throw new Error('Token generation failed');
-            }
+        catch (error) {
+            console.error("Health check error:", error);
+            return res.status(500).json({
+                status: "error",
+                message: "Database connection failed",
+                error: error.message
+            });
         }
-        catch (tokenError) {
-            console.error('Token generation error:', tokenError);
-            return res.status(500).json({ error: 'Authentication token generation failed' });
-        }
-        // Additional logging for production debugging
-        console.log('Registration completed for:', username);
-        console.log('Token generation successful, token length:', token.length);
-        // Return the token and user data (excluding password)
-        const { password: _, ...userWithoutPassword } = user;
-        // Prepare response object with explicit field checking
-        if (!userWithoutPassword || !userWithoutPassword.id) {
-            console.error('User data is incomplete:', userWithoutPassword);
-            return res.status(500).json({ error: 'User data is incomplete' });
-        }
-        // Create a standardized response object
-        const responseObj = {
-            token,
-            user: userWithoutPassword,
-            userData: userWithoutPassword, // Add userData as an alternative
-            wasPromotedToAdmin: isFirstUser && role !== "ADMIN" // Flag to notify frontend if role was changed
-        };
-        // Log the final response structure
-        console.log('Registration response structure:', {
-            hasToken: !!responseObj.token,
-            tokenLength: responseObj.token ? responseObj.token.length : 0,
-            hasUser: !!responseObj.user,
-            userFields: responseObj.user ? Object.keys(responseObj.user) : null,
-            userId: responseObj.user ? responseObj.user.id : null,
-            responseType: typeof responseObj
-        });
-        // Set explicit content type and status
-        res.setHeader('Content-Type', 'application/json');
-        // Use direct stringification as an additional safeguard
-        const jsonResponse = JSON.stringify(responseObj);
-        console.log('Response JSON length:', jsonResponse.length);
-        // Send the response
-        res.status(201).send(jsonResponse);
     }));
-    // Login and return a JWT token
+    // Regular JWT login endpoint
     app.post("/api/login", (0, auth_1.asyncHandler)(async (req, res) => {
-        const { username, password } = req.body;
-        if (!username || !password) {
-            return res.status(400).json({ error: "Username and password are required" });
-        }
-        // Find the user
-        const user = await storage_1.storage.getUserByUsername(username);
-        if (!user || !(await (0, auth_1.comparePasswords)(password, user.password))) {
-            return res.status(401).json({ error: "Invalid username or password" });
-        }
-        // Generate JWT token with additional safeguards
-        let token;
         try {
-            token = (0, auth_1.generateToken)(user);
-            if (!token) {
-                throw new Error('Token generation failed');
+            const { username, password } = req.body;
+            if (!username || !password) {
+                return res.status(400).json({ error: "Username and password are required" });
             }
+            // Find user by username
+            const user = await storage_1.storage.getUserByUsername(username);
+            if (!user) {
+                return res.status(401).json({ error: "Invalid credentials" });
+            }
+            // Verify password
+            const isPasswordValid = user.password ? await (0, auth_1.comparePasswords)(password, user.password) : false;
+            if (!isPasswordValid) {
+                return res.status(401).json({ error: "Invalid credentials" });
+            }
+            // Generate JWT token
+            const token = (0, auth_1.generateToken)({ id: user.id, role: user.role });
+            // Return user details and token
+            const { password: _, ...userWithoutPassword } = user;
+            res.json({
+                token,
+                user: userWithoutPassword
+            });
         }
-        catch (tokenError) {
-            console.error('Token generation error:', tokenError);
-            return res.status(500).json({ error: 'Authentication token generation failed' });
+        catch (error) {
+            console.error('Authentication endpoint error:', error);
+            const errorMessage = (error instanceof Error) ? error.message : 'Unknown error';
+            console.error(`Authentication endpoint error: ${errorMessage}`);
+            res.status(500).json({
+                error: 'An error occurred during authentication. Please try again.',
+                details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+            });
         }
-        // Additional logging for production debugging
-        console.log('Login successful for:', username);
-        console.log('Token generation successful, token length:', token.length);
-        // Return the token and user data (excluding password)
-        const { password: _, ...userWithoutPassword } = user;
-        // Prepare response object with explicit field checking
-        if (!userWithoutPassword || !userWithoutPassword.id) {
-            console.error('User data is incomplete:', userWithoutPassword);
-            return res.status(500).json({ error: 'User data is incomplete' });
-        }
-        // Create a standardized response object
-        const responseObj = {
-            token,
-            user: userWithoutPassword,
-            userData: userWithoutPassword // Add userData as an alternative
-        };
-        // Log the final response structure
-        console.log('Login response structure:', {
-            hasToken: !!responseObj.token,
-            tokenLength: responseObj.token ? responseObj.token.length : 0,
-            hasUser: !!responseObj.user,
-            userFields: responseObj.user ? Object.keys(responseObj.user) : null,
-            userId: responseObj.user ? responseObj.user.id : null,
-            responseType: typeof responseObj
-        });
-        // Set explicit content type and status
-        res.setHeader('Content-Type', 'application/json');
-        // Use direct stringification as an additional safeguard
-        const jsonResponse = JSON.stringify(responseObj);
-        console.log('Response JSON length:', jsonResponse.length);
-        // Send the response
-        res.status(200).send(jsonResponse);
     }));
-    // Get current user info
+    // User info endpoint
     app.get("/api/user", auth_1.authenticateJwt, (0, auth_1.asyncHandler)(async (req, res) => {
-        const { password: _, ...userWithoutPassword } = req.user;
-        res.json(userWithoutPassword);
+        try {
+            if (!req.user) {
+                return res.status(401).json({ error: "Unauthorized" });
+            }
+            // We're not retrieving the user from database here since it's already in req.user
+            // But we're removing the password field for security
+            const { password: _, ...userWithoutPassword } = req.user;
+            res.json(userWithoutPassword);
+        }
+        catch (error) {
+            console.error('Error retrieving user info:', error);
+            res.status(500).json({ error: 'Failed to retrieve user info' });
+        }
     }));
 }
+// Temporary authentication middleware, simplified
+const isAuthenticated = async (req, res, next) => {
+    // Just use JWT auth
+    return (0, auth_1.authenticateJwt)(req, res, next);
+};
+exports.isAuthenticated = isAuthenticated;
 //# sourceMappingURL=auth.js.map
