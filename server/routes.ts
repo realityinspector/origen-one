@@ -142,12 +142,60 @@ export function registerRoutes(app: Express): Server {
     });
   }));
 
-  app.post("/register", (req: Request, res: Response) => {
-    // Forward the request to the real API endpoint
-    console.log("Proxy: Forwarding register request to /api/register");
-    // Simply redirect to the API endpoint
-    res.redirect(307, "/api/register");
-  });
+  app.post("/register", asyncHandler(async (req: Request, res: Response) => {
+    console.log("Direct registration request received");
+    
+    const { username, email, name, role, password, parentId } = req.body;
+    
+    if (!username || !email || !name || !role || !password) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Verify role is valid
+    if (!["ADMIN", "PARENT", "LEARNER"].includes(role)) {
+      return res.status(400).json({ error: "Invalid role" });
+    }
+
+    try {
+      // Check if username already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ error: "Username already exists" });
+      }
+
+      // Check if this is the first user being registered
+      const userCountResult = await db.select({ count: count() }).from(users);
+      const isFirstUser = userCountResult[0].count === 0;
+
+      // If this is the first user, make them an admin regardless of the requested role
+      const effectiveRole = isFirstUser ? "ADMIN" : role;
+      
+      // Create the user
+      const user = await storage.createUser({
+        username,
+        email,
+        name,
+        role: effectiveRole,
+        password,
+        parentId: parentId || null
+      });
+
+      // Generate JWT token
+      const token = generateToken({ id: user.id, role: user.role });
+      
+      // Remove password from response
+      const { password: _, ...userWithoutPassword } = user;
+      
+      res.json({
+        token,
+        user: userWithoutPassword,
+        wasPromotedToAdmin: isFirstUser
+      });
+    } catch (error) {
+      console.error('Registration error:', error);
+      res.status(500).json({ error: "Registration failed", details: error.message });
+    }
+  }));
 
   app.post("/logout", (req: Request, res: Response) => {
     // Forward the request to the real API endpoint
