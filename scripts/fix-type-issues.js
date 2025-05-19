@@ -1,38 +1,20 @@
 #!/usr/bin/env node
 
-/**
- * This script fixes TypeScript type mismatch errors in routes.ts and storage.ts
- * that are preventing successful deployment.
- */
-
 const fs = require('fs');
 const path = require('path');
 
 function fixRoutesFile() {
-  try {
-    console.log('Fixing type issues in server/routes.ts...');
-    const filePath = path.join(process.cwd(), 'server/routes.ts');
-    
-    if (!fs.existsSync(filePath)) {
-      console.warn('server/routes.ts not found');
-      return;
-    }
-    
-    // Read the file content
-    let content = fs.readFileSync(filePath, 'utf8');
-    
-    // Fix line 884 - Convert string ID to number
-    content = content.replace(
-      /learnerId: targetLearnerId,/g,
-      'learnerId: Number(targetLearnerId),'
-    );
-    
-    // Write the fixed content back to the file
-    fs.writeFileSync(filePath, content, 'utf8');
-    console.log('Fixed server/routes.ts successfully');
-  } catch (error) {
-    console.error('Error fixing server/routes.ts:', error);
-  }
+  const routesPath = path.join(process.cwd(), 'server/routes.ts');
+  let content = fs.readFileSync(routesPath, 'utf8');
+
+  // Fix template literal syntax
+  content = content.replace(/`([^`]*)\${([^}]*)}\$([^`]*)`/g, '`$1${$2}$3`');
+
+  // Fix string concatenation
+  content = content.replace(/\+ '([^']*)'/g, "+ '$1'");
+
+  // Write fixed content back
+  fs.writeFileSync(routesPath, content, 'utf8');
 }
 
 function fixStorageFile() {
@@ -65,6 +47,11 @@ function fixStorageFile() {
   }
 }
 
-// Run the fixes
-fixRoutesFile();
-fixStorageFile();
+function main() {
+  console.log('Fixing TypeScript compilation issues...');
+  fixRoutesFile();
+  fixStorageFile();
+  console.log('Fixed TypeScript compilation issues');
+}
+
+main();
