@@ -8,7 +8,7 @@ const cors_1 = __importDefault(require("cors"));
 const path_1 = __importDefault(require("path"));
 const routes_1 = require("./routes");
 const app = (0, express_1.default)();
-const PORT = Number(process.env.PORT || 5000);
+const PORT = Number(process.env.PORT || 8000);
 // Middleware
 app.use((0, cors_1.default)({
     origin: true,
@@ -35,8 +35,10 @@ app.use((req, res) => {
     console.log(`Serving index from: ${indexPath}`);
     res.sendFile(indexPath);
 });
-// Start server on port 5000
+// Start server
 server.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://0.0.0.0:${PORT}`);
+    // Signal that server is ready for connections
+    console.log(`Server ready to accept connections on port ${PORT}`);
 });
 //# sourceMappingURL=index.js.map
