@@ -197,7 +197,7 @@ export class DatabaseStorage implements IStorage {
     try {
       // Safely convert parentId to number
       let parentIdNum: number;
-      
+
       if (typeof parentId === 'number') {
         parentIdNum = parentId;
       } else if (typeof parentId === 'string') {
@@ -210,7 +210,7 @@ export class DatabaseStorage implements IStorage {
         console.error(`Invalid parentId type: ${typeof parentId}`);
         return [];
       }
-      
+
       console.log(`Querying for learners with parentId: ${parentIdNum} (original value: ${parentId})`);
       const result = await db.select().from(users).where(eq(users.parentId, parentIdNum));
       return Array.isArray(result) ? result.map(user => user as User) : [result as User];
@@ -229,7 +229,7 @@ export class DatabaseStorage implements IStorage {
       return [];
     }
   }
-  
+
   async getAllLearners(): Promise<User[]> {
     try {
       const result = await db.select().from(users).where(eq(users.role, "LEARNER"));
