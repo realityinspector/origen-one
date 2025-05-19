@@ -1,0 +1,55 @@
+Found 0 learners
+Serving index from: /home/runner/workspace/client/dist/index.html
+Serving index from: /home/runner/workspace/client/dist/index.html
+Serving index from: /home/runner/workspace/client/dist/index.html
+Proxy: Forwarding login request to /api/login
+Looking for user with username: courtney-demo-account
+Unhandled API error: TypeError: The "salt" argument must be of type string or an instance of ArrayBuffer, Buffer, TypedArray, or DataView. Received undefined
+    at check (node:internal/crypto/scrypt:84:10)
+    at scrypt (node:internal/crypto/scrypt:46:13)
+    at node:internal/util:432:7
+    at new Promise (<anonymous>)
+    at scrypt (node:internal/util:418:12)
+    at comparePasswords (/home/runner/workspace/server/middleware/auth.ts:72:30)
+    at /home/runner/workspace/server/routes.ts:168:67
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+TypeError: The "salt" argument must be of type string or an instance of ArrayBuffer, Buffer, TypedArray, or DataView. Received undefined
+    at check (node:internal/crypto/scrypt:84:10)
+    at scrypt (node:internal/crypto/scrypt:46:13)
+    at node:internal/util:432:7
+    at new Promise (<anonymous>)
+    at scrypt (node:internal/util:418:12)
+    at comparePasswords (/home/runner/workspace/server/middleware/auth.ts:72:30)
+    at /home/runner/workspace/server/routes.ts:168:67
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+Serving index from: /home/runner/workspace/client/dist/index.html
+Serving index from: /home/runner/workspace/client/dist/index.html
+Proxy: Forwarding login request to /api/login
+Looking for user with username: courtney-demo-account
+Unhandled API error: TypeError: The "salt" argument must be of type string or an instance of ArrayBuffer, Buffer, TypedArray, or DataView. Received undefined
+    at check (node:internal/crypto/scrypt:84:10)
+    at scrypt (node:internal/crypto/scrypt:46:13)
+    at node:internal/util:432:7
+    at new Promise (<anonymous>)
+    at scrypt (node:internal/util:418:12)
+    at comparePasswords (/home/runner/workspace/server/middleware/auth.ts:72:30)
+    at /home/runner/workspace/server/routes.ts:168:67
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+TypeError: The "salt" argument must be of type string or an instance of ArrayBuffer, Buffer, TypedArray, or DataView. Received undefined
+    at check (node:internal/crypto/scrypt:84:10)
+    at scrypt (node:internal/crypto/scrypt:46:13)
+    at node:internal/util:432:7
+    at new Promise (<anonymous>)
+    at scrypt (node:internal/util:418:12)
+    at comparePasswords (/home/runner/workspace/server/middleware/auth.ts:72:30)
+    at /home/runner/workspace/server/routes.ts:168:67
+    at processTicksAndRejections (node:internal/process/task_queues:95:5) {
+  code: 'ERR_INVALID_ARG_TYPE'
+}
+Keep-alive ping successful
