@@ -798,8 +798,7 @@ export function registerRoutes(app: Express): Server {
             recommendedSubjects: typeof profile.recommended_subjects === 'string' ? 
               JSON.parse(profile.recommended_subjects) : profile.recommended_subjects || [],
             strugglingAreas: typeof profile.struggling_areas === 'string' ? 
-              JSON.parse(profile.struggling_areas) : profile.struggling_areas ||```text
- [],
+              JSON.parse(profile.struggling_areas) : profile.strugges || [],
             createdAt: profile.created_at
           });
         } else {
@@ -839,10 +838,9 @@ export function registerRoutes(app: Express): Server {
       const svgImageData = getSubjectSVG(subject, category);
       const sampleImage = {
         id: crypto.randomUUID(),
-        description: `Educational illustration of ${category} in ${subject}`,
-        alt: `${category} educational illustration`,
-        svgData: svgImageData,
-        promptUsed: `Create an educational illustration about ${category} in ${subject}`
+        description: "Educational illustration of " + category + " in " + subject,
+        alt: category + " educational illustration",
+        promptUsed: "Create an educational illustration about " + category + " in " + subject
       };
 
       // Generate content appropriate for the grade level
@@ -862,7 +860,7 @@ export function registerRoutes(app: Express): Server {
       const newLesson = await storage.createLesson({
         id: crypto.randomUUID(),
         learnerId: Number(req.user.id),
-        moduleId: `custom-${Date.now()}`,
+        moduleId: "custom-" + Date.now(),
         status: "ACTIVE",
         subject,
         category,
@@ -1009,7 +1007,7 @@ export function registerRoutes(app: Express): Server {
             const newLesson = await storage.createLesson({
               id: crypto.randomUUID(),
               learnerId: targetLearnerId.toString(),
-              moduleId: `custom-${Date.now()}`,
+              moduleId: "custom-" + Date.now(),
               status: "ACTIVE",
               subject: finalSubject,
               category: finalCategory,
@@ -1051,7 +1049,7 @@ export function registerRoutes(app: Express): Server {
       const newLesson = await storage.createLesson({
         id: crypto.randomUUID(),
         learnerId: Number(targetLearnerId),
-        moduleId: `custom-${Date.now()}`,
+        moduleId: "custom-" + Date.now(),
         status: "ACTIVE",
         subject: finalSubject,
         category: finalCategory,
@@ -1236,10 +1234,9 @@ export function registerRoutes(app: Express): Server {
           const svgImageData = getSubjectSVG(subject, category);
           const sampleImage = {
             id: crypto.randomUUID(),
-            description: `Educational illustration of ${category} in ${subject}`,
-            alt: `${category} educational illustration`,
-            svgData: svgImageData,
-            promptUsed: `Create an educational illustration about ${category} in ${subject}`
+            description: "Educational illustration of " + category + " in " + subject,
+            alt: category + " educational illustration",
+            promptUsed: "Create an educational illustration about " + category + " in " + subject
           };
 
           // Create rich, educational content appropriate for the grade level
@@ -1261,7 +1258,7 @@ export function registerRoutes(app: Express): Server {
         await storage.createLesson({
           id: crypto.randomUUID(),
           learnerId: Number(req.user.id),
-          moduleId: `generated-${Date.now()}`,
+          moduleId: "generated-" + Date.now(),
           status: "ACTIVE",
           subject,
           category,
@@ -1675,3 +1672,4 @@ export function registerRoutes(app: Express): Server {
   const httpServer = createServer(app);
   return httpServer;
 }
+// Applying template literal fixes in routes.ts
