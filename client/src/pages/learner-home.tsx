@@ -25,7 +25,7 @@ const LearnerSwitcher = () => {
   const { selectedLearner, selectLearner, availableLearners, isLoadingLearners } = useMode();
   const { user } = useAuth();
   const [dropdownVisible, setDropdownVisible] = useState(false);
-  
+
   if (isLoadingLearners) {
     return (
       <View style={styles.learnerSwitcherContainer}>
@@ -36,11 +36,11 @@ const LearnerSwitcher = () => {
       </View>
     );
   }
-  
+
   if (!availableLearners || availableLearners.length === 0) {
     return null; // Don't show anything if no learners
   }
-  
+
   return (
     <View style={styles.learnerSwitcherContainer}>
       <TouchableOpacity 
@@ -55,7 +55,7 @@ const LearnerSwitcher = () => {
         </Text>
         <ChevronDown size={14} color={colors.textSecondary} />
       </TouchableOpacity>
-      
+
       {/* Dropdown menu */}
       {dropdownVisible && (
         <View style={styles.learnerSwitcherDropdown}>
@@ -133,8 +133,8 @@ const LearnerHome = () => {
   });
 
   // Generate a new lesson
-  const generateLessonMutation = useMutation({
-    mutationFn: (data: { learnerId: number, topic: string, gradeLevel: number }) => {
+    const generateLessonMutation = useMutation({
+    mutationFn: (data: { learnerId: number, topic: string, gradeLevel: number, subject: string, category: string, difficulty: 'beginner' | 'intermediate' | 'advanced' }) => {
       console.log('Generating new lesson with data:', data);
       return apiRequest('POST', '/api/lessons/create', data).then(res => res.data);
     },
@@ -158,23 +158,26 @@ const LearnerHome = () => {
 
   const handleGenerateLesson = (subject?: { name: string; category: string; difficulty: 'beginner' | 'intermediate' | 'advanced' }) => {
     if (!user || !profile) return;
-    
+
     // Only pass the basic properties required by the API
     generateLessonMutation.mutate({
       learnerId: user.id,
       topic: subject?.name || '', // Use selected subject or empty for auto-selection
-      gradeLevel: profile.gradeLevel
+      gradeLevel: profile.gradeLevel,
+      subject: subject?.name || '',
+      category: subject?.category || '',
+      difficulty: subject?.difficulty || 'beginner'
     });
   };
-  
+
   const handleOpenSubjectSelector = () => {
     setSubjectSelectorVisible(true);
   };
-  
+
   const handleCloseSubjectSelector = () => {
     setSubjectSelectorVisible(false);
   };
-  
+
   const handleSelectSubject = (subject: { name: string; category: string; difficulty: 'beginner' | 'intermediate' | 'advanced' }) => {
     setSubjectSelectorVisible(false);
     handleGenerateLesson(subject);
@@ -209,12 +212,12 @@ const LearnerHome = () => {
                 <X size={24} color={colors.textPrimary} />
               </TouchableOpacity>
             </View>
-            
+
             <SubjectSelector onSelectSubject={handleSelectSubject} />
           </View>
         </View>
       </Modal>
-      
+
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         refreshControl={
@@ -233,7 +236,7 @@ const LearnerHome = () => {
               </Text>
             </View>
           </View>
-          
+
           {/* Add the LearnerSwitcher if user is PARENT or ADMIN */}
           {(user?.role === 'PARENT' || user?.role === 'ADMIN') && (
             <LearnerSwitcher />
@@ -297,7 +300,7 @@ const LearnerHome = () => {
                       </Text>
                       <Book size={16} color={colors.primary} />
                     </TouchableOpacity>
-                    
+
                     <TouchableOpacity
                       style={styles.generateButton}
                       onPress={() => handleGenerateLesson()}
@@ -474,7 +477,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textPrimary,
   },
-  
+
   // Original Styles
   scrollContent: {
     flexGrow: 1,
