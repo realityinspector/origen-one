@@ -8,7 +8,7 @@ import { synchronizeToExternalDatabase } from "./sync-utils";
 import { InsertDbSyncConfig } from "../shared/schema";
 import { USE_AI } from "./config/flags";
 import { db, pool } from "./db";
-import { sql } from "drizzle-orm";
+import { sql, count } from "drizzle-orm";
 import crypto from "crypto";
 import { users } from "../shared/schema";
 import { getSubjectSVG, generateLessonContent, generateQuizQuestions } from "./content-generator";
