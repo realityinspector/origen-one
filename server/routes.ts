@@ -1000,7 +1000,7 @@ export function registerRoutes(app: Express): Server {
             lessonSpec = {
               title: enhancedSpec.title,
               content: `# ${enhancedSpec.title}\n\n${enhancedSpec.summary}\n\n${enhancedSpec.sections.map(s => 
-                `## ${s.title}\n\n${s.content}`).join('\n\n')}`,
+                `#,# ${s.title}\n\n${s.content}`).join('\n\n')}`,
               questions: enhancedSpec.questions,
               graph: enhancedSpec.graph
             };
@@ -1033,7 +1033,7 @@ export function registerRoutes(app: Express): Server {
       // Create a simple lesson without enhanced spec
       lessonSpec = {
         title: topic || `${finalSubject || 'Sample'} Lesson`,
-        content: `# ${topic || finalSubject || 'Sample'} Lesson\n\nThis is a lesson about ${topic || finalSubject || 'a sample topic'}.`,
+        content: `# ${topic || finalSubject || 'Sample'} Lesson\n\nThis is a lesson about ${topic || finalSubject || 'a sample topic'}`,
         questions: [{
           text: `What is this lesson about?`,
           options: [
