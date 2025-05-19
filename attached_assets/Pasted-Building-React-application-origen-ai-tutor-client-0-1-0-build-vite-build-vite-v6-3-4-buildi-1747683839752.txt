@@ -1,0 +1,424 @@
+Building React application...
+
+> origen-ai-tutor-client@0.1.0 build
+> vite build
+
+vite v6.3.4 building for production...
+✓ 771 modules transformed.
+dist/index.html                    1.37 kB │ gzip:   0.74 kB
+dist/assets/index-cBpVZjy9.js  1,023.85 kB │ gzip: 256.34 kB │ map: 3,520.31 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 4.55s
+React build successful!
+Starting the server...
+Error starting server: server/routes.ts:842:23 - error TS1005: ',' expected.
+
+842         description: `Educational illustration of ${category} in ${subject}`,
+                          ~~~~~~~~~~~
+server/routes.ts:842:35 - error TS1005: ',' expected.
+
+842         description: `Educational illustration of ${category} in ${subject}`,
+                                      ~~~~~~~~~~~~
+server/routes.ts:842:48 - error TS1005: ',' expected.
+
+842         description: `Educational illustration of ${category} in ${subject}`,
+                                                   ~~
+server/routes.ts:842:51 - error TS1005: ',' expected.
+
+842         description: `Educational illustration of ${category} in ${subject}`,
+                                                      ~
+server/routes.ts:842:52 - error TS1005: ',' expected.
+
+842         description: `Educational illustration of ${category} in ${subject}`,
+                                                       ~
+server/routes.ts:842:67 - error TS1005: ',' expected.
+
+842         description: `Educational illustration of ${category} in ${subject}`,
+                                                                      ~
+server/routes.ts:843:15 - error TS1005: ',' expected.
+
+843         alt: `${category} educational illustration`,
+                  ~
+server/routes.ts:843:16 - error TS1005: ',' expected.
+
+843         alt: `${category} educational illustration`,
+                   ~
+server/routes.ts:843:27 - error TS1005: ',' expected.
+
+843         alt: `${category} educational illustration`,
+                              ~~~~~~~~~~~
+server/routes.ts:843:39 - error TS1005: ',' expected.
+
+843         alt: `${category} educational illustration`,
+                                          ~~~~~~~~~~~~
+server/routes.ts:845:22 - error TS1005: ',' expected.
+
+845         promptUsed: `Create an educational illustration about ${category} in ${subject}`
+                         ~~~~~~
+server/routes.ts:845:29 - error TS1005: ',' expected.
+
+845         promptUsed: `Create an educational illustration about ${category} in ${subject}`
+                                ~~
+server/routes.ts:845:32 - error TS1005: ',' expected.
+
+845         promptUsed: `Create an educational illustration about ${category} in ${subject}`
+                                   ~~~~~~~~~~~
+server/routes.ts:845:44 - error TS1005: ',' expected.
+
+845         promptUsed: `Create an educational illustration about ${category} in ${subject}`
+                                               ~~~~~~~~~~~~
+server/routes.ts:845:57 - error TS1005: ',' expected.
+
+845         promptUsed: `Create an educational illustration about ${category} in ${subject}`
+                                                            ~~~~~
+server/routes.ts:845:63 - error TS1005: ',' expected.
+
+845         promptUsed: `Create an educational illustration about ${category} in ${subject}`
+                                                                  ~
+server/routes.ts:845:64 - error TS1005: ',' expected.
+
+845         promptUsed: `Create an educational illustration about ${category} in ${subject}`
+                                                                   ~
+server/routes.ts:845:79 - error TS1005: ',' expected.
+
+845         promptUsed: `Create an educational illustration about ${category} in ${subject}`
+                                                                                  ~
+server/routes.ts:855:17 - error TS1005: ',' expected.
+
+855         title: `${category} in ${subject}`,
+                    ~
+server/routes.ts:855:18 - error TS1005: ',' expected.
+
+855         title: `${category} in ${subject}`,
+                     ~
+server/routes.ts:855:33 - error TS1005: ',' expected.
+
+855         title: `${category} in ${subject}`,
+                                    ~
+server/routes.ts:865:20 - error TS1005: ',' expected.
+
+865         moduleId: `custom-${Date.now()}`,
+                       ~~~~~~
+server/routes.ts:865:28 - error TS1005: ',' expected.
+
+865         moduleId: `custom-${Date.now()}`,
+                               ~
+server/routes.ts:865:33 - error TS1005: ',' expected.
+
+865         moduleId: `custom-${Date.now()}`,
+                                    ~
+server/routes.ts:872:36 - error TS1005: ',' expected.
+
+872           path: `/images/subjects/${subject.toLowerCase()}.svg`,
+                                       ~
+server/routes.ts:872:44 - error TS1005: ',' expected.
+
+872           path: `/images/subjects/${subject.toLowerCase()}.svg`,
+                                               ~
+server/routes.ts:873:17 - error TS1005: ',' expected.
+
+873           alt: `${category} educational image`,
+                    ~
+server/routes.ts:873:18 - error TS1005: ',' expected.
+
+873           alt: `${category} educational image`,
+                     ~
+server/routes.ts:873:29 - error TS1005: ',' expected.
+
+873           alt: `${category} educational image`,
+                                ~~~~~~~~~~~
+server/routes.ts:873:41 - error TS1005: ',' expected.
+
+873           alt: `${category} educational image`,
+                                            ~~~~~
+server/routes.ts:874:25 - error TS1005: ',' expected.
+
+874           description: `An illustration related to ${category}`
+                            ~~
+server/routes.ts:874:28 - error TS1005: ',' expected.
+
+874           description: `An illustration related to ${category}`
+                               ~~~~~~~~~~~~
+server/routes.ts:874:41 - error TS1005: ',' expected.
+
+874           description: `An illustration related to ${category}`
+                                            ~~~~~~~
+server/routes.ts:874:49 - error TS1005: ',' expected.
+
+874           description: `An illustration related to ${category}`
+                                                    ~~
+server/routes.ts:874:52 - error TS1005: ',' expected.
+
+874           description: `An illustration related to ${category}`
+                                                       ~
+server/routes.ts:874:53 - error TS1005: ',' expected.
+
+874           description: `An illustration related to ${category}`
+                                                        ~
+server/routes.ts:968:20 - error TS1005: ',' expected.
+
+968       console.log(`Generating lesson for "${topic}" (Grade ${gradeLevel}), Subject: ${finalSubject}, Category: ${finalCategory}`);
+                       ~~~~~~~~~~
+server/routes.ts:968:31 - error TS1005: ',' expected.
+
+968       console.log(`Generating lesson for "${topic}" (Grade ${gradeLevel}), Subject: ${finalSubject}, Category: ${finalCategory}`);
+                                  ~~~~~~
+server/routes.ts:968:38 - error TS1005: ',' expected.
+
+968       console.log(`Generating lesson for "${topic}" (Grade ${gradeLevel}), Subject: ${finalSubject}, Category: ${finalCategory}`);
+                                         ~~~
+server/routes.ts:968:42 - error TS1005: '(' expected.
+
+968       console.log(`Generating lesson for "${topic}" (Grade ${gradeLevel}), Subject: ${finalSubject}, Category: ${finalCategory}`);
+                                             ~~~~~~~~~~
+server/routes.ts:968:60 - error TS1005: ',' expected.
+
+968       console.log(`Generating lesson for "${topic}" (Grade ${gradeLevel}), Subject: ${finalSubject}, Category: ${finalCategory}`);
+                                                               ~
+server/routes.ts:968:61 - error TS1005: ',' expected.
+
+968       console.log(`Generating lesson for "${topic}" (Grade ${gradeLevel}), Subject: ${finalSubject}, Category: ${finalCategory}`);
+                                                                ~
+server/routes.ts:968:83 - error TS1005: ';' expected.
+
+968       console.log(`Generating lesson for "${topic}" (Grade ${gradeLevel}), Subject: ${finalSubject}, Category: ${finalCategory}`);
+                                                                                      ~
+server/routes.ts:968:85 - error TS1434: Unexpected keyword or identifier.
+
+968       console.log(`Generating lesson for "${topic}" (Grade ${gradeLevel}), Subject: ${finalSubject}, Category: ${finalCategory}`);
+                                                                                        ~
+server/routes.ts:968:100 - error TS1128: Declaration or statement expected.
+
+968       console.log(`Generating lesson for "${topic}" (Grade ${gradeLevel}), Subject: ${finalSubject}, Category: ${finalCategory}`);
+                                                                                                       ~
+server/routes.ts:968:112 - error TS1434: Unexpected keyword or identifier.
+
+968       console.log(`Generating lesson for "${topic}" (Grade ${gradeLevel}), Subject: ${finalSubject}, Category: ${finalCategory}`);
+                                                                                                                   ~
+server/routes.ts:1002:25 - error TS1127: Invalid character.
+
+1002               content: `# ${enhancedSpec.title}\n\n${enhancedSpec.summary}\n\n${enhancedSpec.sections.map(s =>
+                             ~
+server/routes.ts:1002:27 - error TS1005: ';' expected.
+
+1002               content: `# ${enhancedSpec.title}\n\n${enhancedSpec.summary}\n\n${enhancedSpec.sections.map(s =>
+                               ~
+server/routes.ts:1002:48 - error TS1127: Invalid character.
+
+1002               content: `# ${enhancedSpec.title}\n\n${enhancedSpec.summary}\n\n${enhancedSpec.sections.map(s =>
+                                                    
+server/routes.ts:1002:50 - error TS1127: Invalid character.
+
+1002               content: `# ${enhancedSpec.title}\n\n${enhancedSpec.summary}\n\n${enhancedSpec.sections.map(s =>
+                                                      
+server/routes.ts:1002:51 - error TS1434: Unexpected keyword or identifier.
+
+1002               content: `# ${enhancedSpec.title}\n\n${enhancedSpec.summary}\n\n${enhancedSpec.sections.map(s =>
+                                                       ~~
+server/routes.ts:1002:75 - error TS1127: Invalid character.
+
+1002               content: `# ${enhancedSpec.title}\n\n${enhancedSpec.summary}\n\n${enhancedSpec.sections.map(s =>
+                                                                               
+server/routes.ts:1002:77 - error TS1127: Invalid character.
+
+1002               content: `# ${enhancedSpec.title}\n\n${enhancedSpec.summary}\n\n${enhancedSpec.sections.map(s =>
+                                                                                 
+server/routes.ts:1002:78 - error TS1434: Unexpected keyword or identifier.
+
+1002               content: `# ${enhancedSpec.title}\n\n${enhancedSpec.summary}\n\n${enhancedSpec.sections.map(s =>
+                                                                                  ~~
+server/routes.ts:1012:26 - error TS1005: ';' expected.
+
+1012               moduleId: `custom-${Date.now()}`,
+                              ~~~~~~
+server/routes.ts:1012:34 - error TS1005: ';' expected.
+
+1012               moduleId: `custom-${Date.now()}`,
+                                      ~
+server/routes.ts:1035:26 - error TS1005: ';' expected.
+
+1035         title: topic || `${finalSubject || 'Sample'} Lesson`,
+                              ~
+server/routes.ts:1035:60 - error TS1443: Module declaration names may only use ' or " quoted strings.
+
+1035         title: topic || `${finalSubject || 'Sample'} Lesson`,
+                                                                ~~
+1036         content: `# ${topic || finalSubject || 'Sample'} Lesson\n\nThis is a lesson about ${topic || finalSubject || 'a sample topic'}`,
+     ~~~~~~~~~~~~~~~~~~
+server/routes.ts:1036:19 - error TS1127: Invalid character.
+
+1036         content: `# ${topic || finalSubject || 'Sample'} Lesson\n\nThis is a lesson about ${topic || finalSubject || 'a sample topic'}`,
+                       ~
+server/routes.ts:1036:21 - error TS1005: ';' expected.
+
+1036         content: `# ${topic || finalSubject || 'Sample'} Lesson\n\nThis is a lesson about ${topic || finalSubject || 'a sample topic'}`,
+                         ~
+server/routes.ts:1036:64 - error TS1127: Invalid character.
+
+1036         content: `# ${topic || finalSubject || 'Sample'} Lesson\n\nThis is a lesson about ${topic || finalSubject || 'a sample topic'}`,
+                                                                    
+server/routes.ts:1036:66 - error TS1127: Invalid character.
+
+1036         content: `# ${topic || finalSubject || 'Sample'} Lesson\n\nThis is a lesson about ${topic || finalSubject || 'a sample topic'}`,
+                                                                      
+server/routes.ts:1036:67 - error TS1435: Unknown keyword or identifier. Did you mean 'this'?
+
+1036         content: `# ${topic || finalSubject || 'Sample'} Lesson\n\nThis is a lesson about ${topic || finalSubject || 'a sample topic'}`,
+                                                                       ~~~~~
+server/routes.ts:1036:73 - error TS1228: A type predicate is only allowed in return type position for functions and methods.
+
+1036         content: `# ${topic || finalSubject || 'Sample'} Lesson\n\nThis is a lesson about ${topic || finalSubject || 'a sample topic'}`,
+                                                                             ~~~
+server/routes.ts:1036:76 - error TS1434: Unexpected keyword or identifier.
+
+1036         content: `# ${topic || finalSubject || 'Sample'} Lesson\n\nThis is a lesson about ${topic || finalSubject || 'a sample topic'}`,
+                                                                                ~
+server/routes.ts:1036:78 - error TS1434: Unexpected keyword or identifier.
+
+1036         content: `# ${topic || finalSubject || 'Sample'} Lesson\n\nThis is a lesson about ${topic || finalSubject || 'a sample topic'}`,
+                                                                                  ~~~~~~
+server/routes.ts:1036:85 - error TS1435: Unknown keyword or identifier. Did you mean 'out'?
+
+1036         content: `# ${topic || finalSubject || 'Sample'} Lesson\n\nThis is a lesson about ${topic || finalSubject || 'a sample topic'}`,
+                                                                                         ~~~~~
+server/routes.ts:1036:91 - error TS1434: Unexpected keyword or identifier.
+
+1036         content: `# ${topic || finalSubject || 'Sample'} Lesson\n\nThis is a lesson about ${topic || finalSubject || 'a sample topic'}`,
+                                                                                               ~
+server/routes.ts:1038:18 - error TS1005: ';' expected.
+
+1038           text: `What is this lesson about?`,
+                      ~~~~
+server/routes.ts:1038:23 - error TS1228: A type predicate is only allowed in return type position for functions and methods.
+
+1038           text: `What is this lesson about?`,
+                           ~~~
+server/routes.ts:1038:31 - error TS1005: ';' expected.
+
+1038           text: `What is this lesson about?`,
+                                   ~~~~~~
+server/routes.ts:1040:14 - error TS1005: ':' expected.
+
+1040             `${topic || finalSubject || 'A sample topic'}`,
+                  ~
+server/routes.ts:1054:20 - error TS1005: ';' expected.
+
+1054         moduleId: `custom-${Date.now()}`,
+                        ~~~~~~
+server/routes.ts:1054:28 - error TS1005: ';' expected.
+
+1054         moduleId: `custom-${Date.now()}`,
+                                ~
+server/routes.ts:1233:24 - error TS1005: ';' expected.
+
+1233           console.log(`Generating varied lesson on ${subject}: ${category}`);
+                            ~~~~~~~~~~
+server/routes.ts:1233:35 - error TS1435: Unknown keyword or identifier. Did you mean 'var ied'?
+
+1233           console.log(`Generating varied lesson on ${subject}: ${category}`);
+                                       ~~~~~~
+server/routes.ts:1233:42 - error TS1434: Unexpected keyword or identifier.
+
+1233           console.log(`Generating varied lesson on ${subject}: ${category}`);
+                                              ~~~~~~
+server/routes.ts:1233:49 - error TS1434: Unexpected keyword or identifier.
+
+1233           console.log(`Generating varied lesson on ${subject}: ${category}`);
+                                                     ~~
+server/routes.ts:1233:52 - error TS1434: Unexpected keyword or identifier.
+
+1233           console.log(`Generating varied lesson on ${subject}: ${category}`);
+                                                        ~
+server/routes.ts:1233:62 - error TS1128: Declaration or statement expected.
+
+1233           console.log(`Generating varied lesson on ${subject}: ${category}`);
+                                                                  ~
+server/routes.ts:1233:64 - error TS1434: Unexpected keyword or identifier.
+
+1233           console.log(`Generating varied lesson on ${subject}: ${category}`);
+                                                                    ~
+server/routes.ts:1239:27 - error TS1005: ';' expected.
+
+1239             description: `Educational illustration of ${category} in ${subject}`,
+                               ~~~~~~~~~~~
+server/routes.ts:1239:39 - error TS1434: Unexpected keyword or identifier.
+
+1239             description: `Educational illustration of ${category} in ${subject}`,
+                                           ~~~~~~~~~~~~
+server/routes.ts:1239:52 - error TS1434: Unexpected keyword or identifier.
+
+1239             description: `Educational illustration of ${category} in ${subject}`,
+                                                        ~~
+server/routes.ts:1239:55 - error TS1434: Unexpected keyword or identifier.
+
+1239             description: `Educational illustration of ${category} in ${subject}`,
+                                                           ~
+server/routes.ts:1239:67 - error TS1109: Expression expected.
+
+1239             description: `Educational illustration of ${category} in ${subject}`,
+                                                                       ~~
+server/routes.ts:1239:71 - error TS1005: ';' expected.
+
+1239             description: `Educational illustration of ${category} in ${subject}`,
+                                                                           ~
+server/routes.ts:1240:19 - error TS1005: ';' expected.
+
+1240             alt: `${category} educational illustration`,
+                       ~
+server/routes.ts:1240:31 - error TS1434: Unexpected keyword or identifier.
+
+1240             alt: `${category} educational illustration`,
+                                   ~~~~~~~~~~~
+server/routes.ts:1240:55 - error TS1443: Module declaration names may only use ' or " quoted strings.
+
+1240             alt: `${category} educational illustration`,
+                                                           ~~
+1241             svgData: svgImageData,
+     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+1242             promptUsed: `Create an educational illustration about ${category} in ${subject}`
+     ~~~~~~~~~~~~~~~~~~~~~~~~~
+server/routes.ts:1242:26 - error TS1434: Unexpected keyword or identifier.
+
+1242             promptUsed: `Create an educational illustration about ${category} in ${subject}`
+                              ~~~~~~
+server/routes.ts:1242:33 - error TS1434: Unexpected keyword or identifier.
+
+1242             promptUsed: `Create an educational illustration about ${category} in ${subject}`
+                                     ~~
+server/routes.ts:1242:36 - error TS1434: Unexpected keyword or identifier.
+
+1242             promptUsed: `Create an educational illustration about ${category} in ${subject}`
+                                        ~~~~~~~~~~~
+server/routes.ts:1242:48 - error TS1434: Unexpected keyword or identifier.
+
+1242             promptUsed: `Create an educational illustration about ${category} in ${subject}`
+                                                    ~~~~~~~~~~~~
+server/routes.ts:1242:61 - error TS1435: Unknown keyword or identifier. Did you mean 'out'?
+
+1242             promptUsed: `Create an educational illustration about ${category} in ${subject}`
+                                                                 ~~~~~
+server/routes.ts:1242:67 - error TS1434: Unexpected keyword or identifier.
+
+1242             promptUsed: `Create an educational illustration about ${category} in ${subject}`
+                                                                       ~
+server/routes.ts:1242:79 - error TS1109: Expression expected.
+
+1242             promptUsed: `Create an educational illustration about ${category} in ${subject}`
+                                                                                   ~~
+server/routes.ts:1242:83 - error TS1005: ';' expected.
+
+1242             promptUsed: `Create an educational illustration about ${category} in ${subject}`
+                                                                                       ~
+server/routes.ts:1253:21 - error TS1005: ';' expected.
+
+1253             title: `${category} in ${subject}`,
+                         ~
+server/routes.ts:1253:33 - error TS1109: Expression expected.
+
+1253             title: `${category} in ${subject}`,
+                                     ~~
+server/routes.ts:1253:37 - error TS1005: ';' expected.
