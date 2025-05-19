@@ -6,7 +6,7 @@ import { registerRoutes } from "./routes";
 import http from "http";
 
 const app = express();
-const PORT = Number(process.env.PORT || 5000);
+const PORT = Number(process.env.PORT || 8000);
 
 // Middleware
 app.use(cors({
@@ -39,7 +39,9 @@ app.use((req, res) => {
   res.sendFile(indexPath);
 });
 
-// Start server on port 5000
+// Start server
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on http://0.0.0.0:${PORT}`);
+  // Signal that server is ready for connections
+  console.log(`Server ready to accept connections on port ${PORT}`);
 });
