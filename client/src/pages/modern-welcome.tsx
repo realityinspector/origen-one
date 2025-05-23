@@ -41,7 +41,7 @@ const WelcomePage: React.FC = () => {
               <View style={styles.heroText}>
                 <View style={styles.badge}>
                   <BookOpen size={16} color={colors.onPrimary} />
-                  <Text style={styles.badgeText}>ORIGEN™</Text>
+                  <Text style={styles.badgeText}>SUNSCHOOL™</Text>
                 </View>
                 
                 <Text style={styles.heroTitle}>The Learning Experience Your Child Deserves</Text>
@@ -279,7 +279,7 @@ const WelcomePage: React.FC = () => {
                 </View>
                 <View style={styles.testimonialBody}>
                   <Text style={styles.testimonialText}>
-                    Access Origen on any device, anytime, with progress synced automatically across all platforms.
+                    Access SUNSCHOOL on any device, anytime, with progress synced automatically across all platforms powered by Origen™ technology.
                   </Text>
                 </View>
               </View>
@@ -287,8 +287,8 @@ const WelcomePage: React.FC = () => {
             
             <View style={styles.solutionsSummary}>
               <Text style={styles.summaryText}>
-                Origen isn't just another learning app—it's a complete educational partner that grows with your family. 
-                Our AI technology creates a truly personalized experience that makes learning a joy rather than a chore.
+                SUNSCHOOL isn't just another learning app—it's a complete educational partner that grows with your family. 
+                Our Origen™ AI technology creates a truly personalized experience that makes learning a joy rather than a chore.
               </Text>
             </View>
           </View>
@@ -351,7 +351,7 @@ const WelcomePage: React.FC = () => {
           <View style={styles.sectionInner}>
             <View style={[styles.row, styles.spaceBetween]}>
               <View style={styles.footerInfo}>
-                <Text style={styles.footerTitle}>Origen</Text>
+                <Text style={styles.footerTitle}>SUNSCHOOL</Text>
                 <Text style={styles.footerSubtitle}>The future of personalized education</Text>
                 <View style={styles.footerLinks}>
                   <TouchableOpacity style={styles.footerLink}>
@@ -373,7 +373,7 @@ const WelcomePage: React.FC = () => {
                 <View style={styles.footerLogoCircle}>
                   <Text style={styles.footerLogoText}>O</Text>
                 </View>
-                <Text style={styles.footerCopyright}>© 2025 Origen Learning</Text>
+                <Text style={styles.footerCopyright}>© 2025 SUNSCHOOL by AOT LABS, powered by Origen™ technology</Text>
               </View>
             </View>
           </View>
