@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Image } from 'react-native';
 import { Link, useLocation, Redirect } from 'wouter';
 import { useAuth } from '../hooks/use-auth';
 import { colors, typography } from '../styles/theme';
-import { GitHub, BookOpen, Star, CheckCircle, Users, Award, BarChart2, ExternalLink } from 'react-feather';
+import { GitHub, BookOpen, Star, CheckCircle, Users, Award, BarChart2, ExternalLink, Sun, Wifi } from 'react-feather';
 
 // Get screen dimensions for responsive design
 const windowWidth = Dimensions.get('window').width;
@@ -40,14 +40,21 @@ const WelcomePage: React.FC = () => {
               {/* Hero Text Content */}
               <View style={styles.heroText}>
                 <View style={styles.badge}>
-                  <BookOpen size={16} color={colors.onPrimary} />
-                  <Text style={styles.badgeText}>SUNSCHOOL™</Text>
+                  <img 
+                    src="/images/sunschool-logo.png" 
+                    style={{width: 120, height: 'auto', marginBottom: 15}}
+                    alt="SUNSCHOOL Logo"
+                  />
                 </View>
                 
-                <Text style={styles.heroTitle}>The Learning Experience Your Child Deserves</Text>
+                <Text style={styles.heroTitle}>SUNSCHOOL by AOT LABS</Text>
                 
                 <Text style={styles.heroSubtitle}>
-                  AI-powered education tailored to each child's unique learning style and pace
+                  AI-powered learning. Built into every AOT space.
+                </Text>
+                
+                <Text style={styles.heroSubtitle}>
+                  School...anywhere under the sun.
                 </Text>
                 
                 {/* Benefits List */}
@@ -56,21 +63,21 @@ const WelcomePage: React.FC = () => {
                     <View style={styles.benefitIcon}>
                       <CheckCircle size={14} color={colors.onPrimary} />
                     </View>
-                    <Text style={styles.benefitText}>Personalized learning paths</Text>
+                    <Text style={styles.benefitText}>Solar Powered - Runs off-grid in barns, lodges, or yurts</Text>
                   </View>
                   
                   <View style={styles.benefitItem}>
                     <View style={styles.benefitIcon}>
                       <CheckCircle size={14} color={colors.onPrimary} />
                     </View>
-                    <Text style={styles.benefitText}>Interactive lessons and quizzes</Text>
+                    <Text style={styles.benefitText}>Satellite Connected (Starlink-ready) - AI learning anywhere</Text>
                   </View>
                   
                   <View style={styles.benefitItem}>
                     <View style={styles.benefitIcon}>
                       <CheckCircle size={14} color={colors.onPrimary} />
                     </View>
-                    <Text style={styles.benefitText}>Real-time progress tracking</Text>
+                    <Text style={styles.benefitText}>Open-Source, Device-Friendly - Works on any device</Text>
                   </View>
                 </View>
                 
@@ -101,27 +108,17 @@ const WelcomePage: React.FC = () => {
               
               {/* Hero Graphic */}
               <View style={styles.heroGraphic}>
-                <View style={styles.graphicCircle}>
-                  <Text style={styles.graphicText}>O</Text>
-                </View>
-                <View style={styles.graphicOrbit}>
-                  {[...Array(3)].map((_, i) => (
-                    <View 
-                      key={i} 
-                      style={[
-                        styles.orbitPoint,
-                        { 
-                          transform: [{ rotate: `${i * 120}deg` }],
-                          backgroundColor: i === 0 
-                            ? colors.accent1 
-                            : i === 1 
-                              ? colors.accent2 
-                              : colors.accent3
-                        }
-                      ]} 
-                    />
-                  ))}
-                </View>
+                <img 
+                  src="/images/sunschool-artboard@2x.png" 
+                  style={{
+                    width: 300, 
+                    height: 'auto', 
+                    objectFit: 'contain',
+                    borderRadius: 8,
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                  }}
+                  alt="SUNSCHOOL Solar & Satellite powered learning"
+                />
               </View>
             </View>
           </View>
@@ -131,9 +128,13 @@ const WelcomePage: React.FC = () => {
         <View style={[styles.section, styles.featuresSection]}>
           <View style={styles.sectionInner}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Key Features</Text>
+              <Text style={styles.sectionTitle}>What's Origen™?</Text>
               <View style={styles.titleUnderline} />
             </View>
+            
+            <Text style={styles.sectionIntro}>
+              Origen™ is the open-source AI tutor at the heart of SUNSCHOOL. It's not just edtech—it's the learning layer inside AOT, syncing seamlessly between learning goals and lived experience.
+            </Text>
             
             <View style={[styles.row, styles.spaceBetween]}>
               {/* Feature Cards */}
@@ -141,9 +142,9 @@ const WelcomePage: React.FC = () => {
                 <View style={styles.featureIcon}>
                   <Award size={24} color={colors.primary} />
                 </View>
-                <Text style={styles.featureTitle}>Adaptive Learning</Text>
+                <Text style={styles.featureTitle}>Adaptive AI Lessons</Text>
                 <Text style={styles.featureDescription}>
-                  Our AI adapts to your child's learning pace and style, creating personalized learning experiences.
+                  Personalized by pace, age, and interest - helps each learner progress at their optimal level.
                 </Text>
               </View>
               
@@ -151,9 +152,9 @@ const WelcomePage: React.FC = () => {
                 <View style={styles.featureIcon}>
                   <Users size={24} color={colors.primary} />
                 </View>
-                <Text style={styles.featureTitle}>Parent Dashboard</Text>
+                <Text style={styles.featureTitle}>Dual Interface</Text>
                 <Text style={styles.featureDescription}>
-                  Keep track of your child's progress and areas where they might need additional support.
+                  "Learner mode" for kids, "Grown-up mode" for caregivers with parent dashboard and data sync capabilities.
                 </Text>
               </View>
               
@@ -161,9 +162,9 @@ const WelcomePage: React.FC = () => {
                 <View style={styles.featureIcon}>
                   <Star size={24} color={colors.primary} />
                 </View>
-                <Text style={styles.featureTitle}>Interactive Content</Text>
+                <Text style={styles.featureTitle}>Interactive Knowledge Maps</Text>
                 <Text style={styles.featureDescription}>
-                  Engaging lessons and quizzes that make learning fun and interactive for all ages.
+                  Visual representations that show kids how concepts connect and build upon each other.
                 </Text>
               </View>
               
@@ -171,9 +172,9 @@ const WelcomePage: React.FC = () => {
                 <View style={styles.featureIcon}>
                   <BarChart2 size={24} color={colors.primary} />
                 </View>
-                <Text style={styles.featureTitle}>Progress Tracking</Text>
+                <Text style={styles.featureTitle}>Game Mechanics + Badges</Text>
                 <Text style={styles.featureDescription}>
-                  Comprehensive analytics and reports to visualize your child's educational journey.
+                  Because learning should be joyful - achievement tracking makes progress rewarding and fun.
                 </Text>
               </View>
             </View>
@@ -184,56 +185,60 @@ const WelcomePage: React.FC = () => {
         <View style={[styles.section, styles.howItWorksSection]}>
           <View style={styles.sectionInner}>
             <View style={styles.sectionHeader}>
-              <Text style={[styles.sectionTitle, styles.lightTitle]}>How It Works</Text>
+              <Text style={[styles.sectionTitle, styles.lightTitle]}>What Is SUNSCHOOL?</Text>
               <View style={[styles.titleUnderline, styles.lightUnderline]} />
             </View>
+            
+            <Text style={[styles.sectionIntro, styles.lightText]}>
+              A solar- and satellite-ready, device-agnostic software stack built to embed AI learning experiences into the heart of the All One Thing lifestyle.
+            </Text>
             
             <View style={styles.timelineContainer}>
               {/* Timeline Items */}
               <View style={styles.timelineItem}>
                 <View style={styles.timelineBullet}>
-                  <Text style={styles.timelineNumber}>1</Text>
+                  <Sun size={18} color={colors.onPrimary} />
                 </View>
                 <View style={styles.timelineContent}>
-                  <Text style={styles.timelineTitle}>Create Your Account</Text>
+                  <Text style={styles.timelineTitle}>Solar Powered</Text>
                   <Text style={styles.timelineText}>
-                    Sign up as a parent or educator to access our platform and set up your child's profile.
+                    Runs off-grid in barns, lodges, or yurts - designed to work anywhere the sun shines.
                   </Text>
                 </View>
               </View>
               
               <View style={styles.timelineItem}>
                 <View style={styles.timelineBullet}>
-                  <Text style={styles.timelineNumber}>2</Text>
+                  <Wifi size={18} color={colors.onPrimary} />
                 </View>
                 <View style={styles.timelineContent}>
-                  <Text style={styles.timelineTitle}>Set Learning Goals</Text>
+                  <Text style={styles.timelineTitle}>Satellite Connected (Starlink-ready)</Text>
                   <Text style={styles.timelineText}>
-                    Define your child's educational objectives and areas of focus you'd like to emphasize.
+                    Fast-enough-for-AI wherever you hold events, with minimal infrastructure requirements.
                   </Text>
                 </View>
               </View>
               
               <View style={styles.timelineItem}>
                 <View style={styles.timelineBullet}>
-                  <Text style={styles.timelineNumber}>3</Text>
+                  <BookOpen size={18} color={colors.onPrimary} />
                 </View>
                 <View style={styles.timelineContent}>
-                  <Text style={styles.timelineTitle}>Start Learning</Text>
+                  <Text style={styles.timelineTitle}>Open-Source, Device-Friendly</Text>
                   <Text style={styles.timelineText}>
-                    Your child begins their personalized learning journey with interactive, AI-guided lessons.
+                    Works on Chromebooks, Raspberry Pi, Linux laptops - making education accessible on any device.
                   </Text>
                 </View>
               </View>
               
               <View style={styles.timelineItem}>
                 <View style={styles.timelineBullet}>
-                  <Text style={styles.timelineNumber}>4</Text>
+                  <Award size={18} color={colors.onPrimary} />
                 </View>
                 <View style={styles.timelineContent}>
-                  <Text style={styles.timelineTitle}>Track Progress</Text>
+                  <Text style={styles.timelineTitle}>Origen™ AI Learning Engine</Text>
                   <Text style={styles.timelineText}>
-                    Monitor advancements and adjust learning paths based on real-time analytics and feedback.
+                    Personalized, intuitive, and community-compatible - the perfect companion for learning anywhere.
                   </Text>
                 </View>
               </View>
