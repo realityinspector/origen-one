@@ -30,9 +30,23 @@ export const queryPersister = {
   }
 };
 
-// In Replit environment or when deployed, the API is served from the same origin
-// For domain flexibility, we'll use the current origin to make requests
-const API_URL = typeof window !== 'undefined' ? window.location.origin : '';  // Use current origin
+// Handle the domain-specific configurations for API requests
+// For sunschool.xyz domain, we need to make sure requests go to the right place
+function getApiBaseUrl() {
+  if (typeof window === 'undefined') return ''; // Server-side rendering fallback
+  
+  const origin = window.location.origin;
+  // If we're on sunschool.xyz, use that domain for API requests
+  if (origin.includes('sunschool.xyz')) {
+    console.log('Using sunschool.xyz domain for API requests');
+    return 'https://sunschool.xyz';
+  }
+  
+  // Otherwise use current origin (empty string means use relative URLs)
+  return '';
+}
+
+const API_URL = getApiBaseUrl();
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -57,25 +71,61 @@ export const axiosInstance = axios.create({
 // Add auth token to requests and store it
 export const setAuthToken = async (token: string | null) => {
   if (token) {
-    // Set the token in axios for all future requests
-    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    
-    // Also create a timestamp to help with token validation
-    const tokenData = {
-      token,
-      timestamp: Date.now(),
-      origin: typeof window !== 'undefined' ? window.location.origin : ''
-    };
-    
-    // Store the token and metadata
-    await AsyncStorage.setItem('AUTH_TOKEN', token);
-    await AsyncStorage.setItem('AUTH_TOKEN_DATA', JSON.stringify(tokenData));
-    
-    console.log('Auth token set successfully with metadata', {
-      tokenLength: token.length,
-      origin: tokenData.origin,
-      timestamp: new Date(tokenData.timestamp).toISOString()
-    });
+    try {
+      // Try to decode the token to validate its format
+      // (JWT tokens are Base64Url encoded JSON)
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        console.warn('Invalid token format (not JWT)', { tokenLength: token.length });
+      } else {
+        try {
+          // Decode the payload (second part)
+          const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+          console.log('Token payload validated:', { 
+            exp: payload.exp ? new Date(payload.exp * 1000).toISOString() : 'none',
+            role: payload.role || 'unknown',
+            hasUserId: !!payload.userId
+          });
+        } catch (e) {
+          console.warn('Token payload validation failed:', e);
+        }
+      }
+      
+      // Set the token in axios for all future requests
+      axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      
+      // For domain-specific configuration
+      const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+      const isSunschool = currentOrigin.includes('sunschool.xyz');
+      
+      // Also create a timestamp to help with token validation
+      const tokenData = {
+        token,
+        timestamp: Date.now(),
+        origin: currentOrigin,
+        isSunschool // Add explicit flag for sunschool domain
+      };
+      
+      // Store the token and metadata
+      await AsyncStorage.setItem('AUTH_TOKEN', token);
+      await AsyncStorage.setItem('AUTH_TOKEN_DATA', JSON.stringify(tokenData));
+      
+      console.log('Auth token set successfully with metadata', {
+        tokenLength: token.length,
+        origin: tokenData.origin,
+        isSunschool,
+        timestamp: new Date(tokenData.timestamp).toISOString()
+      });
+      
+      // Extra logging for debugging
+      if (isSunschool) {
+        console.log('IMPORTANT: Running on sunschool.xyz domain - setting special auth config');
+      }
+    } catch (error) {
+      console.error('Error setting auth token:', error);
+      // Still set the token even if validation failed
+      axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    }
   } else {
     // Clear the token from axios
     delete axiosInstance.defaults.headers.common["Authorization"];
