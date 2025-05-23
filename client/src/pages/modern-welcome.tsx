@@ -41,9 +41,19 @@ const WelcomePage: React.FC = () => {
               {/* Hero Text Content */}
               <View style={styles.heroText}>
                 <View style={styles.badge}>
-                  <Text style={{color: '#FFD700', fontSize: 24, fontWeight: 'bold', marginBottom: 15}}>
-                    ☀️ SUNSCHOOL
-                  </Text>
+                  <div style={{
+                    backgroundColor: '#333', 
+                    color: '#FFD700', 
+                    padding: '10px 15px',
+                    borderRadius: '6px',
+                    display: 'inline-block',
+                    marginBottom: 15,
+                    fontWeight: 'bold',
+                    fontSize: '20px'
+                  }}>
+                    <span style={{color: '#FFD700', marginRight: '10px'}}>☀️</span>
+                    <span style={{color: 'white'}}>AOT LABS</span>
+                  </div>
                 </View>
                 
                 <Text style={styles.heroTitle}>SUNSCHOOL by AOT LABS</Text>
@@ -107,28 +117,51 @@ const WelcomePage: React.FC = () => {
               
               {/* Hero Graphic */}
               <View style={styles.heroGraphic}>
-                <View style={{
-                  width: windowWidth < 768 ? '100%' : 380,
-                  height: 300,
+                <div style={{
+                  width: windowWidth < 768 ? '100%' : '380px',
+                  height: '300px',
                   backgroundColor: '#1E90FF',
-                  borderRadius: 12,
+                  borderRadius: '12px',
                   position: 'relative',
                   overflow: 'hidden',
-                  borderWidth: 1,
-                  borderColor: 'rgba(255, 255, 255, 0.1)',
-                  padding: 20,
+                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  padding: '20px',
                   display: 'flex',
+                  flexDirection: 'column',
                   justifyContent: 'center',
-                  alignItems: 'center'
+                  alignItems: 'center',
+                  backgroundImage: 'linear-gradient(135deg, #1E90FF 0%, #4169E1 100%)',
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
                 }}>
-                  <Text style={{fontSize: 72, marginBottom: 20}}>☀️</Text>
-                  <Text style={{color: 'white', fontSize: 20, fontWeight: 'bold', textAlign: 'center'}}>
-                    Solar & Satellite powered learning
-                  </Text>
-                  <Text style={{color: 'white', fontSize: 16, textAlign: 'center', marginTop: 20}}>
-                    Works anywhere under the sun
-                  </Text>
-                </View>
+                  <div style={{
+                    position: 'absolute',
+                    top: '30px',
+                    right: '30px',
+                    width: '60px',
+                    height: '60px',
+                    borderRadius: '30px',
+                    backgroundColor: '#FFD700',
+                    boxShadow: '0 0 20px rgba(255, 215, 0, 0.6)'
+                  }}></div>
+                  <div style={{
+                    padding: '20px',
+                    backgroundColor: 'rgba(0,0,0,0.2)',
+                    borderRadius: '10px',
+                    maxWidth: '280px',
+                    textAlign: 'center',
+                    zIndex: 1
+                  }}>
+                    <div style={{fontSize: '24px', color: 'white', fontWeight: 'bold', marginBottom: '15px'}}>
+                      SUNSCHOOL
+                    </div>
+                    <div style={{color: 'white', fontSize: '16px', marginBottom: '10px'}}>
+                      Solar & Satellite powered learning
+                    </div>
+                    <div style={{color: '#FFD700', fontSize: '14px', fontStyle: 'italic'}}>
+                      Works anywhere under the sun
+                    </div>
+                  </div>
+                </div>
               </View>
             </View>
           </View>
