@@ -1,4 +1,4 @@
-# ORIGEN: The Open Source AI Tutor
+# SUNSCHOOL: Powered by Origen™ AI Tutor
 
 <p align="center">
   <img src="generated-icon.png" alt="Origen AI Tutor Logo" width="120" height="120">
