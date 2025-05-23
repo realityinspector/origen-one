@@ -9,8 +9,9 @@ import * as env from './config/env';
 // Enhanced Neon configuration for better reliability
 neonConfig.webSocketConstructor = ws;
 neonConfig.fetchConnectionCache = true;
-neonConfig.wsMaxLifetime = 30 * 60 * 1000; // 30 minutes max WebSocket lifetime
-neonConfig.pipelineConnect = true;
+// Apply correct Neon configuration properties
+// Note: pipelineConnect must be set to "password" according to the type definition
+neonConfig.pipelineConnect = "password";
 
 // Add more logging for connection debugging
 console.log('Initializing database connection for environment:', process.env.NODE_ENV || 'development');
