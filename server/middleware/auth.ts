@@ -108,32 +108,68 @@ export function verifyToken(token: string): JwtPayload {
 
 // Middleware
 export function authenticateJwt(req: AuthRequest, res: Response, next: NextFunction) {
-  // First try to get token from Authorization header
+  // Enhanced token extraction with logging for debugging
+  // We'll check all possible locations where a token might be present
   let token: string | undefined;
-  const authHeader = req.headers.authorization;
+  let tokenSource: string = 'none';
   
+  // First try to get token from Authorization header (most common)
+  const authHeader = req.headers.authorization;
   if (authHeader) {
     const parts = authHeader.split(' ');
     if (parts.length === 2 && parts[0] === 'Bearer') {
       token = parts[1];
+      tokenSource = 'auth_header';
     }
   }
   
-  // If no token in header, check for token in query string (for API calls)
+  // Check for custom header (for sunschool.xyz domain)
+  if (!token && req.headers['x-sunschool-auth-token']) {
+    token = req.headers['x-sunschool-auth-token'] as string;
+    tokenSource = 'sunschool_header';
+  }
+  
+  // If no token in headers, check for token in query string (for API calls)
   if (!token && req.query.token) {
     token = req.query.token as string;
+    tokenSource = 'query_string';
   }
   
   // If still no token, check if it's in cookies
   if (!token && req.cookies && req.cookies.token) {
     token = req.cookies.token;
+    tokenSource = 'cookie';
   }
+  
+  // Special handling for sunschool.xyz domain, check for token in a special cookie
+  if (!token && req.cookies && req.cookies.sunschool_token) {
+    token = req.cookies.sunschool_token;
+    tokenSource = 'sunschool_cookie';
+  }
+  
+  // Log more detailed information about the request
+  const origin = req.headers.origin || req.headers.referer || 'unknown';
+  const isSunschool = origin.includes('sunschool.xyz');
   
   // No token found in any location
   if (!token) {
     console.log(`No auth token found in request to: ${req.method} ${req.path}`);
     console.log('Headers:', JSON.stringify(req.headers));
+    console.log('Request origin:', origin, isSunschool ? '(sunschool domain)' : '');
     return res.status(401).json({ error: 'No authorization token provided' });
+  }
+  
+  // Log token information for debugging (without exposing the token)
+  console.log(`Auth token found in ${tokenSource} for request to: ${req.method} ${req.path}`);
+  console.log(`Token length: ${token.length}, origin: ${origin}`);
+  
+  // For sunschool.xyz domain, add CORS headers to ensure the response works
+  if (isSunschool) {
+    console.log('Adding special CORS headers for sunschool.xyz domain');
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Sunschool-Auth,X-Sunschool-Auth-Token');
   }
   
   // Validate and process the token

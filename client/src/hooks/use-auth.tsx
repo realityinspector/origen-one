@@ -189,17 +189,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           passwordLength: credentials.password ? credentials.password.length : 0
         });
         
-        // Simplify our approach to just use the current domain
+        // Determine whether we're on sunschool.xyz or a Replit environment
         const baseUrl = window.location.origin;
-        console.log('Using current domain for authentication:', baseUrl);
+        const isSunSchool = baseUrl.includes('sunschool.xyz');
+        
+        // For sunschool.xyz domain, we need to use that as our API endpoint
+        const apiBaseUrl = isSunSchool ? 'https://sunschool.xyz' : baseUrl;
+        console.log('Using API base URL for authentication:', apiBaseUrl);
         
         // We'll try multiple endpoint patterns to ensure compatibility with different
         // deployment environments, including the new domain at https://sunschool.xyz
         const apiEndpoints: string[] = [
-          '/login',          // Direct path (production compatibility)
-          '/api/login',      // API path (traditional)
-          `${baseUrl}/login`,       // Full URL with domain (for CORS compatibility)
-          `${baseUrl}/api/login`    // Full URL with API prefix (for CORS compatibility)
+          '/login',                    // Direct path (production compatibility)
+          '/api/login',                // API path (traditional)
+          `${apiBaseUrl}/login`,       // Full URL with domain (for CORS compatibility)
+          `${apiBaseUrl}/api/login`    // Full URL with API prefix (for CORS compatibility)
         ];
         
         // Try multiple endpoint patterns to handle both deployed and development environments
@@ -212,17 +216,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           if (jsonResponse) break; // Stop if we already got a successful response
           
           try {
-            const fullUrl = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`;
+            const fullUrl = endpoint.startsWith('http') ? endpoint : `${apiBaseUrl}${endpoint}`;
             console.log(`Attempting login via endpoint: ${fullUrl}`);
+            
+            // For sunschool.xyz domain we need special CORS settings
+            const corsMode = apiBaseUrl.includes('sunschool.xyz') ? 'cors' : 'same-origin';
+            console.log(`Using CORS mode: ${corsMode} for endpoint: ${fullUrl}`);
             
             response = await fetch(fullUrl, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-Sunschool-Auth': 'true' // Custom header for special auth handling
               },
               body: JSON.stringify(credentials),
-              credentials: 'include' // Important for cookies
+              credentials: 'include', // Important for cookies
+              mode: corsMode as RequestMode
             });
             
             // If we got a JSON response, we're good
