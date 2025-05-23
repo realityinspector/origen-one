@@ -116,17 +116,18 @@ export async function setupAuth(app: Express) {
     }
     
     if (!req.user) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
+      return;
     }
     
     try {
       // We're not retrieving the user from database here since it's already in req.user
       // But we're removing the password field for security
       const { password: _, ...userWithoutPassword } = req.user;
-      return res.json(userWithoutPassword);
+      res.json(userWithoutPassword);
     } catch (error) {
       console.error('Error retrieving user info:', error);
-      return res.status(500).json({ error: 'Failed to retrieve user info' });
+      res.status(500).json({ error: 'Failed to retrieve user info' });
     }
   }));
 }
