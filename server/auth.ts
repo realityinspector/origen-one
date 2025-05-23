@@ -102,7 +102,7 @@ export async function setupAuth(app: Express) {
   }));
 
   // Enhanced user info endpoint with cross-domain support
-  app.get("/api/user", authenticateJwt, (req: AuthRequest, res: Response, next: NextFunction) => {
+  app.get("/api/user", authenticateJwt, asyncHandler(async (req: AuthRequest, res: Response) => {
     // Log the request info for debugging
     const origin = req.headers.origin || req.headers.referer || 'unknown';
     const isSunschool = origin.includes('sunschool.xyz');
@@ -116,20 +116,19 @@ export async function setupAuth(app: Express) {
     }
     
     if (!req.user) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
+      return res.status(401).json({ error: "Unauthorized" });
     }
     
     try {
       // We're not retrieving the user from database here since it's already in req.user
       // But we're removing the password field for security
       const { password: _, ...userWithoutPassword } = req.user;
-      res.json(userWithoutPassword);
+      return res.json(userWithoutPassword);
     } catch (error) {
       console.error('Error retrieving user info:', error);
-      res.status(500).json({ error: 'Failed to retrieve user info' });
+      return res.status(500).json({ error: 'Failed to retrieve user info' });
     }
-  });
+  }));
 }
 
 // Temporary authentication middleware, simplified
