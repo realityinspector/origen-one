@@ -37,7 +37,7 @@ const WelcomePage: React.FC = () => {
         {/* Hero Section */}
         <View style={styles.heroSection}>
           <View style={styles.sectionInner}>
-            <View style={[styles.row, styles.spaceBetween, styles.gap40]}>
+            <View style={[styles.row, styles.spaceBetween, styles.gap40, { flexDirection: windowWidth < 768 ? 'column' : 'row' }]}>
               {/* Hero Text Content */}
               <View style={styles.heroText}>
                 <View style={styles.badge}>
@@ -458,14 +458,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
     paddingVertical: 64,
     paddingHorizontal: 16,
-    minHeight: 600,
+    minHeight: windowWidth < 768 ? 'auto' : 600,
     alignItems: 'center',
     justifyContent: 'center',
   },
   heroText: {
-    flex: 1,
+    flex: windowWidth < 768 ? 0 : 1,
     minWidth: 300,
-    maxWidth: 600,
+    maxWidth: windowWidth < 768 ? '100%' : 600,
+    order: windowWidth < 768 ? 2 : 1,
   },
   heroTitle: {
     fontSize: windowWidth < 768 ? 36 : 48,
@@ -530,13 +531,15 @@ const styles = StyleSheet.create({
   // Hero graphic
   heroGraphic: {
     position: 'relative',
-    flex: windowWidth < 1024 ? 1 : 0,
-    width: windowWidth < 768 ? '100%' : 380,
+    flex: windowWidth < 768 ? 0 : 1,
+    width: windowWidth < 768 ? '100%' : '45%',
     height: 'auto',
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: windowWidth < 768 ? 40 : 0,
+    marginBottom: windowWidth < 768 ? 40 : 0,
+    marginTop: windowWidth < 768 ? 0 : 0,
     alignSelf: 'center',
+    order: windowWidth < 768 ? 1 : 2,
   },
   graphicCircle: {
     width: 120,
