@@ -70,7 +70,7 @@ const WelcomePage: React.FC = () => {
                     <View style={styles.benefitIcon}>
                       <CheckCircle size={14} color={colors.onPrimary} />
                     </View>
-                    <Text style={styles.benefitText}>Satellite Connected (Starlink-ready) - AI learning anywhere</Text>
+                    <Text style={styles.benefitText}>Satellite Connected- AI learning anywhere</Text>
                   </View>
                   
                   <View style={styles.benefitItem}>
