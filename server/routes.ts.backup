@@ -1492,7 +1492,7 @@ export function registerRoutes(app: Express): Server {
   }));
 
   // Get a specific sync configuration
-  app.get("/api/sync-configs/:id", hasRole(["PARENT"]), asyncHandler(async (req: AuthRequest, res: Response) => {
+  app.get("/api/sync-configs/:id", hasRole(["PARENT"]), asyncHandler(async (req: AuthRequest, res) => {
     if (!req.user) {
       res.status(401).json({ error: "Unauthorized" });
     }
