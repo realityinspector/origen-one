@@ -107,7 +107,28 @@ const WelcomePage: React.FC = () => {
               
               {/* Hero Graphic */}
               <View style={styles.heroGraphic}>
-                <SimpleHeroImage />
+                <View style={{
+                  width: windowWidth < 768 ? '100%' : 380,
+                  height: 300,
+                  backgroundColor: '#1E90FF',
+                  borderRadius: 12,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  borderWidth: 1,
+                  borderColor: 'rgba(255, 255, 255, 0.1)',
+                  padding: 20,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }}>
+                  <Text style={{fontSize: 72, marginBottom: 20}}>☀️</Text>
+                  <Text style={{color: 'white', fontSize: 20, fontWeight: 'bold', textAlign: 'center'}}>
+                    Solar & Satellite powered learning
+                  </Text>
+                  <Text style={{color: 'white', fontSize: 16, textAlign: 'center', marginTop: 20}}>
+                    Works anywhere under the sun
+                  </Text>
+                </View>
               </View>
             </View>
           </View>
