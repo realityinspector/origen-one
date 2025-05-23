@@ -41,10 +41,7 @@ const WelcomePage: React.FC = () => {
               {/* Hero Text Content */}
               <View style={styles.heroText}>
                 <View style={styles.badge}>
-                  <div style={{
-                    display: 'inline-block',
-                    marginBottom: 15
-                  }}>
+                  
                     <img 
                       src="/aot-labs-logo.png" 
                       alt="AOT Labs Logo" 
@@ -53,7 +50,7 @@ const WelcomePage: React.FC = () => {
                         objectFit: 'contain'
                       }}
                     />
-                  </div>
+                  
                 </View>
                 
                 <Text style={styles.heroTitle}>SUNSCHOOL by AOT LABS</Text>
