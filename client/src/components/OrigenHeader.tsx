@@ -16,7 +16,10 @@ const OrigenHeader: React.FC<OrigenHeaderProps> = ({ subtitle }) => {
   const isActive = (path: string) => location === path;
   
   const getNavItems = () => {
-    if (!user) return [];
+    if (!user || !user.role) return [];
+    
+    // Ensure we have a valid string role
+    const userRole = typeof user.role === 'string' ? (user.role as 'ADMIN' | 'PARENT' | 'LEARNER') : 'LEARNER';
     
     // Basic navigation items for all authenticated users
     const navItems = [
@@ -29,7 +32,7 @@ const OrigenHeader: React.FC<OrigenHeaderProps> = ({ subtitle }) => {
     ];
     
     // Additional items based on user role
-    if (user.role === 'LEARNER') {
+    if (userRole === 'LEARNER') {
       navItems.push(
         { label: 'Lessons', path: '/learner', icon: Book, roles: ['LEARNER'] },
         { label: 'Progress', path: '/progress', icon: BarChart2, roles: ['LEARNER'] }
@@ -42,13 +45,13 @@ const OrigenHeader: React.FC<OrigenHeaderProps> = ({ subtitle }) => {
     }
     
     // Admin-specific items
-    if (user.role === 'ADMIN') {
+    if (userRole === 'ADMIN') {
       navItems.push(
         { label: 'Admin', path: '/admin', icon: User, roles: ['ADMIN'] }
       );
     }
     
-    return navItems.filter(item => user && user.role && item.roles.includes(user.role));
+    return navItems.filter(item => item.roles.includes(userRole));
   };
 
   return (
