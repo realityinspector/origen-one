@@ -132,7 +132,7 @@ const WelcomePage: React.FC = () => {
               <View style={styles.titleUnderline} />
             </View>
             
-            <Text style={styles.sectionIntro}>
+            <Text style={{...typography.body1, fontSize: 18, textAlign: 'center', maxWidth: 900, marginLeft: 'auto', marginRight: 'auto', marginBottom: 40}}>
               Origen™ is the open-source AI tutor at the heart of SUNSCHOOL. It's not just edtech—it's the learning layer inside AOT, syncing seamlessly between learning goals and lived experience.
             </Text>
             
@@ -189,7 +189,7 @@ const WelcomePage: React.FC = () => {
               <View style={[styles.titleUnderline, styles.lightUnderline]} />
             </View>
             
-            <Text style={[styles.sectionIntro, styles.lightText]}>
+            <Text style={[styles.summaryText, {color: colors.onPrimary, marginBottom: 30}]}>
               A solar- and satellite-ready, device-agnostic software stack built to embed AI learning experiences into the heart of the All One Thing lifestyle.
             </Text>
             
@@ -250,41 +250,45 @@ const WelcomePage: React.FC = () => {
         <View style={[styles.section, styles.solutionsSection]}>
           <View style={styles.sectionInner}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Real Solutions for Real Challenges</Text>
+              <Text style={styles.sectionTitle}>Why SUNSCHOOL at AOT?</Text>
               <View style={styles.titleUnderline} />
             </View>
+            
+            <Text style={[styles.summaryText, {marginBottom: 30}]}>
+              Because our spaces are already schools.
+            </Text>
             
             <View style={[styles.row, styles.gap24]}>
               {/* Testimonial Cards */}
               <View style={styles.testimonialCard}>
                 <View style={styles.testimonialHeader}>
-                  <Text style={styles.testimonialQuote}>"My child was struggling to stay engaged with standard curriculum materials."</Text>
+                  <Text style={styles.testimonialQuote}>Sunset Sunday becomes science class</Text>
                 </View>
                 <View style={styles.testimonialBody}>
                   <Text style={styles.testimonialText}>
-                    Our interactive, game-like lessons capture attention and maintain engagement through personalized content and rewards.
+                    Natural learning environments turn everyday experiences into rich educational opportunities.
                   </Text>
                 </View>
               </View>
               
               <View style={styles.testimonialCard}>
                 <View style={styles.testimonialHeader}>
-                  <Text style={styles.testimonialQuote}>"The standard curriculum isn't challenging enough for my child."</Text>
+                  <Text style={styles.testimonialQuote}>Bonfire storytelling becomes literature hour</Text>
                 </View>
                 <View style={styles.testimonialBody}>
                   <Text style={styles.testimonialText}>
-                    Our platform recognizes when your child masters concepts quickly and automatically increases difficulty to keep them engaged and growing.
+                    Community experiences transform into engaging learning moments with SUNSCHOOL's adaptable platform.
                   </Text>
                 </View>
               </View>
               
               <View style={styles.testimonialCard}>
                 <View style={styles.testimonialHeader}>
-                  <Text style={styles.testimonialQuote}>"We're always on the move and need learning that works anywhere."</Text>
+                  <Text style={styles.testimonialQuote}>Community cooking becomes chemistry</Text>
                 </View>
                 <View style={styles.testimonialBody}>
                   <Text style={styles.testimonialText}>
-                    Access SUNSCHOOL on any device, anytime, with progress synced automatically across all platforms powered by Origen™ technology.
+                    SUNSCHOOL gives founders a plug-and-play AI learning experience to integrate across all SUNSCHOOL pods, event tents, and lodge lounges.
                   </Text>
                 </View>
               </View>
@@ -292,8 +296,9 @@ const WelcomePage: React.FC = () => {
             
             <View style={styles.solutionsSummary}>
               <Text style={styles.summaryText}>
-                SUNSCHOOL isn't just another learning app—it's a complete educational partner that grows with your family. 
-                Our Origen™ AI technology creates a truly personalized experience that makes learning a joy rather than a chore.
+                This is infrastructure for the new town square. Cowork. Colearn. Coexist.
+                With SUNSCHOOL + Origen™, every AOT location becomes a micro-campus.
+                Every retreat becomes a learning expedition. Every event, a chance to grow.
               </Text>
             </View>
           </View>
@@ -302,35 +307,35 @@ const WelcomePage: React.FC = () => {
         {/* CTA Section */}
         <View style={[styles.section, styles.ctaSection]}>
           <View style={styles.sectionInner}>
-            <Text style={styles.ctaTitle}>Start Your Child's Learning Journey Today</Text>
+            <Text style={styles.ctaTitle}>What's Next?</Text>
             
             <View style={styles.ctaSteps}>
               <View style={styles.ctaStep}>
                 <View style={styles.ctaStepCircle}>
-                  <Text style={styles.ctaStepNumber}>1</Text>
+                  <BookOpen size={20} color={colors.onPrimary} />
                 </View>
-                <Text style={styles.ctaStepText}>Create your account</Text>
+                <Text style={styles.ctaStepText}>Producing a short video: "Anywhere the Sun Touches, A Child Can Learn."</Text>
               </View>
               
               <View style={styles.ctaStep}>
                 <View style={styles.ctaStepCircle}>
-                  <Text style={styles.ctaStepNumber}>2</Text>
+                  <Star size={20} color={colors.onPrimary} />
                 </View>
-                <Text style={styles.ctaStepText}>Add your child's profile</Text>
+                <Text style={styles.ctaStepText}>Assembling a prototype kit (Origen + Chromebook + solar panel + Starlink Mini)</Text>
               </View>
               
               <View style={styles.ctaStep}>
                 <View style={styles.ctaStepCircle}>
-                  <Text style={styles.ctaStepNumber}>3</Text>
+                  <Wifi size={20} color={colors.onPrimary} />
                 </View>
-                <Text style={styles.ctaStepText}>Set learning goals</Text>
+                <Text style={styles.ctaStepText}>Tagging @Starlink on X and launching a public dev thread</Text>
               </View>
               
               <View style={styles.ctaStep}>
                 <View style={styles.ctaStepCircle}>
-                  <Text style={styles.ctaStepNumber}>4</Text>
+                  <Award size={20} color={colors.onPrimary} />
                 </View>
-                <Text style={styles.ctaStepText}>Watch your child thrive</Text>
+                <Text style={styles.ctaStepText}>Seeking microgrants and founder partners to pilot in 3+ AOT cities</Text>
               </View>
             </View>
             
@@ -357,7 +362,7 @@ const WelcomePage: React.FC = () => {
             <View style={[styles.row, styles.spaceBetween]}>
               <View style={styles.footerInfo}>
                 <Text style={styles.footerTitle}>SUNSCHOOL</Text>
-                <Text style={styles.footerSubtitle}>The future of personalized education</Text>
+                <Text style={styles.footerSubtitle}>Start where you are. Learn anywhere under the sun.</Text>
                 <View style={styles.footerLinks}>
                   <TouchableOpacity style={styles.footerLink}>
                     <Text style={styles.footerLinkText}>About Us</Text>
@@ -375,9 +380,11 @@ const WelcomePage: React.FC = () => {
               </View>
               
               <View style={styles.footerLogo}>
-                <View style={styles.footerLogoCircle}>
-                  <Text style={styles.footerLogoText}>O</Text>
-                </View>
+                <img 
+                  src="/images/sunschool-logo.png" 
+                  style={{width: 100, height: 'auto', marginBottom: 10}}
+                  alt="SUNSCHOOL Logo"
+                />
                 <Text style={styles.footerCopyright}>© 2025 SUNSCHOOL by AOT LABS, powered by Origen™ technology</Text>
               </View>
             </View>
