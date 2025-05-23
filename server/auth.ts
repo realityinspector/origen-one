@@ -102,31 +102,32 @@ export async function setupAuth(app: Express) {
   }));
 
   // Enhanced user info endpoint with cross-domain support
-  app.get("/api/user", authenticateJwt, (req: AuthRequest, res) => {
+  app.get("/api/user", authenticateJwt, (req: AuthRequest, res: Response, next: NextFunction) => {
+    // Log the request info for debugging
+    const origin = req.headers.origin || req.headers.referer || 'unknown';
+    const isSunschool = origin.includes('sunschool.xyz');
+    
+    if (isSunschool) {
+      // Add special CORS headers for sunschool.xyz domain
+      res.header('Access-Control-Allow-Origin', origin);
+      res.header('Access-Control-Allow-Credentials', 'true');
+      res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+      res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Sunschool-Auth,X-Sunschool-Auth-Token');
+    }
+    
+    if (!req.user) {
+      res.status(401).json({ error: "Unauthorized" });
+      return;
+    }
+    
     try {
-      // Log the request info for debugging
-      const origin = req.headers.origin || req.headers.referer || 'unknown';
-      const isSunschool = origin.includes('sunschool.xyz');
-      
-      if (isSunschool) {
-        // Add special CORS headers for sunschool.xyz domain
-        res.header('Access-Control-Allow-Origin', origin);
-        res.header('Access-Control-Allow-Credentials', 'true');
-        res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-        res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Sunschool-Auth,X-Sunschool-Auth-Token');
-      }
-      
-      if (!req.user) {
-        return res.status(401).json({ error: "Unauthorized" });
-      }
-      
       // We're not retrieving the user from database here since it's already in req.user
       // But we're removing the password field for security
       const { password: _, ...userWithoutPassword } = req.user;
-      return res.json(userWithoutPassword);
+      res.json(userWithoutPassword);
     } catch (error) {
       console.error('Error retrieving user info:', error);
-      return res.status(500).json({ error: 'Failed to retrieve user info' });
+      res.status(500).json({ error: 'Failed to retrieve user info' });
     }
   });
 }
