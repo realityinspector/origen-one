@@ -111,11 +111,14 @@ const WelcomePage: React.FC = () => {
                 <img 
                   src="/images/sunschool-artboard@2x.png" 
                   style={{
-                    width: 300, 
+                    width: windowWidth < 768 ? '100%' : 380,
+                    maxWidth: '100%',
                     height: 'auto', 
                     objectFit: 'contain',
-                    borderRadius: 8,
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)'
+                    borderRadius: 12,
+                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    backgroundColor: 'rgba(30, 30, 30, 0.3)',
+                    padding: 8
                   }}
                   alt="SUNSCHOOL Solar & Satellite powered learning"
                 />
@@ -512,10 +515,13 @@ const styles = StyleSheet.create({
   // Hero graphic
   heroGraphic: {
     position: 'relative',
-    width: 320,
-    height: 320,
+    flex: windowWidth < 1024 ? 1 : 0,
+    width: windowWidth < 768 ? '100%' : 380,
+    height: 'auto',
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: windowWidth < 768 ? 40 : 0,
+    alignSelf: 'center',
   },
   graphicCircle: {
     width: 120,
