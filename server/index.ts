@@ -10,8 +10,10 @@ const PORT = Number(process.env.PORT || 8000);
 
 // Middleware
 app.use(cors({
-  origin: true,
-  credentials: true
+  origin: ['https://sunschool.xyz', 'https://www.sunschool.xyz', process.env.ALLOWED_ORIGINS || '*'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

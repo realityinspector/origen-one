@@ -193,10 +193,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const baseUrl = window.location.origin;
         console.log('Using current domain for authentication:', baseUrl);
         
-        // We'll try both with and without the /api prefix since our server supports both
+        // We'll try multiple endpoint patterns to ensure compatibility with different
+        // deployment environments, including the new domain at https://sunschool.xyz
         const apiEndpoints: string[] = [
-          '/login',          // Direct path (added for production compatibility)
-          '/api/login'       // API path (traditional)
+          '/login',          // Direct path (production compatibility)
+          '/api/login',      // API path (traditional)
+          `${baseUrl}/login`,       // Full URL with domain (for CORS compatibility)
+          `${baseUrl}/api/login`    // Full URL with API prefix (for CORS compatibility)
         ];
         
         // Try multiple endpoint patterns to handle both deployed and development environments

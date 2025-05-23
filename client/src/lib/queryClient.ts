@@ -30,8 +30,9 @@ export const queryPersister = {
   }
 };
 
-// In Replit environment, the API is served from the same origin
-const API_URL = '';  // Empty string means use the current origin
+// In Replit environment or when deployed, the API is served from the same origin
+// For domain flexibility, we'll use the current origin to make requests
+const API_URL = typeof window !== 'undefined' ? window.location.origin : '';  // Use current origin
 
 export const queryClient = new QueryClient({
   defaultOptions: {
@@ -56,22 +57,81 @@ export const axiosInstance = axios.create({
 // Add auth token to requests and store it
 export const setAuthToken = async (token: string | null) => {
   if (token) {
+    // Set the token in axios for all future requests
     axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    
+    // Also create a timestamp to help with token validation
+    const tokenData = {
+      token,
+      timestamp: Date.now(),
+      origin: typeof window !== 'undefined' ? window.location.origin : ''
+    };
+    
+    // Store the token and metadata
     await AsyncStorage.setItem('AUTH_TOKEN', token);
+    await AsyncStorage.setItem('AUTH_TOKEN_DATA', JSON.stringify(tokenData));
+    
+    console.log('Auth token set successfully with metadata', {
+      tokenLength: token.length,
+      origin: tokenData.origin,
+      timestamp: new Date(tokenData.timestamp).toISOString()
+    });
   } else {
+    // Clear the token from axios
     delete axiosInstance.defaults.headers.common["Authorization"];
+    
+    // Remove token and metadata from storage
     await AsyncStorage.removeItem('AUTH_TOKEN');
+    await AsyncStorage.removeItem('AUTH_TOKEN_DATA');
+    console.log('Auth token cleared successfully');
   }
 };
 
 // Initialize token from storage (call this when app starts)
 export const initializeAuthFromStorage = async () => {
-  const token = await AsyncStorage.getItem('AUTH_TOKEN');
-  if (token) {
-    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    return true;
+  try {
+    // First try to get the token metadata for validation
+    const tokenDataString = await AsyncStorage.getItem('AUTH_TOKEN_DATA');
+    const tokenData = tokenDataString ? JSON.parse(tokenDataString) : null;
+    
+    // Get the raw token directly (fallback for older versions)
+    const token = await AsyncStorage.getItem('AUTH_TOKEN');
+    
+    if (token) {
+      // Check if token data exists and validate origin if needed
+      if (tokenData) {
+        const currentOrigin = typeof window !== 'undefined' ? window.location.origin : '';
+        const storedOrigin = tokenData.origin || '';
+        const tokenAge = Date.now() - (tokenData.timestamp || 0);
+        
+        console.log('Initializing auth from storage with metadata', {
+          tokenLength: token.length,
+          storedOrigin,
+          currentOrigin,
+          tokenAgeHours: Math.round(tokenAge / (1000 * 60 * 60) * 10) / 10,
+          originMatch: currentOrigin === storedOrigin || (currentOrigin === 'https://sunschool.xyz' && storedOrigin.includes('replit'))
+        });
+        
+        // If origins don't match and it's not a known migration situation, don't use the token
+        const isKnownMigration = 
+          (currentOrigin === 'https://sunschool.xyz' && (storedOrigin.includes('replit') || !storedOrigin)) ||
+          (storedOrigin === 'https://sunschool.xyz' && currentOrigin.includes('replit'));
+          
+        if (currentOrigin && storedOrigin && currentOrigin !== storedOrigin && !isKnownMigration) {
+          console.warn('Origin mismatch in stored token - not using existing token for security reasons');
+          return false;
+        }
+      }
+      
+      // Set the token in axios headers
+      axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('Error initializing auth from storage:', error);
+    return false;
   }
-  return false;
 };
 
 type QueryFnOptions = {
