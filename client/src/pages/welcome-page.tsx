@@ -46,10 +46,14 @@ const WelcomePage: React.FC = () => {
         <View style={styles.navbar}>
           <View style={styles.navbarInner}>
             <View style={styles.logoContainer}>
-              <View style={styles.logoPill}>
-                <Book size={20} color="#FFFFFF" />
-                <Text style={styles.logoTextPill}>SUNSCHOOL</Text>
-              </View>
+              <img 
+                src="/images/aot-labs-logo.png" 
+                alt="AOT Labs Logo" 
+                style={{
+                  height: 40,
+                  marginRight: 10
+                }}
+              />
             </View>
             <View style={styles.navLinks}>
               <TouchableOpacity style={styles.navLink}>
@@ -144,58 +148,16 @@ const WelcomePage: React.FC = () => {
               {/* Hero Image Container */}
               <View style={styles.heroImageContainer}>
                 <View style={styles.imageWrapper}>
-                  <svg width="100%" height="100%" viewBox="0 0 400 320">
-                    {/* Background */}
-                    <rect x="0" y="0" width="400" height="320" fill="#1E1E1E" />
-                    
-                    {/* Grid pattern */}
-                    <pattern id="grid" patternUnits="userSpaceOnUse" width="40" height="40">
-                      <line x1="0" y1="0" x2="0" y2="40" stroke="#FFFFFF" strokeWidth="0.2" />
-                      <line x1="0" y1="0" x2="40" y2="0" stroke="#FFFFFF" strokeWidth="0.2" />
-                    </pattern>
-                    <rect x="0" y="0" width="400" height="320" fill="url(#grid)" opacity="0.15" />
-                    
-                    {/* SUNSCHOOL label */}
-                    <rect x="60" y="40" width="140" height="40" rx="20" fill="#222222" />
-                    <text x="75" y="66" fontFamily="sans-serif" fontSize="16" fontWeight="bold" fill="#FFFFFF">SUNSCHOOL</text>
-                    
-                    {/* Solar panels */}
-                    <rect x="60" y="130" width="180" height="120" fill="#E5D9B6" stroke="#333" strokeWidth="1" />
-                    
-                    {/* Solar panel grid */}
-                    <line x1="60" y1="150" x2="240" y2="150" stroke="#333" strokeWidth="1" />
-                    <line x1="60" y1="170" x2="240" y2="170" stroke="#333" strokeWidth="1" />
-                    <line x1="60" y1="190" x2="240" y2="190" stroke="#333" strokeWidth="1" />
-                    <line x1="60" y1="210" x2="240" y2="210" stroke="#333" strokeWidth="1" />
-                    <line x1="60" y1="230" x2="240" y2="230" stroke="#333" strokeWidth="1" />
-                    
-                    <line x1="90" y1="130" x2="90" y2="250" stroke="#333" strokeWidth="1" />
-                    <line x1="120" y1="130" x2="120" y2="250" stroke="#333" strokeWidth="1" />
-                    <line x1="150" y1="130" x2="150" y2="250" stroke="#333" strokeWidth="1" />
-                    <line x1="180" y1="130" x2="180" y2="250" stroke="#333" strokeWidth="1" />
-                    <line x1="210" y1="130" x2="210" y2="250" stroke="#333" strokeWidth="1" />
-                    
-                    {/* Panel stand */}
-                    <line x1="150" y1="250" x2="130" y2="280" stroke="#555" strokeWidth="4" />
-                    <line x1="150" y1="250" x2="170" y2="280" stroke="#555" strokeWidth="4" />
-                    <rect x="115" y="280" width="70" height="5" fill="#555" />
-                    
-                    {/* Satellite dish */}
-                    <circle cx="270" cy="150" r="30" fill="none" stroke="#FFFFFF" strokeWidth="1.5" />
-                    <path d="M270,150 L290,120" stroke="#FFFFFF" strokeWidth="2" />
-                    <rect x="265" y="180" width="10" height="40" fill="#AAAAAA" />
-                    <rect x="260" y="220" width="20" height="5" fill="#888888" />
-                    
-                    {/* Label overlay */}
-                    <rect x="60" y="260" width="220" height="30" fill="#000000" opacity="0.8" />
-                    <text x="70" y="280" fontFamily="sans-serif" fontSize="12" fill="#FFFFFF">SOLAR-POWERED · SATELLITE-CONNECTED · OPEN-SOURCE</text>
-
-                    {/* Decorative elements */}
-                    <circle cx="330" cy="80" r="15" fill="none" stroke="#FFFFFF" strokeWidth="0.5" opacity="0.6" />
-                    <circle cx="330" cy="80" r="7" fill="none" stroke="#FFFFFF" strokeWidth="0.5" opacity="0.8" />
-                    <line x1="320" y1="70" x2="340" y2="90" stroke="#FFFFFF" strokeWidth="0.5" opacity="0.6" />
-                    <line x1="320" y1="90" x2="340" y2="70" stroke="#FFFFFF" strokeWidth="0.5" opacity="0.6" />
-                  </svg>
+                  <img 
+                    src="/images/sunschool-hero.png" 
+                    alt="Sunschool Hero" 
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      borderRadius: '12px'
+                    }}
+                  />
                 </View>
               </View>
             </View>
