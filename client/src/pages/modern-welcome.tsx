@@ -42,17 +42,17 @@ const WelcomePage: React.FC = () => {
               <View style={styles.heroText}>
                 <View style={styles.badge}>
                   <div style={{
-                    backgroundColor: '#333', 
-                    color: '#FFD700', 
-                    padding: '10px 15px',
-                    borderRadius: '6px',
                     display: 'inline-block',
-                    marginBottom: 15,
-                    fontWeight: 'bold',
-                    fontSize: '20px'
+                    marginBottom: 15
                   }}>
-                    <span style={{color: '#FFD700', marginRight: '10px'}}>☀️</span>
-                    <span style={{color: 'white'}}>AOT LABS</span>
+                    <img 
+                      src="/images/aot-labs-logo.png" 
+                      alt="AOT Labs Logo" 
+                      style={{
+                        height: 50,
+                        objectFit: 'contain'
+                      }}
+                    />
                   </div>
                 </View>
                 
@@ -120,47 +120,22 @@ const WelcomePage: React.FC = () => {
                 <div style={{
                   width: windowWidth < 768 ? '100%' : '380px',
                   height: '300px',
-                  backgroundColor: '#1E90FF',
                   borderRadius: '12px',
                   position: 'relative',
                   overflow: 'hidden',
                   border: '1px solid rgba(255, 255, 255, 0.1)',
-                  padding: '20px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  backgroundImage: 'linear-gradient(135deg, #1E90FF 0%, #4169E1 100%)',
                   boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
                 }}>
-                  <div style={{
-                    position: 'absolute',
-                    top: '30px',
-                    right: '30px',
-                    width: '60px',
-                    height: '60px',
-                    borderRadius: '30px',
-                    backgroundColor: '#FFD700',
-                    boxShadow: '0 0 20px rgba(255, 215, 0, 0.6)'
-                  }}></div>
-                  <div style={{
-                    padding: '20px',
-                    backgroundColor: 'rgba(0,0,0,0.2)',
-                    borderRadius: '10px',
-                    maxWidth: '280px',
-                    textAlign: 'center',
-                    zIndex: 1
-                  }}>
-                    <div style={{fontSize: '24px', color: 'white', fontWeight: 'bold', marginBottom: '15px'}}>
-                      SUNSCHOOL
-                    </div>
-                    <div style={{color: 'white', fontSize: '16px', marginBottom: '10px'}}>
-                      Solar & Satellite powered learning
-                    </div>
-                    <div style={{color: '#FFD700', fontSize: '14px', fontStyle: 'italic'}}>
-                      Works anywhere under the sun
-                    </div>
-                  </div>
+                  <img 
+                    src="/images/sunschool-hero.png" 
+                    alt="Sunschool Hero" 
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      borderRadius: '12px'
+                    }}
+                  />
                 </div>
               </View>
             </View>
@@ -424,7 +399,7 @@ const WelcomePage: React.FC = () => {
               
               <View style={styles.footerLogo}>
                 <img 
-                  src="/images/sunschool-logo.png" 
+                  src="/images/aot-labs-logo.png" 
                   style={{width: 100, height: 'auto', marginBottom: 10}}
                   alt="SUNSCHOOL Logo"
                 />
