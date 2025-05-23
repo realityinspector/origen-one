@@ -41,7 +41,7 @@ const WelcomePage: React.FC = () => {
               <View style={styles.heroText}>
                 <View style={styles.badge}>
                   <img 
-                    src="/images/sunschool-logo.png" 
+                    src="images/sunschool-logo.svg" 
                     style={{width: 120, height: 'auto', marginBottom: 15}}
                     alt="SUNSCHOOL Logo"
                   />
@@ -109,7 +109,7 @@ const WelcomePage: React.FC = () => {
               {/* Hero Graphic */}
               <View style={styles.heroGraphic}>
                 <img 
-                  src="/images/sunschool-artboard@2x.png" 
+                  src="images/sunschool-artboard.svg" 
                   style={{
                     width: windowWidth < 768 ? '100%' : 380,
                     maxWidth: '100%',

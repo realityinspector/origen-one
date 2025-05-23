@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Modal, StyleSheet, TouchableOpacity, Linking } from 'react-native';
+import React from 'react';
+import { View, Text, Modal, StyleSheet, TouchableOpacity } from 'react-native';
 
 interface WelcomeModalProps {
   isVisible: boolean;
@@ -8,7 +8,7 @@ interface WelcomeModalProps {
 
 const WelcomeModal: React.FC<WelcomeModalProps> = ({ isVisible, onClose }) => {
   const openTwitter = () => {
-    Linking.openURL('https://x.com/allonethingxyz');
+    window.open('https://x.com/allonethingxyz', '_blank');
   };
 
   return (
@@ -24,7 +24,11 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({ isVisible, onClose }) => {
           
           <Text style={styles.modalText}>
             This is an alpha version of an open source project by{' '}
-            <Text style={styles.linkText} onPress={openTwitter}>
+            <Text 
+              style={styles.linkText} 
+              onPress={openTwitter}
+              accessibilityRole="link"
+            >
               @allonethingxyz
             </Text>
           </Text>
