@@ -1,16 +1,16 @@
 import { StyleSheet } from 'react-native';
 
-// Color palette - Refined with complementary accent colors
+// Color palette - Scandinavian neocontemporary black and white
 export const colors = {
-  primary: '#6200EE',
-  primaryDark: '#3700B3',
-  primaryLight: '#BB86FC',
-  secondary: '#03DAC6',
-  secondaryDark: '#018786',
-  accent1: '#FF7043', // New orange accent
-  accent2: '#5C6BC0', // New indigo accent
-  accent3: '#26A69A', // New teal accent
-  background: '#F9F9F9', // Slightly lighter
+  primary: '#121212',
+  primaryDark: '#000000',
+  primaryLight: '#2C2C2C',
+  secondary: '#E0E0E0',
+  secondaryDark: '#CCCCCC',
+  accent1: '#000000', // Black accent
+  accent2: '#FFFFFF', // White accent
+  accent3: '#707070', // Grey accent
+  background: '#FFFFFF',
   surfaceColor: '#FFFFFF',
   error: '#B00020',
   onPrimary: '#FFFFFF',
@@ -18,15 +18,15 @@ export const colors = {
   onBackground: '#000000',
   onSurface: '#000000',
   onError: '#FFFFFF',
-  textPrimary: '#212121',
-  textSecondary: '#757575',
-  divider: '#E0E0E0', // Slightly darker for better contrast
-  success: '#4CAF50',
-  warning: '#FFC107',
-  info: '#2196F3',
+  textPrimary: '#121212',
+  textSecondary: '#707070',
+  divider: '#E0E0E0',
+  success: '#4D4D4D',
+  warning: '#A0A0A0',
+  info: '#2D2D2D',
   inputBackground: '#F9F9F9',
-  text: '#000000',  // Added for compatibility
-  border: '#E0E0E0',  // Added for border colors
+  text: '#000000',
+  border: '#E0E0E0',
 };
 
 // Typography - Improved with modern font hierarchy and better line spacing

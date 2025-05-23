@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ImageBackground, ScrollView, Linking, Image, To
 import { Link, useLocation, Redirect } from 'wouter';
 import { useAuth } from '../hooks/use-auth';
 import { colors, typography, commonStyles, animations } from '../styles/theme';
-import { GitHub, BookOpen, Eye, Shield, Users, Award, ExternalLink, BarChart2, BookOpen as Book, Star } from 'react-feather';
+import { GitHub, BookOpen, Eye, Shield, Users, Award, ExternalLink, BarChart2, BookOpen as Book, Star, Menu, Grid, PlusCircle, ArrowRight, Compass } from 'react-feather';
 
 // Get screen dimensions for responsive design
 const windowWidth = Dimensions.get('window').width;
@@ -42,121 +42,149 @@ const WelcomePage: React.FC = () => {
   return (
     <ScrollView style={newStyles.scrollView}>
       <View style={newStyles.container}>
-        {/* Enhanced Hero Section */}
+        {/* Modern Navbar with Logo */}
+        <View style={newStyles.navbar}>
+          <View style={newStyles.navbarInner}>
+            <View style={newStyles.logoContainer}>
+              <Book size={24} color="#000000" />
+              <Text style={newStyles.logoText}>ORIGEN</Text>
+            </View>
+            <View style={newStyles.navLinks}>
+              <TouchableOpacity style={newStyles.navLink}>
+                <Text style={newStyles.navLinkText}>Features</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={newStyles.navLink}>
+                <Text style={newStyles.navLinkText}>How It Works</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={newStyles.navButton}
+                onPress={() => {
+                  if (typeof window !== 'undefined') {
+                    window.location.href = '/auth';
+                  }
+                }}
+              >
+                <Text style={newStyles.navButtonText}>Log In</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      
+        {/* Modern Hero Section */}
         <View style={newStyles.heroSection}>
           <View style={newStyles.sectionInner}>
-            <View style={{width: '100%'}}>
-              <View style={styles.heroFlex}>
-                <View style={styles.heroTextContent}>
-                  <View style={styles.brandBadge}>
-                    <Book size={16} color={colors.onPrimary} />
-                    <Text style={styles.brandBadgeText}>ORIGEN™</Text>
+            <View style={newStyles.heroLayout}>
+              {/* Hero Text Content */}
+              <View style={newStyles.heroTextContent}>
+                <View style={newStyles.heroTagBadge}>
+                  <Star size={14} color="#FFFFFF" />
+                  <Text style={newStyles.heroTagText}>INTUITIVE LEARNING</Text>
+                </View>
+                
+                <Text style={newStyles.heroTitle}>
+                  The Learning Experience Your Child Deserves
+                </Text>
+                
+                <Text style={newStyles.heroSubtitle}>
+                  AI-powered education tailored to each child's unique learning style and pace
+                </Text>
+                
+                {/* Hero Benefits with Iconography */}
+                <View style={newStyles.heroBenefits}>
+                  <View style={newStyles.benefitItem}>
+                    <View style={newStyles.benefitIcon}>
+                      <Compass size={16} color="#FFFFFF" />
+                    </View>
+                    <Text style={newStyles.benefitText}>Personalized learning paths</Text>
                   </View>
-                  <Text style={styles.heroTitle}>The Learning Experience Your Child Deserves</Text>
-                  <Text style={styles.heroSubtitle}>
-                    AI-powered education tailored to each child's unique learning style and pace
-                  </Text>
-                  <View style={styles.heroBenefits}>
-                    <View style={styles.benefitItem}>
-                      <View style={styles.benefitIcon}>
-                        <Star size={14} color={colors.onPrimary} />
-                      </View>
-                      <Text style={styles.benefitText}>Personalized learning paths</Text>
+                  
+                  <View style={newStyles.benefitItem}>
+                    <View style={newStyles.benefitIcon}>
+                      <Grid size={16} color="#FFFFFF" />
                     </View>
-                    <View style={styles.benefitItem}>
-                      <View style={styles.benefitIcon}>
-                        <Star size={14} color={colors.onPrimary} />
-                      </View>
-                      <Text style={styles.benefitText}>Interactive lessons and quizzes</Text>
-                    </View>
-                    <View style={styles.benefitItem}>
-                      <View style={styles.benefitIcon}>
-                        <Star size={14} color={colors.onPrimary} />
-                      </View>
-                      <Text style={styles.benefitText}>Real-time progress tracking</Text>
-                    </View>
+                    <Text style={newStyles.benefitText}>Interactive lessons and quizzes</Text>
                   </View>
-                  <View style={styles.heroCta}>
-                    <TouchableOpacity 
-                      style={styles.ctaButton} 
-                      onPress={() => {
-                        console.log("GET STARTED button clicked, navigating to /auth");
-                        if (typeof window !== 'undefined') {
-                          window.location.href = '/auth';
-                        }
-                      }}
-                    >
-                      <Text style={styles.ctaButtonText}>GET STARTED</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.githubButton} onPress={openGitHub}>
-                      <GitHub size={18} color={colors.onPrimary} />
-                      <Text style={styles.githubButtonText}>VIEW ON GITHUB</Text>
-                    </TouchableOpacity>
+                  
+                  <View style={newStyles.benefitItem}>
+                    <View style={newStyles.benefitIcon}>
+                      <BarChart2 size={16} color="#FFFFFF" />
+                    </View>
+                    <Text style={newStyles.benefitText}>Real-time progress tracking</Text>
                   </View>
                 </View>
                 
-                <View style={styles.heroGraphicContainer}>
-                  {/* SVG Graphic with enhanced styling */}
-                  <View style={styles.graphicWrapper}>
-                    <svg width="320" height="320" viewBox="0 0 320 320">
-                      {/* Glowing background effect */}
-                      <circle cx="160" cy="160" r="140" fill={colors.primaryDark} opacity="0.4" />
-                      <circle cx="160" cy="160" r="110" fill={colors.primary} opacity="0.3" />
-                      
-                      {/* Brain outline */}
-                      <path 
-                        d="M160,60 C230,60 260,110 260,160 C260,230 210,260 160,260 C90,260 60,210 60,160 C60,90 110,60 160,60 Z" 
-                        fill="none" 
-                        stroke="#ffffff" 
-                        strokeWidth="3"
-                        opacity="0.8"
-                      />
+                {/* CTAs */}
+                <View style={newStyles.heroCta}>
+                  <TouchableOpacity 
+                    style={newStyles.primaryButton} 
+                    onPress={() => {
+                      console.log("GET STARTED button clicked, navigating to /auth");
+                      if (typeof window !== 'undefined') {
+                        window.location.href = '/auth';
+                      }
+                    }}
+                  >
+                    <Text style={newStyles.primaryButtonText}>GET STARTED</Text>
+                    <ArrowRight size={16} color="#000000" style={{marginLeft: 8}} />
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity style={newStyles.outlineButton} onPress={openGitHub}>
+                    <GitHub size={18} color="#FFFFFF" />
+                    <Text style={newStyles.outlineButtonText}>GITHUB</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              
+              {/* Hero Image Container */}
+              <View style={newStyles.heroImageContainer}>
+                <View style={newStyles.imageWrapper}>
+                  <svg width="100%" height="100%" viewBox="0 0 400 400">
+                    {/* Background shapes */}
+                    <rect x="50" y="50" width="300" height="300" fill="#000000" opacity="0.03" />
+                    <rect x="70" y="70" width="260" height="260" fill="#000000" opacity="0.05" />
+                    
+                    {/* Grid pattern */}
+                    <pattern id="grid" patternUnits="userSpaceOnUse" width="20" height="20" patternTransform="rotate(45)">
+                      <line x1="0" y1="0" x2="0" y2="20" stroke="#000000" strokeWidth="0.5" opacity="0.1" />
+                      <line x1="0" y1="0" x2="20" y2="0" stroke="#000000" strokeWidth="0.5" opacity="0.1" />
+                    </pattern>
+                    <rect x="20" y="20" width="360" height="360" fill="url(#grid)" />
+                    
+                    {/* Main circular element */}
+                    <circle cx="200" cy="200" r="120" fill="#FFFFFF" stroke="#000000" strokeWidth="2" />
+                    
+                    {/* Brain network visualization */}
+                    <path 
+                      d="M200,110 C270,110 290,160 290,200 C290,270 240,290 200,290 C130,290 110,240 110,200 C110,130 160,110 200,110 Z" 
+                      fill="none" 
+                      stroke="#000000" 
+                      strokeWidth="2"
+                      opacity="0.8"
+                    />
 
-                      {/* Neural network nodes */}
-                      <circle cx="160" cy="110" r="12" fill="#ffffff" />
-                      <circle cx="110" cy="160" r="12" fill="#ffffff" />
-                      <circle cx="210" cy="160" r="12" fill="#ffffff" />
-                      <circle cx="130" cy="210" r="12" fill="#ffffff" />
-                      <circle cx="190" cy="210" r="12" fill="#ffffff" />
-                      <circle cx="160" cy="160" r="18" fill="#ffffff" />
+                    {/* Connection nodes */}
+                    <circle cx="200" cy="130" r="8" fill="#000000" />
+                    <circle cx="150" cy="170" r="8" fill="#000000" />
+                    <circle cx="250" cy="170" r="8" fill="#000000" />
+                    <circle cx="170" cy="230" r="8" fill="#000000" />
+                    <circle cx="230" cy="230" r="8" fill="#000000" />
+                    <circle cx="200" cy="200" r="12" fill="#000000" />
 
-                      {/* Neural network connections */}
-                      <line x1="160" y1="110" x2="110" y2="160" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-                      <line x1="160" y1="110" x2="210" y2="160" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-                      <line x1="160" y1="110" x2="160" y2="160" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-                      <line x1="110" y1="160" x2="130" y2="210" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-                      <line x1="210" y1="160" x2="190" y2="210" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-                      <line x1="160" y1="160" x2="130" y2="210" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-                      <line x1="160" y1="160" x2="190" y2="210" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-                      <line x1="110" y1="160" x2="160" y2="160" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-                      <line x1="210" y1="160" x2="160" y2="160" stroke="#ffffff" strokeWidth="2" opacity="0.7" />
-
-                      {/* Animated data pulses */}
-                      <circle cx="160" cy="160" r="22" fill="#ffffff" opacity="0.2">
-                        <animate attributeName="r" values="22;35;22" dur="3s" repeatCount="indefinite" />
-                        <animate attributeName="opacity" values="0.3;0.1;0.3" dur="3s" repeatCount="indefinite" />
-                      </circle>
-                      
-                      {/* Small book icon in the center */}
-                      <rect x="150" y="155" width="20" height="15" fill={colors.accent1} rx="2" />
-                      <rect x="150" y="152" width="20" height="3" fill={colors.accent1} rx="1" />
-                      <line x1="160" y1="155" x2="160" y2="170" stroke="#ffffff" strokeWidth="1" />
-                      
-                      {/* Animated small particles */}
-                      <circle cx="135" cy="135" r="3" fill="#ffffff" opacity="0.6">
-                        <animate attributeName="opacity" values="0.6;0.2;0.6" dur="2s" repeatCount="indefinite" />
-                      </circle>
-                      <circle cx="185" cy="135" r="3" fill="#ffffff" opacity="0.6">
-                        <animate attributeName="opacity" values="0.2;0.6;0.2" dur="2.3s" repeatCount="indefinite" />
-                      </circle>
-                      <circle cx="135" cy="185" r="3" fill="#ffffff" opacity="0.6">
-                        <animate attributeName="opacity" values="0.4;0.7;0.4" dur="1.8s" repeatCount="indefinite" />
-                      </circle>
-                      <circle cx="185" cy="185" r="3" fill="#ffffff" opacity="0.6">
-                        <animate attributeName="opacity" values="0.7;0.3;0.7" dur="2.5s" repeatCount="indefinite" />
-                      </circle>
-                    </svg>
-                  </View>
+                    {/* Connection lines */}
+                    <line x1="200" y1="130" x2="150" y2="170" stroke="#000000" strokeWidth="1.5" />
+                    <line x1="200" y1="130" x2="250" y2="170" stroke="#000000" strokeWidth="1.5" />
+                    <line x1="200" y1="130" x2="200" y2="200" stroke="#000000" strokeWidth="1.5" />
+                    <line x1="150" y1="170" x2="170" y2="230" stroke="#000000" strokeWidth="1.5" />
+                    <line x1="250" y1="170" x2="230" y2="230" stroke="#000000" strokeWidth="1.5" />
+                    <line x1="200" y1="200" x2="170" y2="230" stroke="#000000" strokeWidth="1.5" />
+                    <line x1="200" y1="200" x2="230" y2="230" stroke="#000000" strokeWidth="1.5" />
+                    <line x1="150" y1="170" x2="200" y2="200" stroke="#000000" strokeWidth="1.5" />
+                    <line x1="250" y1="170" x2="200" y2="200" stroke="#000000" strokeWidth="1.5" />
+                    
+                    {/* Abstract book icon */}
+                    <rect x="185" y="193" width="30" height="20" fill="#FFFFFF" stroke="#000000" strokeWidth="1" />
+                    <line x1="200" y1="193" x2="200" y2="213" stroke="#000000" strokeWidth="0.75" />
+                  </svg>
                 </View>
               </View>
             </View>
@@ -540,10 +568,68 @@ const newStyles = StyleSheet.create({
   // Base layout
   scrollView: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#FFFFFF',
   },
   container: {
     flex: 1,
+  },
+  
+  // Modern Navbar
+  navbar: {
+    width: '100%',
+    height: 80,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'sticky',
+    top: 0,
+    zIndex: 100,
+  },
+  navbarInner: {
+    width: '100%',
+    maxWidth: 1200,
+    marginHorizontal: 'auto',
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  logoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  logoText: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000000',
+    marginLeft: 10,
+    letterSpacing: 1,
+  },
+  navLinks: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  navLink: {
+    marginHorizontal: 16,
+  },
+  navLinkText: {
+    fontSize: 16,
+    color: '#000000',
+    fontWeight: '500',
+  },
+  navButton: {
+    backgroundColor: '#000000',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 4,
+    marginLeft: 16,
+  },
+  navButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
   },
   
   // Reusable section styles
@@ -556,35 +642,141 @@ const newStyles = StyleSheet.create({
     width: '100%',
     maxWidth: 1200,
     marginHorizontal: 'auto',
+    padding: 20,
   },
   
-  // Hero section with warm gradient background
+  // Hero section with black background
   heroSection: {
-    backgroundColor: colors.primary,
-    minHeight: 500,
+    backgroundColor: '#121212',
+    minHeight: 600,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 48,
+    paddingVertical: 80,
+    paddingHorizontal: 20,
   },
   
-  // Text content styles
-  heroText: {
+  // Hero Layout
+  heroLayout: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 40,
+  },
+  heroTextContent: {
     flex: 1,
     minWidth: 300,
     maxWidth: 600,
   },
+  heroTagBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 4,
+    alignSelf: 'flex-start',
+    marginBottom: 24,
+  },
+  heroTagText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    fontWeight: '600',
+    marginLeft: 8,
+    letterSpacing: 2,
+  },
   heroTitle: {
-    fontSize: windowWidth < 768 ? 32 : 42,
+    fontSize: windowWidth < 768 ? 36 : 48,
     fontWeight: '700',
-    color: colors.onPrimary,
+    color: '#FFFFFF',
     marginBottom: 20,
-    lineHeight: windowWidth < 768 ? 40 : 52,
+    lineHeight: windowWidth < 768 ? 44 : 56,
+    letterSpacing: -0.5,
   },
   heroSubtitle: {
     fontSize: windowWidth < 768 ? 18 : 20,
     lineHeight: windowWidth < 768 ? 26 : 30,
-    color: colors.onPrimary + 'DD', // Semi-transparent for better hierarchy
-    marginBottom: 24,
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: 32,
+  },
+  
+  // Benefits with iconography
+  heroBenefits: {
+    marginBottom: 40,
+  },
+  benefitItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  benefitIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  benefitText: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#FFFFFF',
+    fontWeight: '500',
+  },
+  
+  // Hero CTAs
+  heroCta: {
+    flexDirection: windowWidth < 480 ? 'column' : 'row',
+    alignItems: windowWidth < 480 ? 'flex-start' : 'center',
+    gap: 16,
+  },
+  primaryButton: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  primaryButtonText: {
+    color: '#000000',
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
+  outlineButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    borderWidth: 1,
+    borderColor: '#FFFFFF',
+    paddingVertical: 13,
+    paddingHorizontal: 24,
+    borderRadius: 4,
+  },
+  outlineButtonText: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+    marginLeft: 8,
+  },
+  
+  // Hero Image Container
+  heroImageContainer: {
+    flex: 1,
+    minWidth: 300,
+    maxWidth: 600,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  imageWrapper: {
+    width: '100%',
+    height: 400,
+    position: 'relative',
   },
   
   // Layout helpers
@@ -599,6 +791,13 @@ const newStyles = StyleSheet.create({
   spaceBetween: {
     justifyContent: 'space-between',
   },
+  gap20: {
+    gap: 20,
+  },
+  gap40: {
+    gap: 40,
+  },
+});
   gap20: {
     gap: 20,
   },
@@ -854,6 +1053,206 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  // Features section styles
+  featuresSection: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 80,
+    paddingHorizontal: 20,
+  },
+  sectionContainer: {
+    width: '100%',
+    maxWidth: 1200,
+    marginHorizontal: 'auto',
+  },
+  sectionHeader: {
+    alignItems: 'center',
+    marginBottom: 60,
+  },
+  sectionTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  sectionTitleUnderline: {
+    width: 60,
+    height: 3,
+    backgroundColor: '#000000',
+    marginTop: 8,
+  },
+  lightText: {
+    color: '#FFFFFF',
+  },
+  lightUnderline: {
+    backgroundColor: '#FFFFFF',
+  },
+  
+  // Audience sections
+  audienceSection: {
+    marginBottom: 60,
+  },
+  audienceTitleContainer: {
+    marginBottom: 30,
+  },
+  audienceTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 8,
+  },
+  
+  // Feature cards
+  featuresGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    gap: 24,
+  },
+  featureCard: {
+    flex: 1,
+    minWidth: 260,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E5E5',
+    borderRadius: 4,
+    padding: 24,
+    marginBottom: 24,
+  },
+  featureIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 4,
+    backgroundColor: 'rgba(0, 0, 0, 0.05)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  featureTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 8,
+  },
+  featureDescription: {
+    fontSize: 15,
+    lineHeight: 24,
+    color: '#707070',
+  },
+  
+  // How it works section
+  howItWorksSection: {
+    backgroundColor: '#121212',
+    paddingVertical: 80,
+    paddingHorizontal: 20,
+  },
+  processSection: {
+    marginBottom: 40,
+  },
+  processSectionTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 40,
+    textAlign: 'center',
+  },
+  
+  // Timeline components
+  timelineContainer: {
+    maxWidth: 800,
+    marginHorizontal: 'auto',
+  },
+  timelineItem: {
+    flexDirection: 'row',
+    marginBottom: 40,
+  },
+  timelineBullet: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+  },
+  timelineNumber: {
+    color: '#000000',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  timelineContent: {
+    flex: 1,
+  },
+  timelineTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    marginBottom: 8,
+  },
+  timelineText: {
+    fontSize: 15,
+    lineHeight: 24,
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  
+  // Legacy compatibility styles
+  heroFlex: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+  },
+  heroTextContent: {
+    flex: 1,
+  },
+  brandBadge: {
+    flexDirection: 'row',
+  },
+  brandBadgeText: {
+    color: '#ffffff',
+  },
+  heroTitle: {
+    fontSize: 32,
+    color: '#ffffff',
+  },
+  heroSubtitle: {
+    fontSize: 18,
+    color: '#ffffff',
+  },
+  heroBenefits: {
+    marginTop: 16,
+  },
+  benefitItem: {
+    flexDirection: 'row',
+  },
+  benefitIcon: {
+    width: 24,
+    height: 24,
+  },
+  benefitText: {
+    fontSize: 16,
+    color: '#ffffff',
+  },
+  heroCta: {
+    flexDirection: 'row',
+  },
+  ctaButton: {
+    backgroundColor: '#ffffff',
+  },
+  ctaButtonText: {
+    color: '#000000',
+  },
+  githubButton: {
+    flexDirection: 'row',
+  },
+  githubButtonText: {
+    color: '#ffffff',
+  },
+  heroGraphicContainer: {
+    flex: 1,
+  },
+  graphicWrapper: {
+    position: 'relative',
+  },
+});
   },
   heroContent: {
     width: '100%',
