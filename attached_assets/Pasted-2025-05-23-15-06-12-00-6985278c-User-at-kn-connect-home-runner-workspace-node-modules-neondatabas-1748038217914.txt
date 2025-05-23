@@ -1,0 +1,90 @@
+2025-05-23 15:06:12.00
+6985278c
+User
+at kn.connect (/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:1295:50)
+2025-05-23 15:06:12.00
+6985278c
+User
+at Mn.newClient (/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:1111:85)
+2025-05-23 15:06:12.00
+6985278c
+User
+at Mn.connect (/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:1108:1)
+2025-05-23 15:06:12.00
+6985278c
+User
+at Mn.query (/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:1132:1)
+2025-05-23 15:06:12.00
+6985278c
+User
+at Mn.query (/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:1330:96)
+2025-05-23 15:06:12.00
+6985278c
+User
+at Timeout._onTimeout (/home/runner/workspace/dist/server/db.js:83:28)
+2025-05-23 15:06:12.00
+6985278c
+User
+at listOnTimeout (node:internal/timers:581:17)
+2025-05-23 15:06:12.00
+6985278c
+User
+at process.processTimers (node:internal/timers:519:7)
+2025-05-23 15:06:17.00
+6985278c
+User
+/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:420
+2025-05-23 15:06:17.00
+6985278c
+User
+t),i()),!0)}end(t=d.alloc(0),n="utf8",i=()=>{}){return this.write(t,n,()=>{this.ws.close(),i()}),this}destroy(){
+2025-05-23 15:06:17.00
+6985278c
+User
+^
+2025-05-23 15:06:17.00
+6985278c
+User
+2025-05-23 15:06:17.00
+6985278c
+User
+TypeError: Cannot read properties of null (reading 'close')
+2025-05-23 15:06:17.00
+6985278c
+User
+at /home/runner/workspace/node_modules/@neondatabase/serverless/index.js:420:84
+2025-05-23 15:06:17.00
+6985278c
+User
+at S.write (/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:418:37)
+2025-05-23 15:06:17.00
+6985278c
+User
+at S.end (/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:420:61)
+2025-05-23 15:06:17.00
+6985278c
+User
+at S.destroy (/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:421:31)
+2025-05-23 15:06:17.00
+6985278c
+User
+at Timeout._onTimeout (/home/runner/workspace/node_modules/@neondatabase/serverless/index.js:1110:99)
+2025-05-23 15:06:17.00
+6985278c
+User
+at listOnTimeout (node:internal/timers:581:17)
+2025-05-23 15:06:17.00
+6985278c
+User
+at process.processTimers (node:internal/timers:519:7)
+2025-05-23 15:06:17.00
+6985278c
+User
+2025-05-23 15:06:17.00
+6985278c
+User
+Node.js v20.18.1
+2025-05-23 15:06:17.01
+6985278c
+System
+command finished with error [

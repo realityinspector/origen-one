@@ -40,13 +40,13 @@ export interface JwtPayload {
 
 export interface AuthRequest extends Request {
   user?: {
-    id: string;
+    id: string | number;
     email: string;
     username: string;
     name: string;
     role: string;
     password: string;
-    parentId: string | null;
+    parentId: string | number | null;
     firstName?: string;
     lastName?: string;
     profileImageUrl?: string;
@@ -108,43 +108,70 @@ export function verifyToken(token: string): JwtPayload {
 
 // Middleware
 export function authenticateJwt(req: AuthRequest, res: Response, next: NextFunction) {
+  // First try to get token from Authorization header
+  let token: string | undefined;
   const authHeader = req.headers.authorization;
   
-  if (!authHeader) {
-    res.status(401).json({ error: 'No authorization token provided' });
-    return;
+  if (authHeader) {
+    const parts = authHeader.split(' ');
+    if (parts.length === 2 && parts[0] === 'Bearer') {
+      token = parts[1];
+    }
   }
   
-  const parts = authHeader.split(' ');
-  
-  if (parts.length !== 2 || parts[0] !== 'Bearer') {
-    res.status(401).json({ error: 'Token format invalid' });
-    return;
+  // If no token in header, check for token in query string (for API calls)
+  if (!token && req.query.token) {
+    token = req.query.token as string;
   }
   
-  const token = parts[1];
+  // If still no token, check if it's in cookies
+  if (!token && req.cookies && req.cookies.token) {
+    token = req.cookies.token;
+  }
   
+  // No token found in any location
+  if (!token) {
+    console.log(`No auth token found in request to: ${req.method} ${req.path}`);
+    console.log('Headers:', JSON.stringify(req.headers));
+    return res.status(401).json({ error: 'No authorization token provided' });
+  }
+  
+  // Validate and process the token
   try {
     const payload = verifyToken(token);
+    
+    // Log for debugging
+    console.log(`Token verified successfully for user ID: ${payload.userId}`);
     
     // Load user from database
     storage.getUser(payload.userId)
       .then(user => {
         if (!user) {
+          console.log(`User ${payload.userId} from token not found in database`);
           res.status(401).json({ error: 'User not found' });
           return;
         }
         
+        // Add user to request for downstream middleware/handlers
         req.user = user;
         next();
       })
       .catch(error => {
-        console.error('Error fetching user:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error(`Error fetching user ${payload.userId} from database:`, error);
+        res.status(500).json({ error: 'Internal server error', details: error.message });
       });
   } catch (error) {
-    console.error('Error verifying token:', error);
-    res.status(401).json({ error: 'Invalid or expired token' });
+    // Check if it's a token verification error
+    if (error instanceof jwt.JsonWebTokenError || 
+        error instanceof jwt.TokenExpiredError || 
+        error instanceof jwt.NotBeforeError) {
+      console.log(`Invalid token: ${error.message}`);
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+    
+    // For other errors
+    console.error('Unexpected error during token verification:', error);
+    res.status(500).json({ error: 'Authentication error', details: error.message });
   }
 }
 

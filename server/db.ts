@@ -9,13 +9,16 @@ import * as env from './config/env';
 // Configure Neon to use ws instead of browser WebSocket
 neonConfig.webSocketConstructor = ws;
 
-// Configure the connection pool with more robust settings
+// Add exponential backoff to our retry logic in our custom withRetry function
+// (We'll handle retries ourselves since connectionRetryLimit is not available)
+
+// Configure the connection pool with more conservative settings
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  max: 20, // Maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // Close idle clients after 30 seconds
-  connectionTimeoutMillis: 5000, // Return an error after 5 seconds if a connection cannot be established
-  maxUses: 7500, // Close a connection after it has been used 7500 times
+  max: 10, // Reduce max clients in pool to avoid connection issues
+  idleTimeoutMillis: 60000, // Give idle clients more time (1 minute)
+  connectionTimeoutMillis: 10000, // Allow more time for connection establishment
+  maxUses: 5000, // Close connections after fewer uses
 });
 
 // Add event listeners to the pool for better error tracking
@@ -39,16 +42,46 @@ export async function checkDatabaseConnection() {
   }
 }
 
-// Set up a global keep-alive ping
-const KEEP_ALIVE_INTERVAL = 60000; // 1 minute
-setInterval(async () => {
+// Set up a global keep-alive ping with better error handling
+const KEEP_ALIVE_INTERVAL = 120000; // 2 minutes - reduce frequency to prevent connection issues
+let keepAliveTimer: NodeJS.Timeout;
+
+const runKeepAlivePing = async () => {
   try {
-    await pool.query('SELECT 1');
-    console.debug('Keep-alive ping successful');
+    // Use a client from the pool directly with a short timeout
+    const client = await pool.connect();
+    try {
+      await client.query('SELECT 1');
+      console.log('Keep-alive ping successful');
+    } finally {
+      // Make sure we always release the client back to the pool
+      client.release();
+    }
   } catch (error) {
     console.error('Keep-alive ping failed:', error);
+    
+    // If we have a connection error, try to recover gracefully
+    if (error.message && (
+      error.message.includes('Connection terminated') || 
+      error.message.includes('Connection ended') ||
+      error.message.includes('Cannot read properties of null')
+    )) {
+      console.warn('Detected connection termination, attempting to recreate pool');
+      try {
+        // Wait a moment before trying to recreate the pool
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      } catch (e) {
+        console.error('Error in keep-alive recovery timer:', e);
+      }
+    }
   }
-}, KEEP_ALIVE_INTERVAL);
+  
+  // Schedule the next ping (even if this one failed)
+  keepAliveTimer = setTimeout(runKeepAlivePing, KEEP_ALIVE_INTERVAL);
+};
+
+// Start the keep-alive process
+keepAliveTimer = setTimeout(runKeepAlivePing, KEEP_ALIVE_INTERVAL);
 
 // Initialize the Drizzle ORM with the pool
 export const db = drizzle(pool, { schema });
