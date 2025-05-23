@@ -4,6 +4,7 @@ import { Link, useLocation, Redirect } from 'wouter';
 import { useAuth } from '../hooks/use-auth';
 import { colors, typography } from '../styles/theme';
 import { GitHub, BookOpen, Star, CheckCircle, Users, Award, BarChart2, ExternalLink, Sun, Wifi } from 'react-feather';
+import SimpleHeroImage from '../components/SimpleHeroImage';
 
 // Get screen dimensions for responsive design
 const windowWidth = Dimensions.get('window').width;
@@ -40,11 +41,9 @@ const WelcomePage: React.FC = () => {
               {/* Hero Text Content */}
               <View style={styles.heroText}>
                 <View style={styles.badge}>
-                  <img 
-                    src="images/sunschool-logo.svg" 
-                    style={{width: 120, height: 'auto', marginBottom: 15}}
-                    alt="SUNSCHOOL Logo"
-                  />
+                  <Text style={{color: '#FFD700', fontSize: 24, fontWeight: 'bold', marginBottom: 15}}>
+                    ☀️ SUNSCHOOL
+                  </Text>
                 </View>
                 
                 <Text style={styles.heroTitle}>SUNSCHOOL by AOT LABS</Text>
@@ -108,20 +107,7 @@ const WelcomePage: React.FC = () => {
               
               {/* Hero Graphic */}
               <View style={styles.heroGraphic}>
-                <img 
-                  src="images/sunschool-artboard.svg" 
-                  style={{
-                    width: windowWidth < 768 ? '100%' : 380,
-                    maxWidth: '100%',
-                    height: 'auto', 
-                    objectFit: 'contain',
-                    borderRadius: 12,
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
-                    backgroundColor: 'rgba(30, 30, 30, 0.3)',
-                    padding: 8
-                  }}
-                  alt="SUNSCHOOL Solar & Satellite powered learning"
-                />
+                <SimpleHeroImage />
               </View>
             </View>
           </View>
