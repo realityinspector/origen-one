@@ -78,38 +78,42 @@ const WelcomePage: React.FC = () => {
               <View style={styles.heroTextContent}>
                 <View style={styles.heroTagBadge}>
                   <Star size={14} color="#FFFFFF" />
-                  <Text style={styles.heroTagText}>INTUITIVE LEARNING</Text>
+                  <Text style={styles.heroTagText}>SUNSCHOOL</Text>
                 </View>
                 
                 <Text style={styles.heroTitle}>
-                  The Learning Experience Your Child Deserves
+                  SUNSCHOOL by AOT LABS
                 </Text>
                 
                 <Text style={styles.heroSubtitle}>
-                  AI-powered education tailored to each child's unique learning style and pace
+                  AI-powered learning. Built into every AOT space.
+                </Text>
+                
+                <Text style={styles.heroSubtitle}>
+                  School...anywhere under the sun.
                 </Text>
                 
                 {/* Hero Benefits with Iconography */}
                 <View style={styles.heroBenefits}>
                   <View style={styles.benefitItem}>
                     <View style={styles.benefitIcon}>
-                      <Compass size={16} color="#FFFFFF" />
+                      <CheckCircle size={16} color="#FFFFFF" />
                     </View>
-                    <Text style={styles.benefitText}>Personalized learning paths</Text>
+                    <Text style={styles.benefitText}>Solar Powered - Runs off-grid in barns, lodges, or yurts</Text>
                   </View>
                   
                   <View style={styles.benefitItem}>
                     <View style={styles.benefitIcon}>
-                      <Grid size={16} color="#FFFFFF" />
+                      <CheckCircle size={16} color="#FFFFFF" />
                     </View>
-                    <Text style={styles.benefitText}>Interactive lessons and quizzes</Text>
+                    <Text style={styles.benefitText}>Satellite Connected - AI learning anywhere</Text>
                   </View>
                   
                   <View style={styles.benefitItem}>
                     <View style={styles.benefitIcon}>
-                      <BarChart2 size={16} color="#FFFFFF" />
+                      <CheckCircle size={16} color="#FFFFFF" />
                     </View>
-                    <Text style={styles.benefitText}>Real-time progress tracking</Text>
+                    <Text style={styles.benefitText}>Open-Source, Device-Friendly - Works on any device</Text>
                   </View>
                 </View>
                 
@@ -138,52 +142,57 @@ const WelcomePage: React.FC = () => {
               {/* Hero Image Container */}
               <View style={styles.heroImageContainer}>
                 <View style={styles.imageWrapper}>
-                  <svg width="100%" height="100%" viewBox="0 0 400 400">
-                    {/* Background shapes */}
-                    <rect x="50" y="50" width="300" height="300" fill="#000000" opacity="0.03" />
-                    <rect x="70" y="70" width="260" height="260" fill="#000000" opacity="0.05" />
+                  <svg width="100%" height="100%" viewBox="0 0 400 320">
+                    {/* Background */}
+                    <rect x="0" y="0" width="400" height="320" fill="#1E1E1E" />
                     
                     {/* Grid pattern */}
-                    <pattern id="grid" patternUnits="userSpaceOnUse" width="20" height="20" patternTransform="rotate(45)">
-                      <line x1="0" y1="0" x2="0" y2="20" stroke="#000000" strokeWidth="0.5" opacity="0.1" />
-                      <line x1="0" y1="0" x2="20" y2="0" stroke="#000000" strokeWidth="0.5" opacity="0.1" />
+                    <pattern id="grid" patternUnits="userSpaceOnUse" width="40" height="40">
+                      <line x1="0" y1="0" x2="0" y2="40" stroke="#FFFFFF" strokeWidth="0.2" />
+                      <line x1="0" y1="0" x2="40" y2="0" stroke="#FFFFFF" strokeWidth="0.2" />
                     </pattern>
-                    <rect x="20" y="20" width="360" height="360" fill="url(#grid)" />
+                    <rect x="0" y="0" width="400" height="320" fill="url(#grid)" opacity="0.15" />
                     
-                    {/* Main circular element */}
-                    <circle cx="200" cy="200" r="120" fill="#FFFFFF" stroke="#000000" strokeWidth="2" />
+                    {/* SUNSCHOOL label */}
+                    <rect x="60" y="40" width="140" height="40" rx="20" fill="#222222" />
+                    <text x="75" y="66" fontFamily="sans-serif" fontSize="16" fontWeight="bold" fill="#FFFFFF">SUNSCHOOL</text>
                     
-                    {/* Brain network visualization */}
-                    <path 
-                      d="M200,110 C270,110 290,160 290,200 C290,270 240,290 200,290 C130,290 110,240 110,200 C110,130 160,110 200,110 Z" 
-                      fill="none" 
-                      stroke="#000000" 
-                      strokeWidth="2"
-                      opacity="0.8"
-                    />
+                    {/* Solar panels */}
+                    <rect x="60" y="130" width="180" height="120" fill="#E5D9B6" stroke="#333" strokeWidth="1" />
+                    
+                    {/* Solar panel grid */}
+                    <line x1="60" y1="150" x2="240" y2="150" stroke="#333" strokeWidth="1" />
+                    <line x1="60" y1="170" x2="240" y2="170" stroke="#333" strokeWidth="1" />
+                    <line x1="60" y1="190" x2="240" y2="190" stroke="#333" strokeWidth="1" />
+                    <line x1="60" y1="210" x2="240" y2="210" stroke="#333" strokeWidth="1" />
+                    <line x1="60" y1="230" x2="240" y2="230" stroke="#333" strokeWidth="1" />
+                    
+                    <line x1="90" y1="130" x2="90" y2="250" stroke="#333" strokeWidth="1" />
+                    <line x1="120" y1="130" x2="120" y2="250" stroke="#333" strokeWidth="1" />
+                    <line x1="150" y1="130" x2="150" y2="250" stroke="#333" strokeWidth="1" />
+                    <line x1="180" y1="130" x2="180" y2="250" stroke="#333" strokeWidth="1" />
+                    <line x1="210" y1="130" x2="210" y2="250" stroke="#333" strokeWidth="1" />
+                    
+                    {/* Panel stand */}
+                    <line x1="150" y1="250" x2="130" y2="280" stroke="#555" strokeWidth="4" />
+                    <line x1="150" y1="250" x2="170" y2="280" stroke="#555" strokeWidth="4" />
+                    <rect x="115" y="280" width="70" height="5" fill="#555" />
+                    
+                    {/* Satellite dish */}
+                    <circle cx="270" cy="150" r="30" fill="none" stroke="#FFFFFF" strokeWidth="1.5" />
+                    <path d="M270,150 L290,120" stroke="#FFFFFF" strokeWidth="2" />
+                    <rect x="265" y="180" width="10" height="40" fill="#AAAAAA" />
+                    <rect x="260" y="220" width="20" height="5" fill="#888888" />
+                    
+                    {/* Label overlay */}
+                    <rect x="60" y="260" width="220" height="30" fill="#000000" opacity="0.8" />
+                    <text x="70" y="280" fontFamily="sans-serif" fontSize="12" fill="#FFFFFF">SOLAR-POWERED · SATELLITE-CONNECTED · OPEN-SOURCE</text>
 
-                    {/* Connection nodes */}
-                    <circle cx="200" cy="130" r="8" fill="#000000" />
-                    <circle cx="150" cy="170" r="8" fill="#000000" />
-                    <circle cx="250" cy="170" r="8" fill="#000000" />
-                    <circle cx="170" cy="230" r="8" fill="#000000" />
-                    <circle cx="230" cy="230" r="8" fill="#000000" />
-                    <circle cx="200" cy="200" r="12" fill="#000000" />
-
-                    {/* Connection lines */}
-                    <line x1="200" y1="130" x2="150" y2="170" stroke="#000000" strokeWidth="1.5" />
-                    <line x1="200" y1="130" x2="250" y2="170" stroke="#000000" strokeWidth="1.5" />
-                    <line x1="200" y1="130" x2="200" y2="200" stroke="#000000" strokeWidth="1.5" />
-                    <line x1="150" y1="170" x2="170" y2="230" stroke="#000000" strokeWidth="1.5" />
-                    <line x1="250" y1="170" x2="230" y2="230" stroke="#000000" strokeWidth="1.5" />
-                    <line x1="200" y1="200" x2="170" y2="230" stroke="#000000" strokeWidth="1.5" />
-                    <line x1="200" y1="200" x2="230" y2="230" stroke="#000000" strokeWidth="1.5" />
-                    <line x1="150" y1="170" x2="200" y2="200" stroke="#000000" strokeWidth="1.5" />
-                    <line x1="250" y1="170" x2="200" y2="200" stroke="#000000" strokeWidth="1.5" />
-                    
-                    {/* Abstract book icon */}
-                    <rect x="185" y="193" width="30" height="20" fill="#FFFFFF" stroke="#000000" strokeWidth="1" />
-                    <line x1="200" y1="193" x2="200" y2="213" stroke="#000000" strokeWidth="0.75" />
+                    {/* Decorative elements */}
+                    <circle cx="330" cy="80" r="15" fill="none" stroke="#FFFFFF" strokeWidth="0.5" opacity="0.6" />
+                    <circle cx="330" cy="80" r="7" fill="none" stroke="#FFFFFF" strokeWidth="0.5" opacity="0.8" />
+                    <line x1="320" y1="70" x2="340" y2="90" stroke="#FFFFFF" strokeWidth="0.5" opacity="0.6" />
+                    <line x1="320" y1="90" x2="340" y2="70" stroke="#FFFFFF" strokeWidth="0.5" opacity="0.6" />
                   </svg>
                 </View>
               </View>
@@ -369,8 +378,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E0E0E0',
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'sticky',
-    top: 0,
+    position: 'relative',
     zIndex: 100,
   },
   navbarInner: {
@@ -434,7 +442,7 @@ const styles = StyleSheet.create({
   // Hero section with black background
   heroSection: {
     backgroundColor: '#121212',
-    minHeight: 600,
+    minHeight: 650,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 80,
@@ -444,16 +452,16 @@ const styles = StyleSheet.create({
   // Hero Layout
   heroLayout: {
     width: '100%',
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: windowWidth < 1024 ? 'column' : 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 40,
+    gap: 60,
   },
   heroTextContent: {
-    flex: 1,
-    minWidth: 300,
-    maxWidth: 600,
+    flex: windowWidth < 1024 ? 0 : 1,
+    width: '100%',
+    maxWidth: 540,
+    marginBottom: windowWidth < 1024 ? 60 : 0,
   },
   heroTagBadge: {
     flexDirection: 'row',
@@ -553,16 +561,21 @@ const styles = StyleSheet.create({
   
   // Hero Image Container
   heroImageContainer: {
-    flex: 1,
-    minWidth: 300,
-    maxWidth: 600,
+    flex: windowWidth < 1024 ? 0 : 1,
+    width: '100%',
+    maxWidth: 540,
     alignItems: 'center',
     justifyContent: 'center',
   },
   imageWrapper: {
     width: '100%',
-    height: 400,
+    height: windowWidth < 768 ? 320 : 400,
     position: 'relative',
+    borderRadius: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   
   // Features section
