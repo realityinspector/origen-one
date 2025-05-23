@@ -67,6 +67,7 @@ const HomeRedirect = () => {
 
 export default function App() {
   const { user } = useAuth();
+  const { isVisible, closeModal } = useWelcomeModal();
 
   return (
     <div className="app-container">
@@ -74,6 +75,9 @@ export default function App() {
         domain="origen-ai-tutor.org" 
         enabled={process.env.NODE_ENV === 'production' && process.env.ENABLE_STATS !== 'false'} 
       />
+      {/* Welcome Modal */}
+      <WelcomeModal isVisible={isVisible} onClose={closeModal} />
+      
       <ModeProvider>
         {user && (
           <div style={{ 
