@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ScrollView, Linking, TouchableOpacity, Dimensio
 import { Link, useLocation, Redirect } from 'wouter';
 import { useAuth } from '../hooks/use-auth';
 import { colors, typography } from '../styles/theme';
-import { GitHub, BookOpen, Eye, Shield, Users, Award, BarChart2, BookOpen as Book, Star, Menu, Grid, PlusCircle, ArrowRight, Compass } from 'react-feather';
+import { GitHub, BookOpen, Eye, Shield, Users, Award, BarChart2, BookOpen as Book, Star, Menu, Grid, PlusCircle, ArrowRight, Compass, CheckCircle } from 'react-feather';
 
 // Get screen dimensions for responsive design
 const windowWidth = Dimensions.get('window').width;
@@ -46,8 +46,10 @@ const WelcomePage: React.FC = () => {
         <View style={styles.navbar}>
           <View style={styles.navbarInner}>
             <View style={styles.logoContainer}>
-              <Book size={24} color="#000000" />
-              <Text style={styles.logoText}>ORIGEN</Text>
+              <View style={styles.logoPill}>
+                <Book size={20} color="#FFFFFF" />
+                <Text style={styles.logoTextPill}>SUNSCHOOL</Text>
+              </View>
             </View>
             <View style={styles.navLinks}>
               <TouchableOpacity style={styles.navLink}>
@@ -393,6 +395,16 @@ const styles = StyleSheet.create({
   logoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoPill: {
+    height: 36,
+    backgroundColor: '#121212', 
+    borderRadius: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
   },
   logoText: {
     fontSize: 20,
@@ -400,6 +412,12 @@ const styles = StyleSheet.create({
     color: '#000000',
     marginLeft: 10,
     letterSpacing: 1,
+  },
+  logoTextPill: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   navLinks: {
     flexDirection: 'row',
@@ -566,16 +584,19 @@ const styles = StyleSheet.create({
     maxWidth: 540,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingTop: windowWidth < 768 ? 30 : 0,
+    marginBottom: windowWidth < 768 ? 40 : 0,
   },
   imageWrapper: {
     width: '100%',
-    height: windowWidth < 768 ? 320 : 400,
+    height: windowWidth < 768 ? 260 : 380,
     position: 'relative',
-    borderRadius: 8,
+    borderRadius: 12,
     backgroundColor: 'rgba(255, 255, 255, 0.03)',
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
+    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.15)',
   },
   
   // Features section
