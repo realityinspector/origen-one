@@ -35,12 +35,27 @@ export async function setupAuth(app: Express) {
     }
   }));
 
-  // Regular JWT login endpoint
+  // Enhanced JWT login endpoint with cross-domain support
   app.post("/api/login", asyncHandler(async (req: Request, res: Response) => {
     try {
       const { username, password } = req.body;
       
+      // Log detailed information about the login request for debugging
+      const origin = req.headers.origin || req.headers.referer || 'unknown';
+      const isSunschool = origin.includes('sunschool.xyz');
+      console.log(`Login attempt for username: ${username} from origin: ${origin}`);
+      
+      // For sunschool.xyz domain, add special CORS headers for authentication
+      if (isSunschool) {
+        console.log('Adding special CORS headers for sunschool.xyz domain');
+        res.header('Access-Control-Allow-Origin', origin);
+        res.header('Access-Control-Allow-Credentials', 'true');
+        res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Sunschool-Auth,X-Sunschool-Auth-Token');
+      }
+      
       if (!username || !password) {
+        console.log('Missing login credentials');
         return res.status(400).json({ error: "Username and password are required" });
       }
       
@@ -48,6 +63,7 @@ export async function setupAuth(app: Express) {
       const user = await storage.getUserByUsername(username);
       
       if (!user) {
+        console.log(`User not found: ${username}`);
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
@@ -55,18 +71,23 @@ export async function setupAuth(app: Express) {
       const isPasswordValid = user.password ? await comparePasswords(password, user.password) : false;
       
       if (!isPasswordValid) {
+        console.log(`Password mismatch for user: ${username}`);
         return res.status(401).json({ error: "Invalid credentials" });
       }
       
       // Generate JWT token
       const token = generateToken({ id: user.id, role: user.role });
+      console.log(`Generated token for user ${username}, token length: ${token.length}`);
       
       // Return user details and token
       const { password: _, ...userWithoutPassword } = user;
       
+      // Include domain information in the response for client-side handling
+      console.log(`Successful login for user: ${username} (${user.id})`);
       res.json({
         token,
-        user: userWithoutPassword
+        user: userWithoutPassword,
+        domain: isSunschool ? 'sunschool.xyz' : origin.split('://')[1]?.split(':')[0] || 'unknown'
       });
     } catch (error) {
       console.error('Authentication endpoint error:', error);
@@ -80,9 +101,21 @@ export async function setupAuth(app: Express) {
     }
   }));
 
-  // User info endpoint
-  app.get("/api/user", authenticateJwt, asyncHandler(async (req: AuthRequest, res) => {
+  // Enhanced user info endpoint with cross-domain support
+  app.get("/api/user", authenticateJwt, (req: AuthRequest, res) => {
     try {
+      // Log the request info for debugging
+      const origin = req.headers.origin || req.headers.referer || 'unknown';
+      const isSunschool = origin.includes('sunschool.xyz');
+      
+      if (isSunschool) {
+        // Add special CORS headers for sunschool.xyz domain
+        res.header('Access-Control-Allow-Origin', origin);
+        res.header('Access-Control-Allow-Credentials', 'true');
+        res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Sunschool-Auth,X-Sunschool-Auth-Token');
+      }
+      
       if (!req.user) {
         return res.status(401).json({ error: "Unauthorized" });
       }
@@ -90,12 +123,12 @@ export async function setupAuth(app: Express) {
       // We're not retrieving the user from database here since it's already in req.user
       // But we're removing the password field for security
       const { password: _, ...userWithoutPassword } = req.user;
-      res.json(userWithoutPassword);
+      return res.json(userWithoutPassword);
     } catch (error) {
       console.error('Error retrieving user info:', error);
-      res.status(500).json({ error: 'Failed to retrieve user info' });
+      return res.status(500).json({ error: 'Failed to retrieve user info' });
     }
-  }));
+  });
 }
 
 // Temporary authentication middleware, simplified
