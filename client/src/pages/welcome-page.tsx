@@ -404,7 +404,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 16,
+    paddingLeft: 12,
+    paddingRight: 16,
   },
   logoText: {
     fontSize: 20,
@@ -460,10 +461,11 @@ const styles = StyleSheet.create({
   // Hero section with black background
   heroSection: {
     backgroundColor: '#121212',
-    minHeight: 650,
+    minHeight: windowWidth < 768 ? 800 : 650,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 80,
+    paddingTop: 60,
+    paddingBottom: 80,
     paddingHorizontal: 20,
   },
   
@@ -473,13 +475,13 @@ const styles = StyleSheet.create({
     flexDirection: windowWidth < 1024 ? 'column' : 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 60,
+    gap: windowWidth < 768 ? 30 : 60,
   },
   heroTextContent: {
     flex: windowWidth < 1024 ? 0 : 1,
     width: '100%',
     maxWidth: 540,
-    marginBottom: windowWidth < 1024 ? 60 : 0,
+    marginBottom: windowWidth < 1024 ? 40 : 0,
   },
   heroTagBadge: {
     flexDirection: 'row',
@@ -596,7 +598,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.1)',
-    boxShadow: '0 8px 16px rgba(0, 0, 0, 0.15)',
+    elevation: 3,
   },
   
   // Features section
