@@ -230,7 +230,7 @@ const WelcomePage: React.FC = () => {
                   <Wifi size={18} color={colors.onPrimary} />
                 </View>
                 <View style={styles.timelineContent}>
-                  <Text style={styles.timelineTitle}>Satellite Connected (Starlink-ready)</Text>
+                  <Text style={styles.timelineTitle}>Satellite Connected </Text>
                   <Text style={styles.timelineText}>
                     Fast-enough-for-AI wherever you hold events, with minimal infrastructure requirements.
                   </Text>
@@ -346,7 +346,7 @@ const WelcomePage: React.FC = () => {
                 <View style={styles.ctaStepCircle}>
                   <Wifi size={20} color={colors.onPrimary} />
                 </View>
-                <Text style={styles.ctaStepText}>Tagging @Starlink on X and launching a public dev thread</Text>
+                <Text style={styles.ctaStepText}>Tagging allies on X and launching a public dev thread</Text>
               </View>
               
               <View style={styles.ctaStep}>
