@@ -6,8 +6,15 @@ import * as env from './config/env';
 
 // Environment variables are accessed through the central config module
 
-// Configure Neon to use ws instead of browser WebSocket
+// Enhanced Neon configuration for better reliability
 neonConfig.webSocketConstructor = ws;
+neonConfig.fetchConnectionCache = true;
+neonConfig.wsMaxLifetime = 30 * 60 * 1000; // 30 minutes max WebSocket lifetime
+neonConfig.pipelineConnect = true;
+
+// Add more logging for connection debugging
+console.log('Initializing database connection for environment:', process.env.NODE_ENV || 'development');
+console.log('Database connection string exists:', !!process.env.DATABASE_URL);
 
 // Add exponential backoff to our retry logic in our custom withRetry function
 // (We'll handle retries ourselves since connectionRetryLimit is not available)
