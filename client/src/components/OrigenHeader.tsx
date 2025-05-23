@@ -48,7 +48,7 @@ const OrigenHeader: React.FC<OrigenHeaderProps> = ({ subtitle }) => {
       );
     }
     
-    return navItems.filter(item => item.roles.includes(user.role));
+    return navItems.filter(item => user && user.role && item.roles.includes(user.role));
   };
 
   return (
@@ -65,8 +65,8 @@ const OrigenHeader: React.FC<OrigenHeaderProps> = ({ subtitle }) => {
           }
         }}
       >
-        <Text style={styles.headerTitle}>ORIGEN™</Text>
-        {subtitle && <Text style={styles.headerSubtitle}>{subtitle}</Text>}
+        <Text style={styles.headerTitle}>SUNSCHOOL™</Text>
+        <Text style={styles.headerSubtitle}>{subtitle || "powered by Origen™"}</Text>
       </TouchableOpacity>
         
         {user && (
