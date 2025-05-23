@@ -1314,7 +1314,7 @@ export function registerRoutes(app: Express): Server {
   }));
 
   // Get reports data
-  app.get("/api/reports", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
+  app.get("/api/reports", isAuthenticated, asyncHandler(async (req: AuthRequest, res: Response) => {
     if (!req.user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
@@ -1465,13 +1465,13 @@ export function registerRoutes(app: Express): Server {
   // Database Synchronization Endpoints
 
   // Get all sync configurations for a parent
-  app.get("/api/sync-configs", hasRole(["PARENT"]), asyncHandler(async (req: AuthRequest, res) => {
+  app.get("/api/sync-configs", hasRole(["PARENT"]), asyncHandler(async (req: AuthRequest, res: Response) => {
     if (!req.user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
 
     try {
-      const syncConfigs = await storage.getSyncConfigsByParentId(req.user.id);
+      const syncConfigs = await storage.getSyncConfigsByParentId(req.user.id.toString());
       res.json(syncConfigs);
     } catch (error) {
       console.error('Error getting sync configurations:', error);

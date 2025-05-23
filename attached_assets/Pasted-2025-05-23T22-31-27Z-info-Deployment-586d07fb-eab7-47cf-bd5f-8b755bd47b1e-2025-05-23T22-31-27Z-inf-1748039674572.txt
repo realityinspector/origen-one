@@ -1,0 +1,52 @@
+2025-05-23T22:31:27Z info: Deployment: 586d07fb-eab7-47cf-bd5f-8b755bd47b1e
+2025-05-23T22:31:27Z info: Build: 66306bf0-65ac-4876-81a2-dfdcb32ed6e2
+2025-05-23T22:31:27Z info: Connecting to builder
+2025-05-23T22:31:30Z info: Builder connected
+2025-05-23T22:31:31Z info: Installing packages
+2025-05-23T22:31:31Z info: Starting Build
+
+> origen-ai-tutor-client@0.1.0 build
+> vite build
+
+
+vite v6.3.4 building for production...
+
+transforming...
+
+✓ 761 modules transformed.
+
+rendering chunks...
+
+computing gzip size...
+
+dist/index.html                  1.38 kB │ gzip:   0.75 kB
+
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+
+✓ built in 8.20s
+
+npm notice
+npm notice New major version of npm available! 10.8.2 -> 11.4.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.4.1
+npm notice To update run: npm install -g npm@11.4.1
+npm notice
+
+server/auth.ts(105,24): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: AuthRequest, res: Response<any, Record<string, any>>, next: NextFunction) => Response<any, Record<string, any>>' is not assignable to parameter of type 'RequestHandlerParams<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+      Type '(req: AuthRequest, res: Response<any, Record<string, any>>, next: NextFunction) => Response<any, Record<string, any>>' is not assignable to type 'RequestHandler<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+        Type 'Response<any, Record<string, any>>' is not assignable to type 'void | Promise<void>'.
+
+server/routes.ts(1317,27): error TS2769: No overload matches this call.
+  The last overload gave the following error.
+    Argument of type '(req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>, next: NextFunction) => Response<...>' is not assignable to parameter of type 'RequestHandlerParams<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+      Type '(req: Request<ParamsDictionary, any, any, ParsedQs, Record<string, any>>, res: Response<any, Record<string, any>>, next: NextFunction) => Response<...>' is not assignable to type 'RequestHandler<ParamsDictionary, any, any, ParsedQs, Record<string, any>>'.
+        Type 'Response<any, Record<string, any>>' is not assignable to type 'void | Promise<void>'.
+server/routes.ts(1474,66): error TS2345: Argument of type 'string | number' is not assignable to parameter of type 'string'.
+  Type 'number' is not assignable to type 'string'.
+server/routes.ts(1530,9): error TS2322: Type 'string | number' is not assignable to type 'string'.
+  Type 'number' is not assignable to type 'string'.
