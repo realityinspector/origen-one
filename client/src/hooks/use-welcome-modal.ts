@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 const COOKIE_NAME = 'sunschool_welcome_modal_closed';
 
 export function useWelcomeModal() {
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
 
   // Check cookie when component mounts
   useEffect(() => {
