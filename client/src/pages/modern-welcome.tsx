@@ -46,7 +46,7 @@ const WelcomePage: React.FC = () => {
                     marginBottom: 15
                   }}>
                     <img 
-                      src="/images/aot-labs-logo.png" 
+                      src="/aot-labs-logo.png" 
                       alt="AOT Labs Logo" 
                       style={{
                         height: 50,
@@ -72,7 +72,7 @@ const WelcomePage: React.FC = () => {
                     <View style={styles.benefitIcon}>
                       <CheckCircle size={14} color={colors.onPrimary} />
                     </View>
-                    <Text style={styles.benefitText}>Solar Powered - Runs off-grid in barns, lodges, or yurts</Text>
+                    <Text style={styles.benefitText}>Go from zero to AI tutor in less than 10 minutes, in any location, no IT</Text>
                   </View>
                   
                   <View style={styles.benefitItem}>
@@ -127,7 +127,7 @@ const WelcomePage: React.FC = () => {
                   boxShadow: '0 10px 25px rgba(0,0,0,0.2)'
                 }}>
                   <img 
-                    src="/images/sunschool-hero.png" 
+                    src="/images/sunschool-artboard@2x.png" 
                     alt="Sunschool Hero" 
                     style={{
                       width: '100%',
@@ -399,7 +399,7 @@ const WelcomePage: React.FC = () => {
               
               <View style={styles.footerLogo}>
                 <img 
-                  src="/images/aot-labs-logo.png" 
+                  src="/aot-labs-logo.png" 
                   style={{width: 100, height: 'auto', marginBottom: 10}}
                   alt="SUNSCHOOL Logo"
                 />
