@@ -27,6 +27,8 @@ import { useAuth } from './hooks/use-auth';
 import { ModeProvider } from './context/ModeContext';
 import ModeToggle from './components/ModeToggle';
 import AppLayout from './components/AppLayout';
+import WelcomeModal from './components/WelcomeModal';
+import { useWelcomeModal } from './hooks/use-welcome-modal';
 
 // Home redirect component to handle auth status
 const HomeRedirect = () => {
