@@ -9,11 +9,12 @@ const app = express();
 const PORT = Number(process.env.PORT || 8000);
 
 // Middleware
+// More permissive CORS to ensure sunschool.xyz domain works
 app.use(cors({
-  origin: ['https://sunschool.xyz', 'https://www.sunschool.xyz', process.env.ALLOWED_ORIGINS || '*'],
+  origin: true, // Allow any origin with credentials
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
