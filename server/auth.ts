@@ -20,14 +20,14 @@ export async function setupAuth(app: Express) {
       const result = await db.select({ count: count() }).from(users);
       const userCount = result[0]?.count || 0;
       
-      return res.json({ 
+      res.json({ 
         status: "ok", 
         db: "connected",
         userCount 
       });
     } catch (error) {
       console.error("Health check error:", error);
-      return res.status(500).json({ 
+      res.status(500).json({ 
         status: "error",
         message: "Database connection failed",
         error: (error as Error).message 
@@ -56,7 +56,7 @@ export async function setupAuth(app: Express) {
       
       if (!username || !password) {
         console.log('Missing login credentials');
-        return res.status(400).json({ error: "Username and password are required" });
+        res.status(400).json({ error: "Username and password are required" });
       }
       
       // Find user by username
@@ -64,7 +64,7 @@ export async function setupAuth(app: Express) {
       
       if (!user) {
         console.log(`User not found: ${username}`);
-        return res.status(401).json({ error: "Invalid credentials" });
+        res.status(401).json({ error: "Invalid credentials" });
       }
       
       // Verify password
@@ -72,7 +72,7 @@ export async function setupAuth(app: Express) {
       
       if (!isPasswordValid) {
         console.log(`Password mismatch for user: ${username}`);
-        return res.status(401).json({ error: "Invalid credentials" });
+        res.status(401).json({ error: "Invalid credentials" });
       }
       
       // Generate JWT token
