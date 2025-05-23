@@ -105,7 +105,7 @@ const WelcomePage: React.FC = () => {
                     <View style={styles.benefitIcon}>
                       <CheckCircle size={16} color="#FFFFFF" />
                     </View>
-                    <Text style={styles.benefitText}>Solar Powered - Runs off-grid in barns, lodges, or yurts</Text>
+                    <Text style={styles.benefitText}>Go from zero to AI tutor in less than 10 minutes, in any location, no IT</Text>
                   </View>
                   
                   <View style={styles.benefitItem}>
