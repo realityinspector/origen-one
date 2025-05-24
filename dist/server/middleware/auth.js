@@ -146,21 +146,15 @@ function authenticateJwt(req, res, next) {
         // Log for debugging
         console.log(`Token verified successfully for user ID: ${payload.userId}`);
         // Load user from database
-        storage_1.storage.getUser(payload.userId)
-            .then(user => {
-            if (!user) {
-                console.log(`User ${payload.userId} from token not found in database`);
-                res.status(401).json({ error: 'User not found' });
-                return;
-            }
-            // Add user to request for downstream middleware/handlers
-            req.user = user;
-            next();
-        })
-            .catch(error => {
-            console.error(`Error fetching user ${payload.userId} from database:`, error);
-            res.status(500).json({ error: 'Internal server error', details: error.message });
-        });
+        const user = await storage_1.storage.getUser(payload.userId);
+        if (!user) {
+            console.log(`User ${payload.userId} from token not found in database`);
+            res.status(401).json({ error: 'User not found' });
+            return;
+        }
+        // Add user to request for downstream middleware/handlers
+        req.user = user;
+        next();
     }
     catch (error) {
         // Check if it's a token verification error
