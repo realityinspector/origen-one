@@ -108,7 +108,7 @@ export function verifyToken(token: string): JwtPayload {
 }
 
 // Middleware
-export function authenticateJwt(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+export async function authenticateJwt(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
   // Enhanced token extraction with logging for debugging
   // We'll check all possible locations where a token might be present
   let token: string | undefined;
@@ -157,7 +157,8 @@ export function authenticateJwt(req: AuthRequest, res: Response, next: NextFunct
     console.log(`No auth token found in request to: ${req.method} ${req.path}`);
     console.log('Headers:', JSON.stringify(req.headers));
     console.log('Request origin:', origin, isSunschool ? '(sunschool domain)' : '');
-    return res.status(401).json({ error: 'No authorization token provided' });
+    res.status(401).json({ error: 'No authorization token provided' });
+    return;
   }
   
   // Log token information for debugging (without exposing the token)
@@ -198,7 +199,8 @@ export function authenticateJwt(req: AuthRequest, res: Response, next: NextFunct
         error instanceof jwt.TokenExpiredError || 
         error instanceof jwt.NotBeforeError) {
       console.log(`Invalid token: ${error.message}`);
-      return res.status(401).json({ error: 'Invalid or expired token' });
+      res.status(401).json({ error: 'Invalid or expired token' });
+      return;
     }
     
     // For other errors
