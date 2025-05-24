@@ -5,6 +5,7 @@ channel = "stable-24_05"
 packages = ["tree"]
 
 [workflows]
+runButton = "Project"
 
 [[workflows.workflow]]
 name = "Start Server"
@@ -34,6 +35,24 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "node scripts/fix-deployment-issues.js && npx tsc --skipLibCheck"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Server"
+
+[[workflows.workflow]]
+name = "Server"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npx tsc && node dist/server/index.js"
+waitForPort = 5000
 
 [deployment]
 run = ["sh", "-c", "NODE_ENV=production PORT=8000 HOST=0.0.0.0 node dist/server/index.js"]

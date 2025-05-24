@@ -23,7 +23,7 @@ export interface AuthRequest extends Request {
 export declare function hashPassword(password: string): Promise<string>;
 export declare function comparePasswords(supplied: string, stored: string): Promise<boolean>;
 export declare function generateToken(user: {
-    id: string;
+    id: string | number;
     role: string;
 }): string;
 export declare function verifyToken(token: string): JwtPayload;
