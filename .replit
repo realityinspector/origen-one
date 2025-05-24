@@ -5,7 +5,6 @@ channel = "stable-24_05"
 packages = ["tree"]
 
 [workflows]
-runButton = "Start Server"
 
 [[workflows.workflow]]
 name = "Start Server"
