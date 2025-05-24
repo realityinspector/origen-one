@@ -8,7 +8,7 @@ const cors_1 = __importDefault(require("cors"));
 const path_1 = __importDefault(require("path"));
 const routes_1 = require("./routes");
 const app = (0, express_1.default)();
-const PORT = Number(process.env.PORT || 8000);
+const PORT = Number(process.env.PORT || 5000);
 // Middleware
 // Enhanced CORS to specifically handle sunschool.xyz domain
 app.use((0, cors_1.default)({
