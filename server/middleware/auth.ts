@@ -108,7 +108,7 @@ export function verifyToken(token: string): JwtPayload {
 }
 
 // Middleware
-export function authenticateJwt(req: AuthRequest, res: Response, next: NextFunction): void {
+export function authenticateJwt(req: AuthRequest, res: Response, next: NextFunction): void | Response {
   // Enhanced token extraction with logging for debugging
   // We'll check all possible locations where a token might be present
   let token: string | undefined;
