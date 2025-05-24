@@ -14,7 +14,7 @@ const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const crypto_1 = require("crypto");
 const util_1 = require("util");
 const storage_1 = require("../storage");
-// Define a better async handler for express
+// Define a better async handler for express with correct return type
 function asyncHandler(fn) {
     return function (req, res, next) {
         return Promise
@@ -28,10 +28,11 @@ function asyncHandler(fn) {
             // For auth endpoints, provide more specific error handling
             if (req.path.includes('/api/login') || req.path.includes('/api/register')) {
                 console.error('Authentication endpoint error:', req.path, error.message);
-                return res.status(500).json({
+                res.status(500).json({
                     error: 'Authentication service error',
                     message: error.message || 'An unexpected error occurred'
                 });
+                return;
             }
             // Forward to default error handler
             next(error);

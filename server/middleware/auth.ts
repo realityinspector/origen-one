@@ -4,9 +4,9 @@ import { scrypt, randomBytes, timingSafeEqual } from 'crypto';
 import { promisify } from 'util';
 import { storage } from '../storage';
 
-// Define a better async handler for express
+// Define a better async handler for express with correct return type
 export function asyncHandler(fn: (req: Request, res: Response, next: NextFunction) => Promise<any>) {
-  return function(req: Request, res: Response, next: NextFunction) {
+  return function(req: Request, res: Response, next: NextFunction): Promise<void> {
     return Promise
       .resolve(fn(req, res, next))
       .catch((error) => {
@@ -20,10 +20,11 @@ export function asyncHandler(fn: (req: Request, res: Response, next: NextFunctio
         // For auth endpoints, provide more specific error handling
         if (req.path.includes('/api/login') || req.path.includes('/api/register')) {
           console.error('Authentication endpoint error:', req.path, error.message);
-          return res.status(500).json({
+          res.status(500).json({
             error: 'Authentication service error',
             message: error.message || 'An unexpected error occurred'
           });
+          return;
         }
         
         // Forward to default error handler
@@ -107,7 +108,7 @@ export function verifyToken(token: string): JwtPayload {
 }
 
 // Middleware
-export function authenticateJwt(req: AuthRequest, res: Response, next: NextFunction) {
+export function authenticateJwt(req: AuthRequest, res: Response, next: NextFunction): void {
   // Enhanced token extraction with logging for debugging
   // We'll check all possible locations where a token might be present
   let token: string | undefined;
@@ -212,7 +213,7 @@ export function authenticateJwt(req: AuthRequest, res: Response, next: NextFunct
 }
 
 export function hasRoleMiddleware(roles: string[]) {
-  return (req: AuthRequest, res: Response, next: NextFunction) => {
+  return (req: AuthRequest, res: Response, next: NextFunction): void => {
     if (!req.user) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
