@@ -13,7 +13,7 @@ import crypto from "crypto";
 import { users } from "../shared/schema";
 import { getSubjectSVG, generateLessonContent, generateQuizQuestions } from "./content-generator";
 
-// Helper function to ensure consistent string IDs
+// Helper function to ensure consistent string IDs for cross-domain compatibility
 function ensureString(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return "";
   return String(value);
@@ -27,16 +27,6 @@ function isAuthenticated(req: Request, res: Response, next: NextFunction) {
 // Import services
 import('./services/subject-recommendation');
 import('./services/enhanced-lesson-service');
-  return String(value);
-}
-
-(num) ? -1 : num;
-}
-
-// Use our imported middleware functions for authentication
-function isAuthenticated(req: Request, res: Response, next: NextFunction) {
-  return authenticateJwt(req as AuthRequest, res, next);
-}
 
 function hasRole(roles: string[]) {
   return (req: Request, res: Response, next: NextFunction) => {
