@@ -10,9 +10,34 @@ const routes_1 = require("./routes");
 const app = (0, express_1.default)();
 const PORT = Number(process.env.PORT || 8000);
 // Middleware
+// Enhanced CORS to specifically handle sunschool.xyz domain
 app.use((0, cors_1.default)({
-    origin: true,
-    credentials: true
+    origin: function (origin, callback) {
+        // Allow requests with no origin (like mobile apps, curl requests)
+        if (!origin)
+            return callback(null, true);
+        // Define allowed origins
+        const allowedOrigins = [
+            'https://sunschool.xyz',
+            'http://sunschool.xyz',
+            'https://www.sunschool.xyz',
+            'http://localhost:5000',
+            'http://localhost:3000'
+        ];
+        // Check if the request origin is in our allowed list
+        if (allowedOrigins.indexOf(origin) !== -1 || origin.includes('replit.dev')) {
+            callback(null, true);
+        }
+        else {
+            // Log the request origin for debugging
+            console.log(`CORS request from origin: ${origin}`);
+            // Still allow it for now during development
+            callback(null, true);
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'X-Sunschool-Auth']
 }));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: true }));
