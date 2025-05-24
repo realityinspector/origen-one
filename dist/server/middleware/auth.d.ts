@@ -27,5 +27,5 @@ export declare function generateToken(user: {
     role: string;
 }): string;
 export declare function verifyToken(token: string): JwtPayload;
-export declare function authenticateJwt(req: AuthRequest, res: Response, next: NextFunction): void | Response;
+export declare function authenticateJwt(req: AuthRequest, res: Response, next: NextFunction): Promise<void>;
 export declare function hasRoleMiddleware(roles: string[]): (req: AuthRequest, res: Response, next: NextFunction) => void;
