@@ -49,7 +49,7 @@ const drizzle_orm_1 = require("drizzle-orm");
 const crypto_1 = __importDefault(require("crypto"));
 const schema_1 = require("../shared/schema");
 const content_generator_1 = require("./content-generator");
-// Helper function to ensure consistent string IDs
+// Helper function to ensure consistent string IDs for cross-domain compatibility
 function ensureString(value) {
     if (value === null || value === undefined)
         return "";
@@ -57,17 +57,11 @@ function ensureString(value) {
 }
 // Authentication middleware
 function isAuthenticated(req, res, next) {
-    return (0, auth_2.authenticateJwt)(req, res, next);
+    (0, auth_2.authenticateJwt)(req, res, next);
 }
 // Import services
 Promise.resolve().then(() => __importStar(require('./services/subject-recommendation')));
 Promise.resolve().then(() => __importStar(require('./services/enhanced-lesson-service')));
-return String(value);
-(num) ? -1 : num;
-// Use our imported middleware functions for authentication
-function isAuthenticated(req, res, next) {
-    return (0, auth_2.authenticateJwt)(req, res, next);
-}
 function hasRole(roles) {
     return (req, res, next) => {
         // First authenticate the user
@@ -75,7 +69,7 @@ function hasRole(roles) {
             if (err)
                 return next(err);
             // Then check the role
-            return (0, auth_2.hasRoleMiddleware)(roles)(req, res, next);
+            (0, auth_2.hasRoleMiddleware)(roles)(req, res, next);
         });
     };
 }
@@ -463,7 +457,7 @@ function registerRoutes(app) {
         // Convert userIdParam to number since database expects integer
         const userId = parseInt(userIdParam, 10);
         if (isNaN(userId)) {
-            res.status(400).json({ error: "Invalid user ID format - must be a number" });
+            return res.status(400).json({ error: "Invalid user ID format - must be a number" });
         }
         // Admins can view any profile, parents can view their children, learners can view their own
         if (req.user?.role === "ADMIN" ||
@@ -477,7 +471,7 @@ function registerRoutes(app) {
                     // Get the user to verify they exist
                     const user = await storage_1.storage.getUser(userId.toString());
                     if (!user) {
-                        res.status(404).json({ error: "User not found" });
+                        return res.status(404).json({ error: "User not found" });
                     }
                     console.log(`Creating learner profile for user ${userId} with role ${user.role}`);
                     // Create a default profile with grade level 5 and a generated ID
@@ -492,17 +486,17 @@ function registerRoutes(app) {
                         strugglingAreas: []
                     });
                     if (!profile) {
-                        res.status(500).json({ error: "Failed to create learner profile" });
+                        return res.status(500).json({ error: "Failed to create learner profile" });
                     }
                 }
-                res.json(profile);
+                return res.json(profile);
             }
             catch (error) {
                 console.error('Error getting or creating learner profile:', error);
-                res.status(500).json({ error: "Failed to get or create learner profile" });
+                return res.status(500).json({ error: "Failed to get or create learner profile" });
             }
         }
-        res.status(403).json({ error: "Forbidden" });
+        return res.status(403).json({ error: "Forbidden" });
     }));
     // Update learner profile (supports updating grade level and subjects)
     app.put("/api/learner-profile/:userId", hasRole(["PARENT", "ADMIN"]), (0, auth_2.asyncHandler)(async (req, res) => {
@@ -510,12 +504,12 @@ function registerRoutes(app) {
         // Get the user ID as a string since our schema uses string IDs
         const userId = userIdParam;
         if (!userId) {
-            res.status(400).json({ error: "Invalid user ID format" });
+            return res.status(400).json({ error: "Invalid user ID format" });
         }
         const { gradeLevel, subjects, recommendedSubjects, strugglingAreas, graph } = req.body;
         // If no valid update data was provided
         if (!gradeLevel && !subjects && !recommendedSubjects && !strugglingAreas && !graph) {
-            res.status(400).json({ error: "No valid update data provided" });
+            return res.status(400).json({ error: "No valid update data provided" });
         }
         console.log(`Updating learner profile for userId: ${userId}`, {
             gradeLevel,
@@ -532,14 +526,14 @@ function registerRoutes(app) {
           SELECT 1 FROM users 
           WHERE id = $1 AND parent_id = $2
         `;
-                const parentResult = await db_1.pool.query(parentQuery, [userId, toNumber(req.user.id)]);
+                const parentResult = await db_1.pool.query(parentQuery, [userId, parseInt(ensureString(req.user.id))]);
                 if (parentResult.rowCount === 0) {
-                    res.status(403).json({ error: "Not authorized to update this profile" });
+                    return res.status(403).json({ error: "Not authorized to update this profile" });
                 }
             }
             catch (err) {
                 console.error('Error checking parent-child relationship:', err);
-                res.status(500).json({ error: "Error verifying permissions" });
+                return res.status(500).json({ error: "Error verifying permissions" });
             }
         }
         // Update the profile using direct SQL to avoid type issues
@@ -558,7 +552,7 @@ function registerRoutes(app) {
                 else {
                     gradeLevelNum = parseInt(gradeLevel.toString());
                     if (isNaN(gradeLevelNum) || gradeLevelNum < 0 || gradeLevelNum > 12) {
-                        res.status(400).json({ error: "Grade level must be between K and 12" });
+                        return res.status(400).json({ error: "Grade level must be between K and 12" });
                     }
                 }
             }
@@ -591,7 +585,7 @@ function registerRoutes(app) {
                 if (insertResult.rowCount > 0) {
                     console.log(`Successfully created new learner profile with ID: ${newProfileId}`);
                     // Convert database row to expected profile format
-                    res.json({
+                    return res.json({
                         id: insertResult.rows[0].id,
                         userId: userId,
                         gradeLevel: insertResult.rows[0].grade_level,
@@ -610,7 +604,7 @@ function registerRoutes(app) {
                 }
                 else {
                     console.error('Failed to create learner profile - no rows returned');
-                    res.status(500).json({ error: "Failed to create learner profile" });
+                    return res.status(500).json({ error: "Failed to create learner profile" });
                 }
             }
             // If we get here, the profile exists - update it
@@ -748,7 +742,7 @@ function registerRoutes(app) {
                     }
                     // Convert database row to expected profile format
                     const profile = updateResult.rows[0];
-                    res.json({
+                    return res.json({
                         id: profile.id,
                         userId: userId,
                         gradeLevel: profile.grade_level,
@@ -767,33 +761,33 @@ function registerRoutes(app) {
                 }
                 else {
                     console.error('Failed to update learner profile - no rows affected');
-                    res.status(500).json({ error: "Failed to update learner profile" });
+                    return res.status(500).json({ error: "Failed to update learner profile" });
                 }
             }
             catch (updateError) {
                 console.error('Error during profile update:', updateError);
-                res.status(500).json({ error: "Error updating profile: " + updateError.message });
+                return res.status(500).json({ error: "Error updating profile: " + updateError.message });
             }
         }
         catch (error) {
             console.error('Error updating learner profile:', error);
-            res.status(500).json({ error: "Failed to update learner profile: " + error.message });
+            return res.status(500).json({ error: "Failed to update learner profile: " + error.message });
         }
     }));
     // Create custom lesson from subject dashboard
     app.post("/api/lessons/create", isAuthenticated, (0, auth_2.asyncHandler)(async (req, res) => {
         if (!req.user) {
-            res.status(401).json({ error: "Unauthorized" });
+            return res.status(401).json({ error: "Unauthorized" });
         }
         const { subject, category, difficulty, gradeLevel } = req.body;
         if (!subject || !category) {
-            res.status(400).json({ error: "Subject and category are required" });
+            return res.status(400).json({ error: "Subject and category are required" });
         }
         try {
             // Get the learner profile
             const learnerProfile = await storage_1.storage.getLearnerProfile(req.user.id);
             if (!learnerProfile) {
-                res.status(404).json({ error: "Learner profile not found" });
+                return res.status(404).json({ error: "Learner profile not found" });
             }
             // Create SVG image based on subject and category
             const svgImageData = (0, content_generator_1.getSubjectSVG)(subject, category);
@@ -831,60 +825,60 @@ function registerRoutes(app) {
                     }]
             });
             // Return the created lesson
-            res.json(newLesson);
+            return res.json(newLesson);
         }
         catch (error) {
             console.error("Error creating custom lesson:", error);
-            res.status(500).json({ error: "Failed to create lesson" });
+            return res.status(500).json({ error: "Failed to create lesson" });
         }
     }));
     // Get active lesson for learner
     app.get("/api/lessons/active", isAuthenticated, (0, auth_2.asyncHandler)(async (req, res) => {
         if (!req.user) {
-            res.status(401).json({ error: "Unauthorized" });
+            return res.status(401).json({ error: "Unauthorized" });
         }
         try {
             // Allow any user to fetch active lesson in learner mode
             let activeLesson = await storage_1.storage.getActiveLesson(req.user.id);
             // Just return the active lesson if found without auto-generating
             if (activeLesson) {
-                res.json(activeLesson);
+                return res.json(activeLesson);
             }
             // If no active lesson, don't auto-generate (handle on frontend)
-            res.json(null);
+            return res.json(null);
         }
         catch (error) {
             console.error('Error fetching active lesson:', error);
-            res.status(500).json({ error: "Failed to fetch active lesson" });
+            return res.status(500).json({ error: "Failed to fetch active lesson" });
         }
     }));
     // Create a custom lesson for a learner
     app.post("/api/lessons/create", isAuthenticated, (0, auth_2.asyncHandler)(async (req, res) => {
         if (!req.user) {
-            res.status(401).json({ error: "Unauthorized" });
+            return res.status(401).json({ error: "Unauthorized" });
         }
         const { topic = '', gradeLevel, learnerId, enhanced = true, subject = '', category = '', difficulty = 'beginner' } = req.body;
         if (!gradeLevel || !learnerId) {
-            res.status(400).json({ error: "Missing required fields: gradeLevel, learnerId" });
+            return res.status(400).json({ error: "Missing required fields: gradeLevel, learnerId" });
         }
         // Validate user permissions
         const targetLearnerId = learnerId;
         // Self-create for learners
         if (req.user.role === "LEARNER" && req.user.id !== targetLearnerId) {
-            res.status(403).json({ error: "Learners can only create lessons for themselves" });
+            return res.status(403).json({ error: "Learners can only create lessons for themselves" });
         }
         // Parents can only create for their children
         if (req.user.role === "PARENT") {
             const children = await storage_1.storage.getUsersByParentId(req.user.id);
             if (!children.some(child => child.id.toString() === targetLearnerId.toString())) {
-                res.status(403).json({ error: "Parent can only create lessons for their children" });
+                return res.status(403).json({ error: "Parent can only create lessons for their children" });
             }
         }
         try {
             // Get learner profile
             const learnerProfile = await storage_1.storage.getLearnerProfile(targetLearnerId);
             if (!learnerProfile) {
-                res.status(404).json({ error: "Learner profile not found" });
+                return res.status(404).json({ error: "Learner profile not found" });
             }
             // Determine the subject if not provided
             let finalSubject = subject;
@@ -940,7 +934,7 @@ function registerRoutes(app) {
                             enhancedSpec,
                             imagePaths
                         });
-                        res.json(newLesson);
+                        return res.json(newLesson);
                     }
                 }
                 catch (enhancedError) {
@@ -978,35 +972,35 @@ function registerRoutes(app) {
                 spec: lessonSpec,
                 imagePaths
             });
-            res.json(newLesson);
+            return res.json(newLesson);
         }
         catch (error) {
             console.error('Error creating custom lesson:', error);
-            res.status(500).json({ error: "Failed to generate lesson content" });
+            return res.status(500).json({ error: "Failed to generate lesson content" });
         }
     }));
     // Get a specific lesson by ID
     app.get("/api/lessons/:lessonId", isAuthenticated, (0, auth_2.asyncHandler)(async (req, res) => {
         if (!req.user) {
-            res.status(401).json({ error: "Unauthorized" });
+            return res.status(401).json({ error: "Unauthorized" });
         }
         const lessonId = req.params.lessonId;
         const lesson = await storage_1.storage.getLessonById(lessonId);
         if (!lesson) {
-            res.status(404).json({ error: "Lesson not found" });
+            return res.status(404).json({ error: "Lesson not found" });
         }
         // Check user's permission to access this lesson
         if (req.user.role === "ADMIN" ||
             ensureString(req.user.id) === lesson.learnerId.toString() ||
             (req.user.role === "PARENT" && (await storage_1.storage.getUsersByParentId(req.user.id)).some(u => u.id === lesson.learnerId))) {
-            res.json(lesson);
+            return res.json(lesson);
         }
-        res.status(403).json({ error: "Forbidden" });
+        return res.status(403).json({ error: "Forbidden" });
     }));
     // Get lesson history
     app.get("/api/lessons", isAuthenticated, (0, auth_2.asyncHandler)(async (req, res) => {
         if (!req.user) {
-            res.status(401).json({ error: "Unauthorized" });
+            return res.status(401).json({ error: "Unauthorized" });
         }
         let learnerId;
         if (req.user.role === "LEARNER") {
@@ -1018,12 +1012,12 @@ function registerRoutes(app) {
             if (req.user.role === "PARENT") {
                 const children = await storage_1.storage.getUsersByParentId(req.user.id);
                 if (!children.some(child => child.id.toString() === learnerId.toString())) {
-                    res.status(403).json({ error: "Forbidden" });
+                    return res.status(403).json({ error: "Forbidden" });
                 }
             }
         }
         else {
-            res.status(400).json({ error: "learnerId is required" });
+            return res.status(400).json({ error: "learnerId is required" });
         }
         const limit = req.query.limit ? parseInt(req.query.limit) : 10;
         const lessons = await storage_1.storage.getLessonHistory(learnerId, limit);
@@ -1032,26 +1026,26 @@ function registerRoutes(app) {
     // Submit answer to a quiz question
     app.post("/api/lessons/:lessonId/answer", isAuthenticated, (0, auth_2.asyncHandler)(async (req, res) => {
         if (!req.user) {
-            res.status(401).json({ error: "Unauthorized" });
+            return res.status(401).json({ error: "Unauthorized" });
         }
         const lessonId = req.params.lessonId;
         const { answers } = req.body;
         if (!Array.isArray(answers)) {
-            res.status(400).json({ error: "Answers must be an array" });
+            return res.status(400).json({ error: "Answers must be an array" });
         }
         const lesson = await storage_1.storage.getLessonById(lessonId);
         if (!lesson) {
-            res.status(404).json({ error: "Lesson not found" });
+            return res.status(404).json({ error: "Lesson not found" });
         }
         if (lesson.learnerId.toString() !== ensureString(req.user.id)) {
-            res.status(403).json({ error: "Forbidden" });
+            return res.status(403).json({ error: "Forbidden" });
         }
         if (lesson.status !== "ACTIVE") {
-            res.status(400).json({ error: "Lesson is not active" });
+            return res.status(400).json({ error: "Lesson is not active" });
         }
         // Calculate score
         if (!lesson.spec) {
-            res.status(400).json({ error: "Invalid lesson specification" });
+            return res.status(400).json({ error: "Invalid lesson specification" });
         }
         const questions = lesson.spec.questions;
         let correctCount = 0;
@@ -1172,7 +1166,7 @@ function registerRoutes(app) {
     // Get achievements for a learner
     app.get("/api/achievements", isAuthenticated, (0, auth_2.asyncHandler)(async (req, res) => {
         if (!req.user) {
-            res.status(401).json({ error: "Unauthorized" });
+            return res.status(401).json({ error: "Unauthorized" });
         }
         let learnerId;
         if (req.user.role === "LEARNER") {
@@ -1184,12 +1178,12 @@ function registerRoutes(app) {
             if (req.user.role === "PARENT") {
                 const children = await storage_1.storage.getUsersByParentId(req.user.id);
                 if (!children.some(child => child.id.toString() === learnerId.toString())) {
-                    res.status(403).json({ error: "Forbidden" });
+                    return res.status(403).json({ error: "Forbidden" });
                 }
             }
         }
         else {
-            res.status(400).json({ error: "learnerId is required" });
+            return res.status(400).json({ error: "learnerId is required" });
         }
         const achievements = await storage_1.storage.getAchievements(learnerId);
         res.json(achievements);
@@ -1197,10 +1191,10 @@ function registerRoutes(app) {
     // Get reports data
     app.get("/api/reports", isAuthenticated, (0, auth_2.asyncHandler)(async (req, res) => {
         if (!req.user) {
-            res.status(401).json({ error: "Unauthorized" });
+            return res.status(401).json({ error: "Unauthorized" });
         }
         if (!req.query.learnerId) {
-            res.status(400).json({ error: "learnerId is required" });
+            return res.status(400).json({ error: "learnerId is required" });
         }
         const learnerId = req.query.learnerId;
         const reportType = req.query.type || 'all';
@@ -1209,11 +1203,11 @@ function registerRoutes(app) {
             if (req.user.role === "PARENT") {
                 const children = await storage_1.storage.getUsersByParentId(req.user.id);
                 if (!children.some(child => child.id.toString() === learnerId.toString())) {
-                    res.status(403).json({ error: "Forbidden" });
+                    return res.status(403).json({ error: "Forbidden" });
                 }
             }
             else {
-                res.status(403).json({ error: "Forbidden" });
+                return res.status(403).json({ error: "Forbidden" });
             }
         }
         // Get the learner data based on report type
@@ -1226,7 +1220,7 @@ function registerRoutes(app) {
                     storage_1.storage.getAchievements(learnerId)
                 ]);
                 if (!learner) {
-                    res.status(404).json({ error: "Learner not found" });
+                    return res.status(404).json({ error: "Learner not found" });
                 }
                 // Remove sensitive information
                 const { password: _, ...learnerData } = learner;
@@ -1277,7 +1271,7 @@ function registerRoutes(app) {
                 });
             }
             else {
-                res.status(400).json({ error: "Invalid report type" });
+                return res.status(400).json({ error: "Invalid report type" });
             }
         }
         catch (error) {
@@ -1288,17 +1282,17 @@ function registerRoutes(app) {
     // Export learner data (for data portability)
     app.get("/api/export", hasRole(["PARENT", "ADMIN"]), (0, auth_2.asyncHandler)(async (req, res) => {
         if (!req.user) {
-            res.status(401).json({ error: "Unauthorized" });
+            return res.status(401).json({ error: "Unauthorized" });
         }
         if (!req.query.learnerId) {
-            res.status(400).json({ error: "learnerId is required" });
+            return res.status(400).json({ error: "learnerId is required" });
         }
         const learnerId = req.query.learnerId;
         // Verify parent has access to this learner
         if (req.user.role === "PARENT") {
             const children = await storage_1.storage.getUsersByParentId(req.user.id);
             if (!children.some(child => child.id.toString() === learnerId.toString())) {
-                res.status(403).json({ error: "Forbidden" });
+                return res.status(403).json({ error: "Forbidden" });
             }
         }
         // Get all the learner data
@@ -1331,7 +1325,7 @@ function registerRoutes(app) {
     // Get all sync configurations for a parent
     app.get("/api/sync-configs", hasRole(["PARENT"]), (0, auth_2.asyncHandler)(async (req, res) => {
         if (!req.user) {
-            res.status(401).json({ error: "Unauthorized" });
+            return res.status(401).json({ error: "Unauthorized" });
         }
         try {
             const syncConfigs = await storage_1.storage.getSyncConfigsByParentId(ensureString(req.user.id));
@@ -1345,16 +1339,16 @@ function registerRoutes(app) {
     // Get a specific sync configuration
     app.get("/api/sync-configs/:id", hasRole(["PARENT"]), (0, auth_2.asyncHandler)(async (req, res) => {
         if (!req.user) {
-            res.status(401).json({ error: "Unauthorized" });
+            return res.status(401).json({ error: "Unauthorized" });
         }
         try {
             const syncConfig = await storage_1.storage.getSyncConfigById(req.params.id);
             if (!syncConfig) {
-                res.status(404).json({ error: "Sync configuration not found" });
+                return res.status(404).json({ error: "Sync configuration not found" });
             }
             // Check if the sync config belongs to the requesting parent
-            if (syncConfig.parentId !== req.user.id) {
-                res.status(403).json({ error: "Forbidden" });
+            if (syncConfig.parentId !== ensureString(req.user.id)) {
+                return res.status(403).json({ error: "Forbidden" });
             }
             res.json(syncConfig);
         }
@@ -1366,23 +1360,23 @@ function registerRoutes(app) {
     // Create a new sync configuration
     app.post("/api/sync-configs", hasRole(["PARENT"]), (0, auth_2.asyncHandler)(async (req, res) => {
         if (!req.user) {
-            res.status(401).json({ error: "Unauthorized" });
+            return res.status(401).json({ error: "Unauthorized" });
         }
         const { targetDbUrl, continuousSync = false } = req.body;
         if (!targetDbUrl) {
-            res.status(400).json({ error: "Missing required field: targetDbUrl" });
+            return res.status(400).json({ error: "Missing required field: targetDbUrl" });
         }
         // Validate PostgreSQL connection string format
         const postgresRegex = /^postgresql:\/\/\w+:.*@[\w.-]+:\d+\/\w+(\?.*)?$/;
         if (!postgresRegex.test(targetDbUrl)) {
-            res.status(400).json({
+            return res.status(400).json({
                 error: "Invalid PostgreSQL connection string format",
                 message: "Connection string should be in format: postgresql://username:password@hostname:port/database"
             });
         }
         try {
             const syncConfig = await storage_1.storage.createSyncConfig({
-                parentId: req.user.id,
+                parentId: ensureString(req.user.id),
                 targetDbUrl,
                 continuousSync,
                 syncStatus: "IDLE"
@@ -1397,7 +1391,7 @@ function registerRoutes(app) {
     // Update a sync configuration
     app.put("/api/sync-configs/:id", hasRole(["PARENT"]), (0, auth_2.asyncHandler)(async (req, res) => {
         if (!req.user) {
-            res.status(401).json({ error: "Unauthorized" });
+            return res.status(401).json({ error: "Unauthorized" });
         }
         const { targetDbUrl, continuousSync } = req.body;
         const updateData = {};
@@ -1419,10 +1413,10 @@ function registerRoutes(app) {
             // Check if the sync config exists and belongs to the requesting parent
             const syncConfig = await storage_1.storage.getSyncConfigById(req.params.id);
             if (!syncConfig) {
-                res.status(404).json({ error: "Sync configuration not found" });
+                return res.status(404).json({ error: "Sync configuration not found" });
             }
-            if (syncConfig.parentId !== req.user.id) {
-                res.status(403).json({ error: "Forbidden" });
+            if (syncConfig.parentId !== ensureString(req.user.id)) {
+                return res.status(403).json({ error: "Forbidden" });
             }
             // Update the sync config
             const updatedConfig = await storage_1.storage.updateSyncConfig(req.params.id, updateData);
@@ -1436,16 +1430,16 @@ function registerRoutes(app) {
     // Delete a sync configuration
     app.delete("/api/sync-configs/:id", hasRole(["PARENT"]), (0, auth_2.asyncHandler)(async (req, res) => {
         if (!req.user) {
-            res.status(401).json({ error: "Unauthorized" });
+            return res.status(401).json({ error: "Unauthorized" });
         }
         try {
             // Check if the sync config exists and belongs to the requesting parent
             const syncConfig = await storage_1.storage.getSyncConfigById(req.params.id);
             if (!syncConfig) {
-                res.status(404).json({ error: "Sync configuration not found" });
+                return res.status(404).json({ error: "Sync configuration not found" });
             }
-            if (syncConfig.parentId !== req.user.id) {
-                res.status(403).json({ error: "Forbidden" });
+            if (syncConfig.parentId !== ensureString(req.user.id)) {
+                return res.status(403).json({ error: "Forbidden" });
             }
             // Delete the sync config
             const deleted = await storage_1.storage.deleteSyncConfig(req.params.id);
@@ -1464,22 +1458,22 @@ function registerRoutes(app) {
     // Initiate a one-time sync (push)
     app.post("/api/sync-configs/:id/push", hasRole(["PARENT"]), (0, auth_2.asyncHandler)(async (req, res) => {
         if (!req.user) {
-            res.status(401).json({ error: "Unauthorized" });
+            return res.status(401).json({ error: "Unauthorized" });
         }
         try {
             // Check if the sync config exists and belongs to the requesting parent
             const syncConfig = await storage_1.storage.getSyncConfigById(req.params.id);
             if (!syncConfig) {
-                res.status(404).json({ error: "Sync configuration not found" });
+                return res.status(404).json({ error: "Sync configuration not found" });
             }
-            if (syncConfig.parentId !== req.user.id) {
-                res.status(403).json({ error: "Forbidden" });
+            if (syncConfig.parentId !== ensureString(req.user.id)) {
+                return res.status(403).json({ error: "Forbidden" });
             }
             // Update status to IN_PROGRESS
             await storage_1.storage.updateSyncStatus(req.params.id, "IN_PROGRESS");
             // Start the synchronization process (handled by a separate function)
             // Note: synchronizeToExternalDatabase now handles its own status updates
-            (0, sync_utils_1.synchronizeToExternalDatabase)(req.user.id, syncConfig)
+            (0, sync_utils_1.synchronizeToExternalDatabase)(ensureString(req.user.id), syncConfig)
                 .then(() => {
                 console.log(`Synchronization process completed for config ID: ${req.params.id}`);
                 // The synchronizeToExternalDatabase function now updates the status internally
