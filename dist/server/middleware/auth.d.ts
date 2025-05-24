@@ -6,13 +6,13 @@ export interface JwtPayload {
 }
 export interface AuthRequest extends Request {
     user?: {
-        id: string;
+        id: string | number;
         email: string;
         username: string;
         name: string;
         role: string;
         password: string;
-        parentId: string | null;
+        parentId: string | number | null;
         firstName?: string;
         lastName?: string;
         profileImageUrl?: string;
@@ -27,5 +27,5 @@ export declare function generateToken(user: {
     role: string;
 }): string;
 export declare function verifyToken(token: string): JwtPayload;
-export declare function authenticateJwt(req: AuthRequest, res: Response, next: NextFunction): void;
+export declare function authenticateJwt(req: AuthRequest, res: Response, next: NextFunction): Response<any, Record<string, any>>;
 export declare function hasRoleMiddleware(roles: string[]): (req: AuthRequest, res: Response, next: NextFunction) => void;
