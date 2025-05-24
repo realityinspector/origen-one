@@ -85,7 +85,7 @@ function verifyToken(token) {
     return jsonwebtoken_1.default.verify(token, JWT_SECRET);
 }
 // Middleware
-function authenticateJwt(req, res, next) {
+async function authenticateJwt(req, res, next) {
     // Enhanced token extraction with logging for debugging
     // We'll check all possible locations where a token might be present
     let token;
@@ -127,7 +127,8 @@ function authenticateJwt(req, res, next) {
         console.log(`No auth token found in request to: ${req.method} ${req.path}`);
         console.log('Headers:', JSON.stringify(req.headers));
         console.log('Request origin:', origin, isSunschool ? '(sunschool domain)' : '');
-        return res.status(401).json({ error: 'No authorization token provided' });
+        res.status(401).json({ error: 'No authorization token provided' });
+        return;
     }
     // Log token information for debugging (without exposing the token)
     console.log(`Auth token found in ${tokenSource} for request to: ${req.method} ${req.path}`);
@@ -162,7 +163,8 @@ function authenticateJwt(req, res, next) {
             error instanceof jsonwebtoken_1.default.TokenExpiredError ||
             error instanceof jsonwebtoken_1.default.NotBeforeError) {
             console.log(`Invalid token: ${error.message}`);
-            return res.status(401).json({ error: 'Invalid or expired token' });
+            res.status(401).json({ error: 'Invalid or expired token' });
+            return;
         }
         // For other errors
         console.error('Unexpected error during token verification:', error);
