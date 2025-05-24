@@ -20,14 +20,14 @@ export async function setupAuth(app: Express) {
       const result = await db.select({ count: count() }).from(users);
       const userCount = result[0]?.count || 0;
       
-      res.json({ 
+      return res.json({ 
         status: "ok", 
         db: "connected",
         userCount 
       });
     } catch (error) {
       console.error("Health check error:", error);
-      res.status(500).json({ 
+      return res.status(500).json({ 
         status: "error",
         message: "Database connection failed",
         error: (error as Error).message 
@@ -56,7 +56,7 @@ export async function setupAuth(app: Express) {
       
       if (!username || !password) {
         console.log('Missing login credentials');
-        res.status(400).json({ error: "Username and password are required" });
+        return res.status(400).json({ error: "Username and password are required" });
       }
       
       // Find user by username
@@ -64,7 +64,7 @@ export async function setupAuth(app: Express) {
       
       if (!user) {
         console.log(`User not found: ${username}`);
-        res.status(401).json({ error: "Invalid credentials" });
+        return res.status(401).json({ error: "Invalid credentials" });
       }
       
       // Verify password
@@ -72,7 +72,7 @@ export async function setupAuth(app: Express) {
       
       if (!isPasswordValid) {
         console.log(`Password mismatch for user: ${username}`);
-        res.status(401).json({ error: "Invalid credentials" });
+        return res.status(401).json({ error: "Invalid credentials" });
       }
       
       // Generate JWT token
@@ -84,7 +84,7 @@ export async function setupAuth(app: Express) {
       
       // Include domain information in the response for client-side handling
       console.log(`Successful login for user: ${username} (${user.id})`);
-      res.json({
+      return res.json({
         token,
         user: userWithoutPassword,
         domain: isSunschool ? 'sunschool.xyz' : origin.split('://')[1]?.split(':')[0] || 'unknown'
@@ -94,7 +94,7 @@ export async function setupAuth(app: Express) {
       const errorMessage = (error instanceof Error) ? error.message : 'Unknown error';
       console.error(`Authentication endpoint error: ${errorMessage}`);
       
-      res.status(500).json({ 
+      return res.status(500).json({ 
         error: 'An error occurred during authentication. Please try again.',
         details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
       });
@@ -116,18 +116,17 @@ export async function setupAuth(app: Express) {
     }
     
     if (!req.user) {
-      res.status(401).json({ error: "Unauthorized" });
-      return;
+      return res.status(401).json({ error: "Unauthorized" });
     }
     
     try {
       // We're not retrieving the user from database here since it's already in req.user
       // But we're removing the password field for security
       const { password: _, ...userWithoutPassword } = req.user;
-      res.json(userWithoutPassword);
+      return res.json(userWithoutPassword);
     } catch (error) {
       console.error('Error retrieving user info:', error);
-      res.status(500).json({ error: 'Failed to retrieve user info' });
+      return res.status(500).json({ error: 'Failed to retrieve user info' });
     }
   }));
 }
