@@ -154,39 +154,70 @@ export function registerRoutes(app: Express): Server {
   app.post("/login", asyncHandler(async (req: Request, res: Response) => {
     console.log("Proxy: Forwarding login request to /api/login");
 
-    const { username, password } = req.body;
+    try {
+      const { username, password } = req.body;
+      
+      // Log detailed information about the login request for debugging
+      const origin = req.headers.origin || req.headers.referer || 'unknown';
+      const isSunschool = origin.includes('sunschool.xyz');
+      console.log(`Root login attempt for username: ${username} from origin: ${origin}`);
+      
+      // For sunschool.xyz domain, add special CORS headers for authentication
+      if (isSunschool) {
+        console.log('Adding special CORS headers for sunschool.xyz domain (root login)');
+        res.header('Access-Control-Allow-Origin', origin);
+        res.header('Access-Control-Allow-Credentials', 'true');
+        res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+        res.header('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Sunschool-Auth,X-Sunschool-Auth-Token');
+      }
 
-    if (!username || !password) {
-      return res.status(400).json({ error: "Username and password are required" });
+      if (!username || !password) {
+        console.log('Missing login credentials');
+        return res.status(400).json({ error: "Username and password are required" });
+      }
+
+      // Find user by username
+      const user = await storage.getUserByUsername(username);
+
+      if (!user) {
+        console.log(`User not found: ${username}`);
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      // Verify password
+      const isPasswordValid = user.password ? await comparePasswords(password, user.password) : false;
+
+      if (!isPasswordValid) {
+        console.log(`Password mismatch for user: ${username}`);
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      // Generate JWT token
+      console.log(`Generating token for user ID: ${user.id} with role: ${user.role}`);
+      const token = generateToken({ id: ensureString(user.id), role: user.role });
+      console.log(`Using JWT_SECRET: ${process.env.JWT_SECRET?.substring(0, 3)}...${process.env.JWT_SECRET?.substring(process.env.JWT_SECRET.length - 3)}`);
+      console.log(`Token generated successfully, length: ${token.length}`);
+
+      // Return user details and token
+      const { password: _, ...userWithoutPassword } = user;
+
+      // Include domain information in the response for client-side handling
+      console.log(`Successful login for user: ${username} (${user.id})`);
+      return res.json({
+        token,
+        user: userWithoutPassword,
+        domain: isSunschool ? 'sunschool.xyz' : origin.split('://')[1]?.split(':')[0] || 'unknown'
+      });
+    } catch (error) {
+      console.error('Authentication endpoint error:', error);
+      const errorMessage = (error instanceof Error) ? error.message : 'Unknown error';
+      console.error(`Authentication endpoint error: ${errorMessage}`);
+      
+      return res.status(500).json({ 
+        error: 'An error occurred during authentication. Please try again.',
+        details: process.env.NODE_ENV === 'development' ? errorMessage : undefined
+      });
     }
-
-    // Find user by username
-    const user = await storage.getUserByUsername(username);
-
-    if (!user) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-
-    // Verify password
-    const isPasswordValid = user.password ? await comparePasswords(password, user.password) : false;
-
-    if (!isPasswordValid) {
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-
-    // Generate JWT token
-    console.log(`Generating token for user ID: ${user.id} with role: ${user.role}`);
-    const token = generateToken({ id: ensureString(user.id), role: user.role });
-    console.log(`Using JWT_SECRET: ${process.env.JWT_SECRET?.substring(0, 3)}...${process.env.JWT_SECRET?.substring(process.env.JWT_SECRET.length - 3)}`);
-    console.log(`Token generated successfully, length: ${token.length}`);
-
-    // Return user details and token
-    const { password: _, ...userWithoutPassword } = user;
-
-    return res.json({
-      token,
-      user: userWithoutPassword
-    });
   }));
 
   app.post("/logout", (req: Request, res: Response) => {
