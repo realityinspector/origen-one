@@ -13,8 +13,12 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "NODE_ENV=development SESSION_SECRET=test-secret PORT=5000 HOST=0.0.0.0 TS_NODE_TRANSPILE_ONLY=true npx ts-node scripts/dev.ts"
+args = "npx kill-port 5000 || true"
 waitForPort = 5000
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "NODE_ENV=development SESSION_SECRET=test-secret PORT=5000 HOST=0.0.0.0 TS_NODE_TRANSPILE_ONLY=true npx ts-node scripts/dev.ts"
 
 [[workflows.workflow]]
 name = "Database Setup"
