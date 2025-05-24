@@ -83,9 +83,9 @@ export async function comparePasswords(supplied: string, stored: string): Promis
 }
 
 // JWT functions
-export function generateToken(user: { id: string, role: string }): string {
+export function generateToken(user: { id: string | number, role: string }): string {
   const payload: JwtPayload = {
-    userId: user.id,
+    userId: String(user.id),
     role: user.role
   };
   

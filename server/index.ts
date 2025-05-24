@@ -6,7 +6,7 @@ import { registerRoutes } from "./routes";
 import http from "http";
 
 const app = express();
-const PORT = Number(process.env.PORT || 8000);
+const PORT = Number(process.env.PORT || 5000);
 
 // Middleware
 // Enhanced CORS to specifically handle sunschool.xyz domain

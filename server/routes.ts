@@ -110,7 +110,7 @@ export function registerRoutes(app: Express): Server {
       });
 
       // Generate JWT token
-      const token = generateToken({ id: user.id, role: user.role });
+      const token = generateToken({ id: ensureString(user.id), role: user.role });
 
       // Remove password from response
       const { password: _, ...userWithoutPassword } = user;
@@ -157,33 +157,33 @@ export function registerRoutes(app: Express): Server {
     const { username, password } = req.body;
 
     if (!username || !password) {
-      res.status(400).json({ error: "Username and password are required" });
+      return res.status(400).json({ error: "Username and password are required" });
     }
 
     // Find user by username
     const user = await storage.getUserByUsername(username);
 
     if (!user) {
-      res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
     // Verify password
     const isPasswordValid = user.password ? await comparePasswords(password, user.password) : false;
 
     if (!isPasswordValid) {
-      res.status(401).json({ error: "Invalid credentials" });
+      return res.status(401).json({ error: "Invalid credentials" });
     }
 
     // Generate JWT token
     console.log(`Generating token for user ID: ${user.id} with role: ${user.role}`);
-    const token = generateToken({ id: user.id, role: user.role });
+    const token = generateToken({ id: ensureString(user.id), role: user.role });
     console.log(`Using JWT_SECRET: ${process.env.JWT_SECRET?.substring(0, 3)}...${process.env.JWT_SECRET?.substring(process.env.JWT_SECRET.length - 3)}`);
     console.log(`Token generated successfully, length: ${token.length}`);
 
     // Return user details and token
     const { password: _, ...userWithoutPassword } = user;
 
-    res.json({
+    return res.json({
       token,
       user: userWithoutPassword
     });

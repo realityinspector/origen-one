@@ -168,17 +168,17 @@ function registerRoutes(app) {
         console.log("Proxy: Forwarding login request to /api/login");
         const { username, password } = req.body;
         if (!username || !password) {
-            res.status(400).json({ error: "Username and password are required" });
+            return res.status(400).json({ error: "Username and password are required" });
         }
         // Find user by username
         const user = await storage_1.storage.getUserByUsername(username);
         if (!user) {
-            res.status(401).json({ error: "Invalid credentials" });
+            return res.status(401).json({ error: "Invalid credentials" });
         }
         // Verify password
         const isPasswordValid = user.password ? await (0, auth_2.comparePasswords)(password, user.password) : false;
         if (!isPasswordValid) {
-            res.status(401).json({ error: "Invalid credentials" });
+            return res.status(401).json({ error: "Invalid credentials" });
         }
         // Generate JWT token
         console.log(`Generating token for user ID: ${user.id} with role: ${user.role}`);
@@ -187,7 +187,7 @@ function registerRoutes(app) {
         console.log(`Token generated successfully, length: ${token.length}`);
         // Return user details and token
         const { password: _, ...userWithoutPassword } = user;
-        res.json({
+        return res.json({
             token,
             user: userWithoutPassword
         });
