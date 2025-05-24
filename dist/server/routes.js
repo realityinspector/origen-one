@@ -130,7 +130,7 @@ function registerRoutes(app) {
                 parentId: parentId || null
             });
             // Generate JWT token
-            const token = (0, auth_2.generateToken)({ id: user.id, role: user.role });
+            const token = (0, auth_2.generateToken)({ id: ensureString(user.id), role: user.role });
             // Remove password from response
             const { password: _, ...userWithoutPassword } = user;
             // Ensure proper JSON response
@@ -182,7 +182,7 @@ function registerRoutes(app) {
         }
         // Generate JWT token
         console.log(`Generating token for user ID: ${user.id} with role: ${user.role}`);
-        const token = (0, auth_2.generateToken)({ id: user.id, role: user.role });
+        const token = (0, auth_2.generateToken)({ id: ensureString(user.id), role: user.role });
         console.log(`Using JWT_SECRET: ${process.env.JWT_SECRET?.substring(0, 3)}...${process.env.JWT_SECRET?.substring(process.env.JWT_SECRET.length - 3)}`);
         console.log(`Token generated successfully, length: ${token.length}`);
         // Return user details and token

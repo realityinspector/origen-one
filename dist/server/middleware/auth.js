@@ -65,7 +65,7 @@ async function comparePasswords(supplied, stored) {
 // JWT functions
 function generateToken(user) {
     const payload = {
-        userId: user.id,
+        userId: String(user.id),
         role: user.role
     };
     // Log for debugging token generation
