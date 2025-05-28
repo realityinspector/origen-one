@@ -1,12 +1,12 @@
-# Welcome to Origen: Your Child's AI Learning Partner
+# Welcome to SUNSCHOOL AI TUTOR: Your Child's AI Learning Partner
 
-![Origen AI Tutor](generated-icon.png)
+![SUNSCHOOL AI TUTOR](generated-icon.png)
 
 ## Designed for Busy Parents and Curious Kids
 
-Hi there! We're excited to have you join the Origen family. This guide will show you how our AI-powered learning platform makes education fun, personalized, and effective for your children.
+Hi there! We're excited to have you join the SUNSCHOOL AI TUTOR family. This guide will show you how our AI-powered learning platform makes education fun, personalized, and effective for your children.
 
-## What Origen Does for You and Your Family
+## What SUNSCHOOL AI TUTOR Does for You and Your Family
 
 ### For Parents
 
@@ -26,7 +26,7 @@ Hi there! We're excited to have you join the Origen family. This guide will show
 - Identify areas where your child might need extra support
 
 🔄 **Access Anywhere**
-- Use Origen on any device - computer, tablet, or phone
+- Use SUNSCHOOL AI TUTOR on any device - computer, tablet, or phone
 - Data syncs automatically so you never lose progress
 - Optional backup to your own database for complete peace of mind
 
@@ -95,7 +95,7 @@ Hi there! We're excited to have you join the Origen family. This guide will show
 
 ### For the Busy Parent
 "I don't have time to research educational content for three different grade levels."
-→ Origen automatically generates grade-appropriate content for each child, saving you hours of research and planning.
+→ SUNSCHOOL AI TUTOR automatically generates grade-appropriate content for each child, saving you hours of research and planning.
 
 ### For the Child Who Gets Bored Easily
 "My child loses interest in traditional learning apps after a few days."
@@ -103,7 +103,7 @@ Hi there! We're excited to have you join the Origen family. This guide will show
 
 ### For the Child Who Needs Extra Help
 "My child is struggling with certain concepts and needs more support."
-→ Origen identifies areas where your child needs help and provides additional practice and explanations tailored to their learning style.
+→ SUNSCHOOL AI TUTOR identifies areas where your child needs help and provides additional practice and explanations tailored to their learning style.
 
 ### For the Advanced Learner
 "The standard curriculum isn't challenging enough for my child."
@@ -111,13 +111,13 @@ Hi there! We're excited to have you join the Origen family. This guide will show
 
 ### For Families On the Go
 "We're always on the move and need learning that works anywhere."
-→ Access Origen on any device, anytime, with progress synced automatically across all platforms.
+→ Access SUNSCHOOL AI TUTOR on any device, anytime, with progress synced automatically across all platforms.
 
 ## Join Thousands of Families Learning Together
 
-Origen isn't just another learning app—it's a complete educational partner that grows with your family. Our AI technology creates a truly personalized experience that makes learning a joy rather than a chore.
+SUNSCHOOL AI TUTOR isn't just another learning app—it's a complete educational partner that grows with your family. Our AI technology creates a truly personalized experience that makes learning a joy rather than a chore.
 
-Start your journey with Origen today and watch your child's love of learning flourish!
+Start your journey with SUNSCHOOL AI TUTOR today and watch your child's love of learning flourish!
 
 ---
 
