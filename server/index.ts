@@ -46,7 +46,8 @@ let clientDistPath;
 if (process.env.NODE_ENV === 'production') {
   clientDistPath = path.join(process.cwd(), "client/dist");
 } else {
-  clientDistPath = path.join(__dirname, "../client/dist");
+  // For development, use the path relative to the project root
+  clientDistPath = path.join(process.cwd(), "client/dist");
 }
 
 console.log(`Client dist path: ${clientDistPath}`);
