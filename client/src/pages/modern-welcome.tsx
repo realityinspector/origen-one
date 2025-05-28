@@ -146,12 +146,12 @@ const WelcomePage: React.FC = () => {
         <View style={[styles.section, styles.featuresSection]}>
           <View style={styles.sectionInner}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>What's Origen™?</Text>
+              <Text style={styles.sectionTitle}>What's SUNSCHOOL AI TUTOR?</Text>
               <View style={styles.titleUnderline} />
             </View>
             
             <Text style={{...typography.body1, fontSize: 18, textAlign: 'center', maxWidth: 900, marginLeft: 'auto', marginRight: 'auto', marginBottom: 40}}>
-              Origen™ is the open-source AI tutor at the heart of SUNSCHOOL. It's not just edtech—it's the learning layer inside AOT, syncing seamlessly between learning goals and lived experience.
+              SUNSCHOOL AI TUTOR is the open-source AI tutor at the heart of SUNSCHOOL. It's not just edtech—it's the learning layer inside AOT, syncing seamlessly between learning goals and lived experience.
             </Text>
             
             <View style={[styles.row, styles.spaceBetween]}>
@@ -254,7 +254,7 @@ const WelcomePage: React.FC = () => {
                   <Award size={18} color={colors.onPrimary} />
                 </View>
                 <View style={styles.timelineContent}>
-                  <Text style={styles.timelineTitle}>Origen™ AI Learning Engine</Text>
+                  <Text style={styles.timelineTitle}>SUNSCHOOL AI TUTOR Learning Engine</Text>
                   <Text style={styles.timelineText}>
                     Personalized, intuitive, and community-compatible - the perfect companion for learning anywhere.
                   </Text>
@@ -315,7 +315,7 @@ const WelcomePage: React.FC = () => {
             <View style={styles.solutionsSummary}>
               <Text style={styles.summaryText}>
                 This is infrastructure for the new town square. Cowork. Colearn. Coexist.
-                With SUNSCHOOL + Origen™, every AOT location becomes a micro-campus.
+                With SUNSCHOOL + SUNSCHOOL AI TUTOR, every AOT location becomes a micro-campus.
                 Every retreat becomes a learning expedition. Every event, a chance to grow.
               </Text>
             </View>
@@ -339,7 +339,7 @@ const WelcomePage: React.FC = () => {
                 <View style={styles.ctaStepCircle}>
                   <Star size={20} color={colors.onPrimary} />
                 </View>
-                <Text style={styles.ctaStepText}>Assembling a prototype kit (Origen + Chromebook + solar panel + Starlink Mini)</Text>
+                <Text style={styles.ctaStepText}>Assembling a prototype kit (SUNSCHOOL AI TUTOR + Chromebook + solar panel + Starlink Mini)</Text>
               </View>
               
               <View style={styles.ctaStep}>
@@ -403,7 +403,7 @@ const WelcomePage: React.FC = () => {
                   style={{width: 100, height: 'auto', marginBottom: 10}}
                   alt="SUNSCHOOL Logo"
                 />
-                <Text style={styles.footerCopyright}>© 2025 SUNSCHOOL by AOT LABS, powered by Origen™ technology</Text>
+                <Text style={styles.footerCopyright}>© 2025 SUNSCHOOL by AOT LABS, powered by SUNSCHOOL AI TUTOR technology</Text>
               </View>
             </View>
           </View>

@@ -69,7 +69,7 @@ const OrigenHeader: React.FC<OrigenHeaderProps> = ({ subtitle }) => {
         }}
       >
         <Text style={styles.headerTitle}>SUNSCHOOL™</Text>
-        <Text style={styles.headerSubtitle}>{subtitle || "powered by Origen™"}</Text>
+        <Text style={styles.headerSubtitle}>{subtitle || "powered by SUNSCHOOL AI TUTOR"}</Text>
       </TouchableOpacity>
         
         {user && (
