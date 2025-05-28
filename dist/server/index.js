@@ -47,7 +47,8 @@ if (process.env.NODE_ENV === 'production') {
     clientDistPath = path_1.default.join(process.cwd(), "client/dist");
 }
 else {
-    clientDistPath = path_1.default.join(__dirname, "../client/dist");
+    // For development, use the path relative to the project root
+    clientDistPath = path_1.default.join(process.cwd(), "client/dist");
 }
 console.log(`Client dist path: ${clientDistPath}`);
 // Serve static files from the client dist folder
