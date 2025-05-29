@@ -332,7 +332,7 @@ const WelcomePage: React.FC = () => {
                 <View style={styles.ctaStepCircle}>
                   <BookOpen size={20} color={colors.onPrimary} />
                 </View>
-                <Text style={styles.ctaStepText}>Producing a short video: "Anywhere the Sun Touches, A Child Can Learn."</Text>
+                <Text style={styles.ctaStepText}>Producing a short video: "Anywhere there's Sunshine, A Child Can Learn."</Text>
               </View>
               
               <View style={styles.ctaStep}>
