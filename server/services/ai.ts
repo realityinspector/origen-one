@@ -59,7 +59,7 @@ const HEADERS = (key: string) => ({
   "Content-Type": "application/json",
   Authorization: `Bearer ${key}`,
   "HTTP-Referer": "https://origen-ai-tutor.replit.app", // required by OpenRouter
-  "X-Title": "ORIGEN - The Open Source AI Tutor"
+  "X-Title": "SUNSCHOOL - The Open Source AI Tutor"
 });
 
 /**
