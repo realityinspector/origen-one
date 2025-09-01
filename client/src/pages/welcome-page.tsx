@@ -360,6 +360,55 @@ const WelcomePage: React.FC = () => {
             </View>
           </View>
         </View>
+
+        {/* Footer Section */}
+        <View style={styles.footerSection}>
+          <View style={styles.sectionContainer}>
+            <View style={styles.footerContent}>
+              <Text style={styles.footerTitle}>SUNSCHOOL</Text>
+              <Text style={styles.footerSubtitle}>AI-powered learning where parents own the prompt</Text>
+              
+              <View style={styles.footerLinks}>
+                <TouchableOpacity 
+                  onPress={() => {
+                    if (typeof window !== 'undefined') {
+                      window.location.href = '/privacy';
+                    }
+                  }}
+                  style={styles.footerLink}
+                >
+                  <Text style={styles.footerLinkText}>Privacy Policy</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  onPress={() => {
+                    if (typeof window !== 'undefined') {
+                      window.location.href = '/terms';
+                    }
+                  }}
+                  style={styles.footerLink}
+                >
+                  <Text style={styles.footerLinkText}>Terms of Service</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  onPress={() => {
+                    if (typeof window !== 'undefined') {
+                      window.open('mailto:info@sunschool.xyz');
+                    }
+                  }}
+                  style={styles.footerLink}
+                >
+                  <Text style={styles.footerLinkText}>Contact</Text>
+                </TouchableOpacity>
+              </View>
+              
+              <Text style={styles.footerCopyright}>
+                © 2025 SUNSCHOOL. Open source education for all.
+              </Text>
+            </View>
+          </View>
+        </View>
       </View>
     </ScrollView>
   );

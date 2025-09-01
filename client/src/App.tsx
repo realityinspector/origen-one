@@ -12,6 +12,8 @@ import AdminUsersPage from './pages/admin-users-page';
 import AdminLessonsPage from './pages/admin-lessons-page';
 import AdminSettingsPage from './pages/admin-settings-page';
 import WelcomePage from './pages/welcome-page';
+import PrivacyPage from './pages/privacy-page';
+import TermsPage from './pages/terms-page';
 import LearnerHome from './pages/learner-home';
 import ActiveLessonPage from './pages/active-lesson-page';
 import QuizPage from './pages/quiz-page';
@@ -93,6 +95,8 @@ export default function App() {
           <Switch>
             {/* Public routes (no auth required) */}
             <Route path="/welcome" component={WelcomePage} />
+            <Route path="/privacy" component={PrivacyPage} />
+            <Route path="/terms" component={TermsPage} />
             <Route path="/auth" component={AuthPage} />
             
             {/* Protected admin routes */}
