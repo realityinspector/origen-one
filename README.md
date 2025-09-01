@@ -1,4 +1,4 @@
-# SUNSCHOOL: Powered by Origen™ AI Tutor
+# SUNSCHOOL: Powered bySunschool AI Tutor
 
 <p align="center">
   <img src="generated-icon.png" alt="Origen AI Tutor Logo" width="120" height="120">
