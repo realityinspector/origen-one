@@ -11,7 +11,7 @@ import AdminPage from './pages/admin-page';
 import AdminUsersPage from './pages/admin-users-page';
 import AdminLessonsPage from './pages/admin-lessons-page';
 import AdminSettingsPage from './pages/admin-settings-page';
-import WelcomePage from './pages/modern-welcome';
+import WelcomePage from './pages/welcome-page';
 import LearnerHome from './pages/learner-home';
 import ActiveLessonPage from './pages/active-lesson-page';
 import QuizPage from './pages/quiz-page';

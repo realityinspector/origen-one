@@ -92,11 +92,11 @@ const WelcomePage: React.FC = () => {
                 </Text>
                 
                 <Text style={styles.heroSubtitle}>
-                  AI-powered learning. Built into every AOT space.
+                  AI-powered learning where parents own the prompt. Built into every AOT space.
                 </Text>
                 
                 <Text style={styles.heroSubtitle}>
-                  School...anywhere under the sun.
+                  School...anywhere under the sun. Open source, transparent, community-driven.
                 </Text>
                 
                 {/* Hero Benefits with Iconography */}
@@ -119,7 +119,7 @@ const WelcomePage: React.FC = () => {
                     <View style={styles.benefitIcon}>
                       <CheckCircle size={16} color="#FFFFFF" />
                     </View>
-                    <Text style={styles.benefitText}>Open-Source, Device-Friendly - Works on any device</Text>
+                    <Text style={styles.benefitText}>Open-Source & Parent-Controlled - You own your data and prompts</Text>
                   </View>
                 </View>
                 
@@ -193,9 +193,9 @@ const WelcomePage: React.FC = () => {
                   <View style={styles.featureIconContainer}>
                     <Users size={24} color="#000000" />
                   </View>
-                  <Text style={styles.featureTitle}>Effortless Account Management</Text>
+                  <Text style={styles.featureTitle}>Parent-Owned Learning Control</Text>
                   <Text style={styles.featureDescription}>
-                    Create separate profiles for each child without multiple passwords. Children's accounts link directly to yours.
+                    Create separate profiles for each child where YOU control prompts, learning paths, and data. Children's accounts link directly to yours.
                   </Text>
                 </View>
 
@@ -269,6 +269,48 @@ const WelcomePage: React.FC = () => {
                 </View>
               </View>
             </View>
+          </View>
+        </View>
+
+        {/* Open vs Closed Section */}
+        <View style={styles.openVsClosedSection}>
+          <View style={styles.sectionContainer}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Open Source vs. Closed Systems</Text>
+              <View style={styles.sectionTitleUnderline} />
+            </View>
+            
+            <Text style={[styles.sectionSubtitle, {textAlign: 'center', marginBottom: 40}]}>
+              Why transparency matters when it comes to your child's education
+            </Text>
+            
+            <View style={styles.comparisonContainer}>
+              <View style={styles.closedSystemCard}>
+                <Text style={styles.comparisonTitle}>❌ Closed AI Systems</Text>
+                <View style={styles.comparisonList}>
+                  <Text style={styles.comparisonItem}>• Platform controls all prompts and content</Text>
+                  <Text style={styles.comparisonItem}>• Your data locked in their system</Text>
+                  <Text style={styles.comparisonItem}>• No visibility into AI decision-making</Text>
+                  <Text style={styles.comparisonItem}>• Expensive recurring subscriptions</Text>
+                  <Text style={styles.comparisonItem}>• Limited customization options</Text>
+                </View>
+              </View>
+              
+              <View style={styles.openSystemCard}>
+                <Text style={styles.comparisonTitle}>✅ SUNSCHOOL Open Source</Text>
+                <View style={styles.comparisonList}>
+                  <Text style={styles.comparisonItem}>• Parents own and customize every prompt</Text>
+                  <Text style={styles.comparisonItem}>• Your data syncs to your own database</Text>
+                  <Text style={styles.comparisonItem}>• Full transparency in AI interactions</Text>
+                  <Text style={styles.comparisonItem}>• Free access to core functionality</Text>
+                  <Text style={styles.comparisonItem}>• Community-driven improvements</Text>
+                </View>
+              </View>
+            </View>
+            
+            <Text style={[styles.sectionSubtitle, {textAlign: 'center', marginTop: 32, fontWeight: '600'}]}>
+              Your family's learning journey shouldn't be locked away in someone else's black box.
+            </Text>
           </View>
         </View>
 
@@ -722,6 +764,59 @@ const styles = StyleSheet.create({
   },
   gap40: {
     gap: 40,
+  },
+  
+  // Open vs Closed section styles
+  openVsClosedSection: {
+    backgroundColor: '#f8f9fa',
+    paddingVertical: 80,
+    paddingHorizontal: 20,
+  },
+  sectionSubtitle: {
+    fontSize: 18,
+    lineHeight: 26,
+    color: '#666666',
+    textAlign: 'center',
+  },
+  comparisonContainer: {
+    flexDirection: windowWidth < 768 ? 'column' : 'row',
+    justifyContent: 'space-between',
+    gap: 32,
+    maxWidth: 1000,
+    marginHorizontal: 'auto',
+  },
+  closedSystemCard: {
+    flex: 1,
+    minWidth: windowWidth < 768 ? '100%' : 300,
+    backgroundColor: '#fff5f5',
+    padding: 24,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#ef4444',
+  },
+  openSystemCard: {
+    flex: 1,
+    minWidth: windowWidth < 768 ? '100%' : 300,
+    backgroundColor: '#f0fdf4',
+    padding: 24,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#22c55e',
+  },
+  comparisonTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 16,
+    color: '#000000',
+  },
+  comparisonList: {
+    gap: 8,
+  },
+  comparisonItem: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: '#000000',
+    marginBottom: 4,
   },
 });
 
