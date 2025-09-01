@@ -199,7 +199,7 @@ const DashboardPage: React.FC = () => {
                 {/* Onboarding Guide Section */}
                 <View style={styles.onboardingSection}>
                   <View style={styles.onboardingHeader}>
-                    <Text style={styles.onboardingTitle}>Welcome to ORIGEN™ AI Tutor!</Text>
+                    <Text style={styles.onboardingTitle}>Welcome toSunschool AI Tutor!</Text>
                     <Text style={styles.onboardingSubtitle}>Your guide to personalized learning</Text>
                   </View>
                   
@@ -277,14 +277,14 @@ const DashboardPage: React.FC = () => {
                 <View style={styles.modeToggleSection}>
                   <View style={styles.modeToggleContent}>
                     <View style={styles.modeToggleHeader}>
-                      <Text style={styles.sectionTitle}>Switch to ORIGEN™ Learner Mode</Text>
+                      <Text style={styles.sectionTitle}>Switch toSunschool Learner Mode</Text>
                       <View style={styles.modeToggleIcon}>
                         <ModeToggle />
                       </View>
                     </View>
                     
                     <Text style={styles.modeToggleDescription}>
-                      Click the toggle button in the top-right corner to switch to ORIGEN™ Learner Mode and see the app from a learner's perspective.
+                      Click the toggle button in the top-right corner to switch toSunschool Learner Mode and see the app from a learner's perspective.
                     </Text>
                     
                     <TouchableOpacity 
@@ -292,7 +292,7 @@ const DashboardPage: React.FC = () => {
                       onPress={toggleMode}
                     >
                       <User size={16} color={colors.onPrimary} />
-                      <Text style={styles.modeToggleButtonText}>Go to ORIGEN™ Learner Mode</Text>
+                      <Text style={styles.modeToggleButtonText}>Go toSunschool Learner Mode</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
