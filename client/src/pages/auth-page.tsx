@@ -151,7 +151,7 @@ const AuthPage = () => {
           <View style={styles.logoContainer}>
             <Book size={48} color={colors.primary} />
           </View>
-          <Text style={styles.title}>ORIGEN</Text>
+          <Text style={styles.title}>SUNSCHOOL</Text>
           <Text style={styles.subtitle}>The Open Source AI Tutor</Text>
         </View>
         
