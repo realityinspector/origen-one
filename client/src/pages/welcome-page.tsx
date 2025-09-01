@@ -47,7 +47,7 @@ const WelcomePage: React.FC = () => {
           <View style={styles.navbarInner}>
             <View style={styles.logoContainer}>
               <img 
-                src="/images/aot-labs-logo.png" 
+                src="/aot-labs-logo.png" 
                 alt="AOT Labs Logo" 
                 style={{
                   height: 40,
@@ -866,6 +866,53 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     color: '#000000',
     marginBottom: 4,
+  },
+  
+  // Footer styles
+  footerSection: {
+    backgroundColor: '#f8f9fa',
+    paddingVertical: 60,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e5e7eb',
+  },
+  footerContent: {
+    alignItems: 'center',
+    maxWidth: 600,
+    marginHorizontal: 'auto',
+  },
+  footerTitle: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#000000',
+    marginBottom: 8,
+  },
+  footerSubtitle: {
+    fontSize: 16,
+    color: '#666666',
+    marginBottom: 32,
+    textAlign: 'center',
+  },
+  footerLinks: {
+    flexDirection: windowWidth < 480 ? 'column' : 'row',
+    alignItems: 'center',
+    gap: windowWidth < 480 ? 16 : 32,
+    marginBottom: 24,
+  },
+  footerLink: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  footerLinkText: {
+    fontSize: 16,
+    color: '#000000',
+    fontWeight: '500',
+    textDecorationLine: 'underline',
+  },
+  footerCopyright: {
+    fontSize: 14,
+    color: '#666666',
+    textAlign: 'center',
   },
 });
 
