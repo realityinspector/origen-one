@@ -61,7 +61,7 @@ export async function askOpenRouter(options: OpenRouterOptions): Promise<OpenRou
         'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://origen-ai-tutor.replit.app',
-        'X-Title': 'ORIGEN - The Open Source AI Tutor'
+        'X-Title': 'SUNSCHOOL - The Open Source AI Tutor'
       }
     });
 
