@@ -59,11 +59,11 @@ const WelcomePage: React.FC = () => {
                 <Text style={styles.heroTitle}>SUNSCHOOL by AOT LABS</Text>
                 
                 <Text style={styles.heroSubtitle}>
-                  AI-powered learning. Built into every AOT space.
+                  AI-powered learning where parents own the prompt. Built into every AOT space.
                 </Text>
                 
                 <Text style={styles.heroSubtitle}>
-                  School...anywhere under the sun.
+                  School...anywhere under the sun. Open source, transparent, community-driven.
                 </Text>
                 
                 {/* Benefits List */}
@@ -86,7 +86,7 @@ const WelcomePage: React.FC = () => {
                     <View style={styles.benefitIcon}>
                       <CheckCircle size={14} color={colors.onPrimary} />
                     </View>
-                    <Text style={styles.benefitText}>Open-Source, Device-Friendly - Works on any device</Text>
+                    <Text style={styles.benefitText}>Open-Source & Parent-Controlled - You own your data and prompts</Text>
                   </View>
                 </View>
                 
@@ -151,7 +151,7 @@ const WelcomePage: React.FC = () => {
             </View>
             
             <Text style={{...typography.body1, fontSize: 18, textAlign: 'center', maxWidth: 900, marginLeft: 'auto', marginRight: 'auto', marginBottom: 40}}>
-              SUNSCHOOL AI TUTOR is the open-source AI tutor at the heart of SUNSCHOOL. It's not just edtech—it's the learning layer inside AOT, syncing seamlessly between learning goals and lived experience.
+              SUNSCHOOL AI TUTOR is the open-source AI tutor at the heart of SUNSCHOOL. Unlike closed systems that control your data, parents own every prompt, lesson, and learning path. It's not just edtech—it's transparent, community-driven learning that syncs seamlessly between goals and experience.
             </Text>
             
             <View style={[styles.row, styles.spaceBetween]}>
@@ -170,9 +170,9 @@ const WelcomePage: React.FC = () => {
                 <View style={styles.featureIcon}>
                   <Users size={24} color={colors.primary} />
                 </View>
-                <Text style={styles.featureTitle}>Dual Interface</Text>
+                <Text style={styles.featureTitle}>Parent-Owned Learning</Text>
                 <Text style={styles.featureDescription}>
-                  "Learner mode" for kids, "Grown-up mode" for caregivers with parent dashboard and data sync capabilities.
+                  "Learner mode" for kids, "Grown-up mode" for parents who control prompts, data, and learning direction. Your family's education, your way.
                 </Text>
               </View>
               
@@ -264,6 +264,48 @@ const WelcomePage: React.FC = () => {
           </View>
         </View>
         
+        {/* Open vs Closed Section */}
+        <View style={[styles.section, styles.openVsClosedSection]}>
+          <View style={styles.sectionInner}>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Open Source vs. Closed Systems</Text>
+              <View style={styles.titleUnderline} />
+            </View>
+            
+            <Text style={[styles.summaryText, {textAlign: 'center', marginBottom: 40}]}>
+              Why transparency matters when it comes to your child's education
+            </Text>
+            
+            <View style={[styles.row, styles.comparisonContainer]}>
+              <View style={styles.closedSystemCard}>
+                <Text style={styles.comparisonTitle}>❌ Closed AI Systems</Text>
+                <View style={styles.comparisonList}>
+                  <Text style={styles.comparisonItem}>• Platform controls all prompts and content</Text>
+                  <Text style={styles.comparisonItem}>• Your data locked in their system</Text>
+                  <Text style={styles.comparisonItem}>• No visibility into AI decision-making</Text>
+                  <Text style={styles.comparisonItem}>• Expensive recurring subscriptions</Text>
+                  <Text style={styles.comparisonItem}>• Limited customization options</Text>
+                </View>
+              </View>
+              
+              <View style={styles.openSystemCard}>
+                <Text style={styles.comparisonTitle}>✅ SUNSCHOOL Open Source</Text>
+                <View style={styles.comparisonList}>
+                  <Text style={styles.comparisonItem}>• Parents own and customize every prompt</Text>
+                  <Text style={styles.comparisonItem}>• Your data syncs to your own database</Text>
+                  <Text style={styles.comparisonItem}>• Full transparency in AI interactions</Text>
+                  <Text style={styles.comparisonItem}>• Free access to core functionality</Text>
+                  <Text style={styles.comparisonItem}>• Community-driven improvements</Text>
+                </View>
+              </View>
+            </View>
+            
+            <Text style={[styles.summaryText, {textAlign: 'center', marginTop: 32, fontWeight: '600'}]}>
+              Your family's learning journey shouldn't be locked away in someone else's black box.
+            </Text>
+          </View>
+        </View>
+
         {/* Testimonials Section */}
         <View style={[styles.section, styles.solutionsSection]}>
           <View style={styles.sectionInner}>
@@ -466,7 +508,6 @@ const styles = StyleSheet.create({
     flex: windowWidth < 768 ? 0 : 1,
     minWidth: 300,
     maxWidth: windowWidth < 768 ? '100%' : 600,
-    order: windowWidth < 768 ? 2 : 1,
   },
   heroTitle: {
     fontSize: windowWidth < 768 ? 36 : 48,
@@ -539,7 +580,6 @@ const styles = StyleSheet.create({
     marginBottom: windowWidth < 768 ? 40 : 0,
     marginTop: windowWidth < 768 ? 0 : 0,
     alignSelf: 'center',
-    order: windowWidth < 768 ? 1 : 2,
   },
   graphicCircle: {
     width: 120,
@@ -875,7 +915,49 @@ const styles = StyleSheet.create({
   footerCopyright: {
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.6)',
-  }
+  },
+  
+  // Open vs Closed section styles
+  openVsClosedSection: {
+    backgroundColor: '#f8f9fa',
+  },
+  comparisonContainer: {
+    justifyContent: 'space-between',
+    gap: 32,
+  },
+  closedSystemCard: {
+    flex: 1,
+    minWidth: windowWidth < 768 ? '100%' : 300,
+    backgroundColor: '#fff5f5',
+    padding: 24,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#ef4444',
+  },
+  openSystemCard: {
+    flex: 1,
+    minWidth: windowWidth < 768 ? '100%' : 300,
+    backgroundColor: '#f0fdf4',
+    padding: 24,
+    borderRadius: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#22c55e',
+  },
+  comparisonTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 16,
+    color: colors.text,
+  },
+  comparisonList: {
+    gap: 8,
+  },
+  comparisonItem: {
+    fontSize: 16,
+    lineHeight: 24,
+    color: colors.text,
+    marginBottom: 4,
+  },
 });
 
 export default WelcomePage;
