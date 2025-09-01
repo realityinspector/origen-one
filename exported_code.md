@@ -13504,7 +13504,7 @@ export async function askOpenRouter(options: OpenRouterOptions): Promise<OpenRou
         'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': 'https://origen-ai-tutor.replit.app',
-        'X-Title': 'ORIGEN - The Open Source AI Tutor'
+        'X-Title': 'SUNSCHOOL - The Open Source AI Tutor'
       }
     });
 
@@ -14640,7 +14640,7 @@ const HEADERS = (key: string) => ({
   "Content-Type": "application/json",
   Authorization: `Bearer ${key}`,
   "HTTP-Referer": "https://origen-ai-tutor.replit.app", // required by OpenRouter
-  "X-Title": "ORIGEN - The Open Source AI Tutor"
+  "X-Title": "SUNSCHOOL - The Open Source AI Tutor"
 });
 
 /**
@@ -15125,7 +15125,7 @@ export type InsertAchievement = typeof achievements.$inferInsert;
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ORIGEN - The Open Source AI Tutor</title>
+  <title>SUNSCHOOL - The Open Source AI Tutor</title>
   <style>
     body, html {
       margin: 0;
@@ -21313,7 +21313,7 @@ export const ENABLE_STATS = import.meta.env.VITE_ENABLE_STATS !== 'false';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ORIGEN - The Open Source AI Tutor</title>
+  <title>SUNSCHOOL - The Open Source AI Tutor</title>
   <style>
     body, html {
       margin: 0;
@@ -21370,7 +21370,7 @@ export const ENABLE_STATS = import.meta.env.VITE_ENABLE_STATS !== 'false';
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>ORIGEN - The Open Source AI Tutor</title>
+  <title>SUNSCHOOL - The Open Source AI Tutor</title>
   <style>
     body, html {
       margin: 0;
