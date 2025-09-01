@@ -149,7 +149,7 @@ const WelcomePage: React.FC = () => {
               <View style={styles.heroImageContainer}>
                 <View style={styles.imageWrapper}>
                   <img 
-                    src="/images/sunschool-hero.png" 
+                    src="/images/sunschool-artboard@2x.png" 
                     alt="Sunschool Hero" 
                     style={{
                       width: '100%',
