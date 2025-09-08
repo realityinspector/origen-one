@@ -106,29 +106,29 @@ function registerRoutes(app) {
         }
         try {
             console.log("Starting user registration process for:", username);
-            // Check if username already exists
+            // Check if username already exists with retry mechanism
             console.log("Checking if username exists:", username);
-            const existingUser = await storage_1.storage.getUserByUsername(username);
+            const existingUser = await (0, db_1.withRetry)(() => storage_1.storage.getUserByUsername(username));
             if (existingUser) {
                 console.log("Username already exists:", username);
-                res.status(400).json({ error: "Username already exists" });
+                return res.status(400).json({ error: "Username already exists" });
             }
             console.log("Username is available");
-            // Check if this is the first user being registered
-            const userCountResult = await db_1.db.select({ count: (0, drizzle_orm_1.count)() }).from(schema_1.users);
+            // Check if this is the first user being registered with retry mechanism
+            const userCountResult = await (0, db_1.withRetry)(() => db_1.db.select({ count: (0, drizzle_orm_1.count)() }).from(schema_1.users));
             const isFirstUser = userCountResult[0].count === 0;
             // If this is the first user, make them an admin regardless of the requested role
             const effectiveRole = isFirstUser ? "ADMIN" : role;
-            // Hash password and create user
+            // Hash password and create user with retry mechanism
             const hashedPassword = await (0, auth_2.hashPassword)(password);
-            const user = await storage_1.storage.createUser({
+            const user = await (0, db_1.withRetry)(() => storage_1.storage.createUser({
                 username,
                 email,
                 name,
                 role: effectiveRole,
                 password: hashedPassword,
                 parentId: parentId || null
-            });
+            }));
             // Generate JWT token
             const token = (0, auth_2.generateToken)({ id: ensureString(user.id), role: user.role });
             // Remove password from response
@@ -159,8 +159,30 @@ function registerRoutes(app) {
                 stack: error.stack,
                 code: error.code
             });
+            // Provide specific error messages based on error type
+            let errorMessage = "Registration failed";
+            let statusCode = 500;
+            if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+                errorMessage = "Database connection failed. Please try again later.";
+                statusCode = 503;
+            }
+            else if (error.code === '23505') {
+                errorMessage = "Username or email already exists";
+                statusCode = 400;
+            }
+            else if (error.code === '23503') {
+                errorMessage = "Invalid parent user specified";
+                statusCode = 400;
+            }
+            else if (error.message && error.message.includes('Connection terminated')) {
+                errorMessage = "Database connection lost. Please try again.";
+                statusCode = 503;
+            }
             console.log("=================== REGISTRATION FAILED ===================");
-            res.status(500).json({ error: "Registration failed", details: error.message });
+            res.status(statusCode).json({
+                error: errorMessage,
+                details: process.env.NODE_ENV === 'development' ? error.message : undefined
+            });
         }
     }));
     // Special API route to handle the root-level login/register/user for production deployment

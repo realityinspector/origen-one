@@ -43,25 +43,27 @@ const serverless_1 = require("@neondatabase/serverless");
 const neon_serverless_1 = require("drizzle-orm/neon-serverless");
 const ws_1 = __importDefault(require("ws"));
 const schema = __importStar(require("../shared/schema"));
+const env = __importStar(require("./config/env"));
 // Environment variables are accessed through the central config module
-// Enhanced Neon configuration for better reliability
+// Enhanced Neon configuration for better reliability and production readiness
 serverless_1.neonConfig.webSocketConstructor = ws_1.default;
 serverless_1.neonConfig.fetchConnectionCache = true;
-// Apply correct Neon configuration properties
-// Note: pipelineConnect must be set to "password" according to the type definition
+serverless_1.neonConfig.useSecureWebSocket = env.DATABASE_SSL;
 serverless_1.neonConfig.pipelineConnect = "password";
+serverless_1.neonConfig.pipelineTLS = env.DATABASE_SSL;
 // Add more logging for connection debugging
 console.log('Initializing database connection for environment:', process.env.NODE_ENV || 'development');
 console.log('Database connection string exists:', !!process.env.DATABASE_URL);
 // Add exponential backoff to our retry logic in our custom withRetry function
 // (We'll handle retries ourselves since connectionRetryLimit is not available)
-// Configure the connection pool with more conservative settings
+// Configure the connection pool with more conservative settings and proper SSL for production
 exports.pool = new serverless_1.Pool({
     connectionString: process.env.DATABASE_URL,
     max: 10, // Reduce max clients in pool to avoid connection issues
     idleTimeoutMillis: 60000, // Give idle clients more time (1 minute)
     connectionTimeoutMillis: 10000, // Allow more time for connection establishment
     maxUses: 5000, // Close connections after fewer uses
+    ssl: env.DATABASE_SSL ? { rejectUnauthorized: false } : false, // Proper SSL configuration for production
 });
 // Add event listeners to the pool for better error tracking
 exports.pool.on('error', (err, client) => {
