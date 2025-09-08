@@ -7,7 +7,7 @@ import { asyncHandler, authenticateJwt, hasRoleMiddleware, AuthRequest, compareP
 import { synchronizeToExternalDatabase } from "./sync-utils";
 import { InsertDbSyncConfig } from "../shared/schema";
 import { USE_AI } from "./config/flags";
-import { db, pool } from "./db";
+import { db, pool, withRetry } from "./db";
 import { sql, count } from "drizzle-orm";
 import crypto from "crypto";
 import { users } from "../shared/schema";
@@ -82,32 +82,32 @@ export function registerRoutes(app: Express): Server {
     try {
       console.log("Starting user registration process for:", username);
 
-      // Check if username already exists
+      // Check if username already exists with retry mechanism
       console.log("Checking if username exists:", username);
-      const existingUser = await storage.getUserByUsername(username);
+      const existingUser = await withRetry(() => storage.getUserByUsername(username));
       if (existingUser) {
         console.log("Username already exists:", username);
-        res.status(400).json({ error: "Username already exists" });
+        return res.status(400).json({ error: "Username already exists" });
       }
       console.log("Username is available");
 
-      // Check if this is the first user being registered
-      const userCountResult = await db.select({ count: count() }).from(users);
+      // Check if this is the first user being registered with retry mechanism
+      const userCountResult = await withRetry(() => db.select({ count: count() }).from(users));
       const isFirstUser = userCountResult[0].count === 0;
 
       // If this is the first user, make them an admin regardless of the requested role
       const effectiveRole = isFirstUser ? "ADMIN" : role;
 
-      // Hash password and create user
+      // Hash password and create user with retry mechanism
       const hashedPassword = await hashPassword(password);
-      const user = await storage.createUser({
+      const user = await withRetry(() => storage.createUser({
         username,
         email,
         name,
         role: effectiveRole,
         password: hashedPassword,
         parentId: parentId || null
-      });
+      }));
 
       // Generate JWT token
       const token = generateToken({ id: ensureString(user.id), role: user.role });
@@ -145,8 +145,29 @@ export function registerRoutes(app: Express): Server {
         code: error.code
       });
 
+      // Provide specific error messages based on error type
+      let errorMessage = "Registration failed";
+      let statusCode = 500;
+
+      if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+        errorMessage = "Database connection failed. Please try again later.";
+        statusCode = 503;
+      } else if (error.code === '23505') {
+        errorMessage = "Username or email already exists";
+        statusCode = 400;
+      } else if (error.code === '23503') {
+        errorMessage = "Invalid parent user specified";
+        statusCode = 400;
+      } else if (error.message && error.message.includes('Connection terminated')) {
+        errorMessage = "Database connection lost. Please try again.";
+        statusCode = 503;
+      }
+
       console.log("=================== REGISTRATION FAILED ===================");
-      res.status(500).json({ error: "Registration failed", details: error.message });
+      res.status(statusCode).json({ 
+        error: errorMessage, 
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined 
+      });
     }
   }));
 
