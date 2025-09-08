@@ -6,12 +6,12 @@ import * as env from './config/env';
 
 // Environment variables are accessed through the central config module
 
-// Enhanced Neon configuration for better reliability
+// Enhanced Neon configuration for better reliability and production readiness
 neonConfig.webSocketConstructor = ws;
 neonConfig.fetchConnectionCache = true;
-// Apply correct Neon configuration properties
-// Note: pipelineConnect must be set to "password" according to the type definition
+neonConfig.useSecureWebSocket = env.DATABASE_SSL;
 neonConfig.pipelineConnect = "password";
+neonConfig.pipelineTLS = env.DATABASE_SSL;
 
 // Add more logging for connection debugging
 console.log('Initializing database connection for environment:', process.env.NODE_ENV || 'development');
