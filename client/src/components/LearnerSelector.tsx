@@ -8,6 +8,7 @@ import {
   TextInput,
   ActivityIndicator,
   FlatList,
+  ScrollView,
 } from 'react-native';
 import { ChevronDown, Plus, User } from 'react-feather';
 import { useMode } from '../context/ModeContext';
@@ -80,38 +81,48 @@ export function LearnerSelector({ onToggle }: LearnerSelectorProps) {
         <ChevronDown size={16} color="#6366F1" />
       </TouchableOpacity>
 
-      {/* Dropdown for Learner Selection */}
-      {dropdownVisible && (
-        <View style={styles.dropdown}>
-          <FlatList
-            data={availableLearners}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={[
-                  styles.dropdownItem,
-                  selectedLearner?.id === item.id && styles.selectedDropdownItem,
-                ]}
-                onPress={() => {
-                  selectLearner(item);
-                  setDropdownVisible(false);
-                }}
-              >
-                <View style={styles.avatarContainer}>
-                  <User size={16} color="#6366F1" />
-                </View>
-                <Text 
+      {/* Modal Dropdown for Learner Selection - Better web compatibility */}
+      <Modal
+        visible={dropdownVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setDropdownVisible(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setDropdownVisible(false)}
+        >
+          <View style={styles.modalDropdown}>
+            <ScrollView style={styles.dropdownScroll}>
+              {availableLearners.map((item) => (
+                <TouchableOpacity
+                  key={item.id.toString()}
                   style={[
-                    styles.dropdownItemText,
-                    selectedLearner?.id === item.id && styles.selectedDropdownItemText,
+                    styles.dropdownItem,
+                    selectedLearner?.id === item.id && styles.selectedDropdownItem,
                   ]}
+                  onPress={() => {
+                    console.log('Learner item clicked:', item.name);
+                    selectLearner(item);
+                    setDropdownVisible(false);
+                  }}
                 >
-                  {item.name}
-                </Text>
-              </TouchableOpacity>
-            )}
-            ListFooterComponent={
-              canCreateLearners ? (
+                  <View style={styles.avatarContainer}>
+                    <User size={16} color="#6366F1" />
+                  </View>
+                  <Text 
+                    style={[
+                      styles.dropdownItemText,
+                      selectedLearner?.id === item.id && styles.selectedDropdownItemText,
+                    ]}
+                  >
+                    {item.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+              
+              {canCreateLearners && (
                 <TouchableOpacity
                   style={styles.addLearnerButton}
                   onPress={() => {
@@ -123,11 +134,11 @@ export function LearnerSelector({ onToggle }: LearnerSelectorProps) {
                   <Plus size={16} color="#6366F1" />
                   <Text style={styles.addLearnerButtonText}>Add Learner</Text>
                 </TouchableOpacity>
-              ) : null
-            }
-          />
-        </View>
-      )}
+              )}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
 
 
     </View>
@@ -173,10 +184,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#9CA3AF',
   },
-  dropdown: {
-    position: 'absolute',
-    top: 40,
-    right: 0,
+  modalDropdown: {
     backgroundColor: 'white',
     borderRadius: 8,
     width: 220,
@@ -186,13 +194,21 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
-    zIndex: 1000,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    marginTop: 50,
+    alignSelf: 'center',
+  },
+  dropdownScroll: {
+    maxHeight: 280,
   },
   dropdownItem: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingVertical: 10,
     paddingHorizontal: 12,
+    cursor: 'pointer',
+    minHeight: 44, // Ensure minimum touch target size
   },
   selectedDropdownItem: {
     backgroundColor: '#EEF2FF',
