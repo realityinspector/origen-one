@@ -11,11 +11,9 @@ import { useLocation } from 'wouter';
 import { useMode } from '../context/ModeContext';
 import { useAuth } from '../hooks/use-auth';
 
-interface LearnerSelectorProps {
-  onToggle?: () => void;
-}
+interface LearnerSelectorProps {}
 
-export function LearnerSelector({ onToggle }: LearnerSelectorProps) {
+export function LearnerSelector() {
   const { selectedLearner, availableLearners, isLoadingLearners } = useMode();
   const { user } = useAuth();
   const [, setLocation] = useLocation();
