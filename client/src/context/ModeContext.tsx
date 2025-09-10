@@ -139,10 +139,24 @@ export const ModeProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.warn('Could not save learner ID to localStorage - invalid ID or not in browser');
     }
     
-    // If in learner mode, refresh to show the selected learner's content
-    if (mode === 'LEARNER') {
-      safeNavigate('/learner');
+    // When a learner is selected, automatically switch to LEARNER mode
+    // This ensures that the learner switcher always puts users in learner mode
+    if (mode !== 'LEARNER') {
+      console.log('Switching to LEARNER mode because a learner was selected');
+      setMode('LEARNER');
     }
+    
+    // Always persist LEARNER mode preference when selecting a learner
+    // This ensures persistence across reloads regardless of current mode
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('preferredMode', 'LEARNER');
+    }
+    
+    // Use a small delay to ensure mode state is committed before navigation
+    // This prevents race conditions with route guards that depend on isLearnerMode
+    setTimeout(() => {
+      safeNavigate('/learner');
+    }, 0);
   };
   
   // Default to the user's actual role, or to stored preference
