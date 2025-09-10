@@ -20,6 +20,7 @@ import QuizPage from './pages/quiz-page';
 import ProgressPage from './pages/progress-page';
 import DatabaseSyncPage from './pages/database-sync-page';
 import LessonsPage from './pages/lessons-page';
+import SelectLearnerPage from './pages/select-learner-page';
 import { ProtectedRoute } from './lib/protected-route';
 import { AdminRoute } from './lib/admin-route';
 import { LearnerRoute } from './lib/learner-route';
@@ -115,6 +116,7 @@ export default function App() {
             
             {/* Learner specific routes */}
             <LearnerRoute path="/learner" component={LearnerHome} />
+            <LearnerRoute path="/select-learner" component={SelectLearnerPage} />
             <LearnerRoute path="/lessons" component={LessonsPage} />
             <LearnerRoute path="/lesson" component={ActiveLessonPage} />
             <LearnerRoute path="/quiz/:lessonId" component={QuizPage} />
