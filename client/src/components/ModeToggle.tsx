@@ -55,8 +55,8 @@ const ModeToggle: React.FC<ModeToggleProps> = ({ style }) => {
 
   return (
     <View style={[styles.container, style]}>
-      {/* Show LearnerSelector for parents and admins when not in learner mode */}
-      {!isLearnerMode && (user?.role === 'PARENT' || user?.role === 'ADMIN') && (
+      {/* Show LearnerSelector for parents and admins when in learner mode */}
+      {isLearnerMode && (user?.role === 'PARENT' || user?.role === 'ADMIN') && (
         <LearnerSelector />
       )}
       
