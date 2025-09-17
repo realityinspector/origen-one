@@ -7,6 +7,61 @@
  */
 
 // ============================================================================
+// Reading Level Helper Functions
+// ============================================================================
+
+/**
+ * Generates specific reading level instructions based on grade level
+ * This ensures content uses appropriate vocabulary and complexity for the target audience
+ */
+function getReadingLevelInstructions(gradeLevel: number): string {
+  if (gradeLevel <= 2) {
+    return `
+CRITICAL READING LEVEL INSTRUCTIONS for Grade ${gradeLevel}:
+- Use VERY SIMPLE words that early readers can understand
+- Choose common, everyday vocabulary (like: big, small, run, jump, happy, sad)
+- Avoid complex words - replace them with simple alternatives (use "big" instead of "enormous", "start" instead of "commence")
+- Keep sentences SHORT and SIMPLE (5-8 words maximum)
+- Use familiar concepts that young children experience daily
+- Repeat important words to help with recognition
+- Use picture-friendly language that can be easily illustrated`;
+  } else if (gradeLevel <= 4) {
+    return `
+READING LEVEL INSTRUCTIONS for Grade ${gradeLevel}:
+- Use simple to moderate vocabulary appropriate for elementary students
+- Choose words that are in a typical ${gradeLevel}rd/4th grader's speaking vocabulary
+- Keep sentences clear and not too long (8-12 words typically)
+- Explain any new or technical terms immediately when introduced
+- Use concrete examples and familiar comparisons
+- Break complex ideas into smaller, digestible parts`;
+  } else if (gradeLevel <= 6) {
+    return `
+READING LEVEL INSTRUCTIONS for Grade ${gradeLevel}:
+- Use vocabulary that challenges students slightly but remains accessible
+- Introduce grade-appropriate academic vocabulary with clear definitions
+- Use varied sentence lengths but keep them readable (10-15 words typically)
+- Include context clues to help with new word meanings
+- Connect abstract concepts to concrete, relatable examples`;
+  } else if (gradeLevel <= 8) {
+    return `
+READING LEVEL INSTRUCTIONS for Grade ${gradeLevel}:
+- Use intermediate academic vocabulary appropriate for middle school
+- Include subject-specific terminology with clear explanations
+- Use complex sentence structures while maintaining clarity
+- Encourage vocabulary growth through context and examples
+- Balance familiar concepts with new, challenging ideas`;
+  } else {
+    return `
+READING LEVEL INSTRUCTIONS for Grade ${gradeLevel}:
+- Use advanced academic vocabulary and subject-specific terminology
+- Employ sophisticated sentence structures and varied syntax
+- Include complex concepts with detailed explanations
+- Assume familiarity with intermediate academic vocabulary
+- Challenge students with advanced terminology while providing support`;
+  }
+}
+
+// ============================================================================
 // Lesson Generation Prompts
 // ============================================================================
 
@@ -18,6 +73,8 @@ export const LESSON_PROMPTS = {
 You are an expert educational content creator specializing in creating engaging, 
 age-appropriate learning materials for children. Create content that is precisely 
 matched to the title and topic, specifically designed for grade ${gradeLevel} students.
+
+${getReadingLevelInstructions(gradeLevel)}
 
 Focus on making the content:
 - Precisely aligned with the stated topic "${topic}"
@@ -42,6 +99,8 @@ Include SVG graphic descriptions that:
    */
   STANDARD_LESSON_USER: (gradeLevel: number, topic: string) => `
 Create an educational lesson about "${topic}" for grade ${gradeLevel} students.
+
+${getReadingLevelInstructions(gradeLevel)}
 
 The lesson should:
 1. Match content precisely to the "${topic}" title
@@ -84,6 +143,8 @@ Format the content in Markdown with clear headings, subheadings, and bullet poin
 You are a master educator and content developer specializing in creating 
 rich, instructive educational content for students in grade ${gradeLevel}.
 
+${getReadingLevelInstructions(gradeLevel)}
+
 Your expertise includes developing:
 - Engaging, age-appropriate content that precisely matches the topic
 - Clear explanations with appropriate vocabulary for grade ${gradeLevel}
@@ -123,6 +184,8 @@ For SVG graphics, provide detailed descriptions that:
 You are an educational assistant creating a lesson for grade ${gradeLevel} students on the topic of "${topic}".
 Create a comprehensive, age-appropriate lesson with clear explanations, examples, and engaging content.
 
+${getReadingLevelInstructions(gradeLevel)}
+
 The lesson must:
 1. Match content precisely to the "${topic}" title
 2. Use vocabulary and complexity appropriate for grade ${gradeLevel}
@@ -155,6 +218,14 @@ export const QUIZ_PROMPTS = {
 You are an expert educational content creator specializing in creating 
 age-appropriate quiz questions for grade ${gradeLevel} children that incorporate visual components.
 
+${getReadingLevelInstructions(gradeLevel)}
+
+ADDITIONAL QUIZ-SPECIFIC READING LEVEL GUIDANCE:
+- Make question text as simple and clear as possible for grade ${gradeLevel}
+- Ensure answer choices use the same reading level as specified above
+- Avoid trick language or confusing phrasing in questions
+- Use direct, straightforward question formats
+
 Create multiple-choice questions that:
 - Are precisely aligned with the stated topic "${topic}"
 - Use vocabulary and complexity appropriate for grade ${gradeLevel}
@@ -181,6 +252,14 @@ Ensure questions increase in difficulty gradually and address different cognitiv
    */
   STANDARD_QUIZ_USER: (gradeLevel: number, topic: string, questionCount: number = 5) => `
 Create ${questionCount} multiple-choice quiz questions about "${topic}" for grade ${gradeLevel} students.
+
+${getReadingLevelInstructions(gradeLevel)}
+
+ADDITIONAL QUIZ-SPECIFIC READING LEVEL GUIDANCE:
+- Make question text as simple and clear as possible for grade ${gradeLevel}
+- Ensure answer choices use the same reading level as specified above
+- Avoid trick language or confusing phrasing in questions
+- Use direct, straightforward question formats
 
 Include a mix of question types:
 1. Text-only questions
@@ -227,8 +306,11 @@ export const FEEDBACK_PROMPTS = {
   /**
    * System prompt for generating personalized feedback with visual support
    */
-  PERSONALIZED_FEEDBACK: () => `
-You are an encouraging educational assistant providing feedback to students.
+  PERSONALIZED_FEEDBACK: (gradeLevel: number) => `
+You are an encouraging educational assistant providing feedback to students in grade ${gradeLevel}.
+
+${getReadingLevelInstructions(gradeLevel)}
+
 Your feedback should be:
 - Positive and supportive while remaining honest
 - Specific and actionable with clear next steps
@@ -247,8 +329,10 @@ For visual support recommendations, provide descriptions of:
   /**
    * User prompt for generating feedback based on quiz performance with visual support
    */
-  QUIZ_FEEDBACK_USER: (quizQuestions: any[], userAnswers: number[], score: number) => `
-Provide personalized feedback for a student who scored ${score}% on a quiz.
+  QUIZ_FEEDBACK_USER: (quizQuestions: any[], userAnswers: number[], score: number, gradeLevel: number) => `
+Provide personalized feedback for a grade ${gradeLevel} student who scored ${score}% on a quiz.
+
+${getReadingLevelInstructions(gradeLevel)}
 
 Here are the questions and the student's responses:
 ${quizQuestions.map((q, i) => `
