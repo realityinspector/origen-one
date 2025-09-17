@@ -169,7 +169,7 @@ import { FEEDBACK_PROMPTS } from './prompts';
 /**
  * Generate personalized feedback for a learner based on their quiz performance
  */
-export async function generateFeedback(quizQuestions: any[], userAnswers: number[], score: number): Promise<string> {
+export async function generateFeedback(quizQuestions: any[], userAnswers: number[], score: number, gradeLevel: number): Promise<string> {
   const questionAnalysis = quizQuestions.map((q, i) => {
     const isCorrect = userAnswers[i] === q.correctIndex;
     return {
@@ -184,11 +184,11 @@ export async function generateFeedback(quizQuestions: any[], userAnswers: number
   const messages: Message[] = [
     {
       role: 'system',
-      content: FEEDBACK_PROMPTS.PERSONALIZED_FEEDBACK()
+      content: FEEDBACK_PROMPTS.PERSONALIZED_FEEDBACK(gradeLevel)
     },
     {
       role: 'user',
-      content: FEEDBACK_PROMPTS.QUIZ_FEEDBACK_USER(quizQuestions, userAnswers, score)
+      content: FEEDBACK_PROMPTS.QUIZ_FEEDBACK_USER(quizQuestions, userAnswers, score, gradeLevel)
     }
   ];
 

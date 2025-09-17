@@ -126,10 +126,12 @@ export async function generateQuizQuestions(gradeLevel: number, topic: string, q
   }
 }
 
+import { FEEDBACK_PROMPTS } from './prompts';
+
 /**
  * Generate personalized feedback for a learner based on their quiz performance
  */
-export async function generateFeedback(quizQuestions: any[], userAnswers: number[], score: number): Promise<string> {
+export async function generateFeedback(quizQuestions: any[], userAnswers: number[], score: number, gradeLevel: number): Promise<string> {
   const questionAnalysis = quizQuestions.map((q, i) => {
     const isCorrect = userAnswers[i] === q.correctIndex;
     return {
@@ -144,11 +146,11 @@ export async function generateFeedback(quizQuestions: any[], userAnswers: number
   const messages: PerplexityMessage[] = [
     {
       role: 'system',
-      content: 'You are an encouraging and supportive educational coach providing feedback to young learners. Focus on positive reinforcement while providing helpful guidance.'
+      content: FEEDBACK_PROMPTS.PERSONALIZED_FEEDBACK(gradeLevel)
     },
     {
       role: 'user',
-      content: `Provide personalized feedback for a student who scored ${score}% on a quiz. Here are the details of their performance:\n\n${JSON.stringify(questionAnalysis)}\n\nProvide encouragement, highlight strengths, and give specific recommendations for improvement. Format your response in a friendly tone appropriate for a young learner.`
+      content: FEEDBACK_PROMPTS.QUIZ_FEEDBACK_USER(quizQuestions, userAnswers, score, gradeLevel)
     }
   ];
 
