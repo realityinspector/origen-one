@@ -1,17 +1,11 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
   TouchableOpacity,
-  Modal,
-  TextInput,
+  StyleSheet,
 } from 'react-native';
-import { colors, typography } from '../styles/theme';
-import { User, BookOpen, X } from 'react-feather';
+import { colors } from '../styles/theme';
+import { User, BookOpen } from 'react-feather';
 import { useMode } from '../context/ModeContext';
-import { useAuth } from '../hooks/use-auth';
-import { LearnerSelector } from './LearnerSelector';
 
 interface ModeToggleProps {
   style?: any;
@@ -19,110 +13,26 @@ interface ModeToggleProps {
 
 const ModeToggle: React.FC<ModeToggleProps> = ({ style }) => {
   const { isLearnerMode, toggleMode } = useMode();
-  const { user } = useAuth();
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-
-  // Debug message in console
-  console.log('ModeToggle rendering', { isLearnerMode });
 
   const handleToggleMode = () => {
-    console.log('Manual toggle pressed');
-    
-    // If in learner mode and trying to switch to grown-up mode, show password prompt
-    // Only prompt for password if user role is LEARNER
-    if (isLearnerMode && user?.role === 'LEARNER') {
-      setShowPasswordModal(true);
-    } else {
-      // If in grown-up mode, or if a parent/admin is switching to grown-up mode, no password needed
-      toggleMode();
-    }
-  };
-
-  const handleSubmitPassword = () => {
-    // For demonstration purposes, accept any non-empty password
-    // In a real app, we would validate this on the server
-    if (password.trim()) {
-      setShowPasswordModal(false);
-      setPassword('');
-      setError('');
-      toggleMode();
-    } else {
-      setError('Please enter a password');
-    }
+    toggleMode();
   };
 
   return (
-    <View style={[styles.container, style]}>
-      {/* Show LearnerSelector for parents and admins when in learner mode */}
-      {isLearnerMode && (user?.role === 'PARENT' || user?.role === 'ADMIN') && (
-        <LearnerSelector />
+    <TouchableOpacity 
+      onPress={handleToggleMode}
+      style={[styles.iconButton, style]}
+    >
+      {isLearnerMode ? (
+        <User size={20} color={colors.primary} />
+      ) : (
+        <BookOpen size={20} color={colors.primary} />
       )}
-      
-      <TouchableOpacity 
-        onPress={handleToggleMode}
-        style={styles.iconButton}
-      >
-        {isLearnerMode ? (
-          <User size={20} color={colors.primary} />
-        ) : (
-          <BookOpen size={20} color={colors.primary} />
-        )}
-      </TouchableOpacity>
-
-      {/* Password Modal */}
-      <Modal
-        visible={showPasswordModal}
-        transparent={true}
-        animationType="fade"
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Enter Grown-up Password</Text>
-              <TouchableOpacity 
-                onPress={() => {
-                  setShowPasswordModal(false);
-                  setPassword('');
-                  setError('');
-                }}
-              >
-                <X size={20} />
-              </TouchableOpacity>
-            </View>
-            
-            <Text style={styles.modalText}>Please enter your password to switch to Grown-up mode:</Text>
-            
-            <TextInput
-              style={styles.passwordInput}
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Password"
-            />
-            
-            {error ? <Text style={styles.errorText}>{error}</Text> : null}
-            
-            <TouchableOpacity 
-              style={styles.submitButton}
-              onPress={handleSubmitPassword}
-            >
-              <Text style={styles.submitButtonText}>Continue</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    </View>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   iconButton: {
     backgroundColor: 'white',
     borderRadius: 20,
@@ -135,55 +45,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 20,
-    width: '100%',
-    maxWidth: 400,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  modalTitle: {
-    ...typography.h3,
-    color: colors.textPrimary,
-  },
-  modalText: {
-    ...typography.body1,
-    marginBottom: 16,
-  },
-  passwordInput: {
-    borderWidth: 1,
-    borderColor: colors.divider,
-    borderRadius: 4,
-    padding: 12,
-    marginBottom: 16,
-  },
-  errorText: {
-    color: colors.error,
-    marginBottom: 16,
-  },
-  submitButton: {
-    backgroundColor: colors.primary,
-    paddingVertical: 12,
-    borderRadius: 4,
-    alignItems: 'center',
-  },
-  submitButtonText: {
-    color: 'white',
-    fontWeight: '600',
   },
 });
 

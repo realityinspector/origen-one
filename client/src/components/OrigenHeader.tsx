@@ -4,6 +4,8 @@ import { Home, Book, User, BarChart2 } from 'react-feather';
 import { colors, typography } from '../styles/theme';
 import { useLocation } from 'wouter';
 import { useAuth } from '../hooks/use-auth';
+import { useMode } from '../context/ModeContext';
+import { LearnerSelector } from './LearnerSelector';
 
 interface OrigenHeaderProps {
   subtitle?: string;
@@ -12,6 +14,7 @@ interface OrigenHeaderProps {
 const OrigenHeader: React.FC<OrigenHeaderProps> = ({ subtitle }) => {
   const [location, navigate] = useLocation();
   const { user } = useAuth();
+  const { isLearnerMode } = useMode();
   
   const isActive = (path: string) => location === path;
   
@@ -74,6 +77,11 @@ const OrigenHeader: React.FC<OrigenHeaderProps> = ({ subtitle }) => {
         
         {user && (
           <View style={styles.navigation}>
+            {/* Show LearnerSelector for parents and admins when in learner mode */}
+            {isLearnerMode && (user?.role === 'PARENT' || user?.role === 'ADMIN') && (
+              <LearnerSelector />
+            )}
+            
             {getNavItems().map((item, index) => (
               <TouchableOpacity 
                 key={index}
