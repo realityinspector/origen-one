@@ -179,7 +179,7 @@ const LearnerHome = () => {
               <User size={24} color={colors.primary} />
             </View>
             <View>
-              <Text style={styles.greeting}>Hello, {user?.name}!</Text>
+              <Text style={styles.greeting}>Hello, {selectedLearner?.name}!</Text>
               <Text style={styles.gradeText}>
                 Grade {profile?.gradeLevel || '—'}
               </Text>
