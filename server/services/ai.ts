@@ -193,15 +193,15 @@ export async function generateQuizQuestions(gradeLevel: number, topic: string, q
 /**
  * Generate personalized feedback for a learner based on their quiz performance
  */
-export async function generateFeedback(quizQuestions: any[], userAnswers: number[], score: number): Promise<string> {
+export async function generateFeedback(quizQuestions: any[], userAnswers: number[], score: number, gradeLevel: number): Promise<string> {
   if (!USE_AI) {
     throw new Error('AI generation is disabled (USE_AI=0)');
   }
 
   try {
     const messages: Message[] = [
-      { role: "system", content: FEEDBACK_PROMPTS.PERSONALIZED_FEEDBACK() },
-      { role: "user", content: FEEDBACK_PROMPTS.QUIZ_FEEDBACK_USER(quizQuestions, userAnswers, score) }
+      { role: "system", content: FEEDBACK_PROMPTS.PERSONALIZED_FEEDBACK(gradeLevel) },
+      { role: "user", content: FEEDBACK_PROMPTS.QUIZ_FEEDBACK_USER(quizQuestions, userAnswers, score, gradeLevel) }
     ];
 
     return await chat(messages, {
