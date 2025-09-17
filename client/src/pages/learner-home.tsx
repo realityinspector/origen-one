@@ -18,75 +18,13 @@ import { colors, typography, commonStyles } from '../styles/theme';
 import LessonCard from '../components/LessonCard';
 import KnowledgeGraph from '../components/KnowledgeGraph';
 import SubjectSelector from '../components/SubjectSelector';
-import { Book, Award, BarChart2, User, Compass, Zap, ChevronDown, Plus, X } from 'react-feather';
+import { Book, Award, BarChart2, User, Compass, Zap, Plus, X } from 'react-feather';
 import { useMode } from '../context/ModeContext';
 
-const LearnerSwitcher = () => {
-  const { selectedLearner, selectLearner, availableLearners, isLoadingLearners } = useMode();
-  const { user } = useAuth();
-  const [dropdownVisible, setDropdownVisible] = useState(false);
-
-  if (isLoadingLearners) {
-    return (
-      <View style={styles.learnerSwitcherContainer}>
-        <View style={styles.learnerSwitcherLoading}>
-          <ActivityIndicator size="small" color={colors.primary} />
-          <Text style={styles.learnerSwitcherLoadingText}>Loading...</Text>
-        </View>
-      </View>
-    );
-  }
-
-  if (!availableLearners || availableLearners.length === 0) {
-    return null; // Don't show anything if no learners
-  }
-
-  return (
-    <View style={styles.learnerSwitcherContainer}>
-      <TouchableOpacity 
-        style={styles.learnerSwitcher}
-        onPress={() => setDropdownVisible(!dropdownVisible)}
-      >
-        <View style={styles.learnerSwitcherAvatar}>
-          <User size={16} color={colors.primary} />
-        </View>
-        <Text style={styles.learnerSwitcherName} numberOfLines={1}>
-          {selectedLearner?.name || 'Select Learner'}
-        </Text>
-        <ChevronDown size={14} color={colors.textSecondary} />
-      </TouchableOpacity>
-
-      {/* Dropdown menu */}
-      {dropdownVisible && (
-        <View style={styles.learnerSwitcherDropdown}>
-          {availableLearners.map((learner) => (
-            <TouchableOpacity
-              key={learner.id}
-              style={[
-                styles.learnerSwitcherDropdownItem,
-                selectedLearner?.id === learner.id && styles.learnerSwitcherDropdownItemActive
-              ]}
-              onPress={() => {
-                selectLearner(learner);
-                setDropdownVisible(false);
-              }}
-            >
-              <View style={styles.learnerSwitcherItemAvatar}>
-                <User size={14} color={colors.primary} />
-              </View>
-              <Text style={styles.learnerSwitcherItemName}>
-                {learner.name}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      )}
-    </View>
-  );
-};
 
 const LearnerHome = () => {
   const { user } = useAuth();
+  const { selectedLearner } = useMode();
   const [, setLocation] = useLocation();
   const [refreshing, setRefreshing] = useState(false);
   const [subjectSelectorVisible, setSubjectSelectorVisible] = useState(false);
@@ -97,11 +35,11 @@ const LearnerHome = () => {
     isLoading: isLessonLoading,
     error: lessonError,
   } = useQuery({
-    queryKey: ['/api/lessons/active'],
+    queryKey: ['/api/lessons/active', selectedLearner?.id],
     queryFn: async () => {
       try {
-        console.log('Fetching active lesson...');
-        const res = await apiRequest('GET', '/api/lessons/active');
+        console.log(`Fetching active lesson for learner ${selectedLearner?.id}...`);
+        const res = await apiRequest('GET', `/api/lessons/active?learnerId=${selectedLearner?.id}`);
         console.log('Active lesson response:', res);
         return res.data;
       } catch (err) {
@@ -109,6 +47,7 @@ const LearnerHome = () => {
         throw err;
       }
     },
+    enabled: !!selectedLearner?.id,
   });
 
   // Fetch learner profile
@@ -117,11 +56,11 @@ const LearnerHome = () => {
     isLoading: isProfileLoading,
     error: profileError,
   } = useQuery({
-    queryKey: [`/api/learner-profile/${user?.id}`],
+    queryKey: [`/api/learner-profile/${selectedLearner?.id}`],
     queryFn: async () => {
       try {
-        console.log(`Fetching learner profile for user ${user?.id}...`);
-        const res = await apiRequest('GET', `/api/learner-profile/${user?.id}`);
+        console.log(`Fetching learner profile for learner ${selectedLearner?.id}...`);
+        const res = await apiRequest('GET', `/api/learner-profile/${selectedLearner?.id}`);
         console.log('Learner profile response:', res);
         return res.data;
       } catch (err) {
@@ -129,7 +68,7 @@ const LearnerHome = () => {
         throw err;
       }
     },
-    enabled: !!user?.id,
+    enabled: !!selectedLearner?.id,
   });
 
   // Generate a new lesson
@@ -140,7 +79,7 @@ const LearnerHome = () => {
     },
     onSuccess: (data) => {
       console.log('Successfully generated new lesson:', data);
-      queryClient.invalidateQueries({ queryKey: ['/api/lessons/active'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/lessons/active', selectedLearner?.id] });
     },
     onError: (error) => {
       console.error('Error generating lesson:', error);
@@ -150,14 +89,14 @@ const LearnerHome = () => {
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['/api/lessons/active'] }),
-      queryClient.invalidateQueries({ queryKey: [`/api/learner-profile/${user?.id}`] }),
+      queryClient.invalidateQueries({ queryKey: ['/api/lessons/active', selectedLearner?.id] }),
+      queryClient.invalidateQueries({ queryKey: [`/api/learner-profile/${selectedLearner?.id}`] }),
     ]);
     setRefreshing(false);
-  }, [user?.id]);
+  }, [selectedLearner?.id]);
 
   const handleGenerateLesson = (subject?: { name: string; category: string; difficulty: 'beginner' | 'intermediate' | 'advanced' }) => {
-    if (!user || !profile) return;
+    if (!selectedLearner || !profile) return;
 
     // If no subject specified, pick a random one from the learner's subjects
     let selectedSubject = subject;
@@ -171,7 +110,7 @@ const LearnerHome = () => {
     }
 
     generateLessonMutation.mutate({
-      learnerId: user.id,
+      learnerId: selectedLearner.id,
       topic: selectedSubject?.name || 'Math', // Fallback to Math if no subjects available
       gradeLevel: profile.gradeLevel,
       subject: selectedSubject?.name || 'Math',
@@ -247,10 +186,6 @@ const LearnerHome = () => {
             </View>
           </View>
 
-          {/* Add the LearnerSwitcher if user is PARENT or ADMIN */}
-          {(user?.role === 'PARENT' || user?.role === 'ADMIN') && (
-            <LearnerSwitcher />
-          )}
         </View>
 
         {isLoading ? (
