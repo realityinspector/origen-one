@@ -1,292 +1,403 @@
-/**
- * AI Service Adapter
- *
- * This module provides a unified interface for AI services including:
- * - OpenRouter for text generation
- * - Stability AI for image generation
- * - Enhanced lesson generation
- */
+import OpenAI from 'openai';
+import { 
+  LESSON_PROMPTS, 
+  QUIZ_PROMPTS, 
+  FEEDBACK_PROMPTS,
+  KNOWLEDGE_GRAPH_PROMPTS,
+  IMAGE_PROMPTS 
+} from '../prompts'; // This now points to the modular system
 
-import { USE_AI } from '../config/flags';
-import axios from "axios";
-import { generateEnhancedLesson } from './enhanced-lesson-service';
-import { LessonSection, LessonDiagram, LessonImage, EnhancedLessonSpec } from '../../shared/schema';
-import { LESSON_PROMPTS, QUIZ_PROMPTS, FEEDBACK_PROMPTS, KNOWLEDGE_GRAPH_PROMPTS } from '../prompts';
-
-// Re-export the enhanced lesson generator
-export { generateEnhancedLesson };
-
-// Re-export the message type
-export type Message = { 
-  role: "system" | "user" | "assistant"; 
-  content: string 
-};
-
-// Common options for all AI chat functions
-export type ChatOptions = {
-  model?: string;
-  temperature?: number;
-  max_tokens?: number;
-  response_format?: {
-    type: 'json_schema';
-    schema: any;
-  };
-};
-
-// Define the return type of the chat function
-export interface ChatResponse {
-  id: string;
-  model: string;
-  object: string;
-  created: number;
-  choices: {
-    index: number;
-    finish_reason: string;
-    message: {
-      role: string;
-      content: string;
-    };
-  }[];
-  usage: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-}
-
-const ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
-const HEADERS = (key: string) => ({
-  "Content-Type": "application/json",
-  Authorization: `Bearer ${key}`,
-  "HTTP-Referer": "https://origen-ai-tutor.replit.app", // required by OpenRouter
-  "X-Title": "SUNSCHOOL - The Open Source AI Tutor"
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 /**
- * Makes a request to the OpenRouter API
+ * Configuration for different AI models based on complexity requirements
+ * Lower grades use faster models, higher grades can leverage more sophisticated reasoning
  */
-export async function chat(
-  messages: Message[],
-  options: ChatOptions = {}
+const getModelConfig = (gradeLevel: number): { model: string; temperature: number } => {
+  if (gradeLevel <= 2) {
+    // K-2: Simple, consistent outputs
+    return { model: 'gpt-4-turbo-preview', temperature: 0.3 };
+  } else if (gradeLevel <= 6) {
+    // 3-6: Balanced creativity and accuracy
+    return { model: 'gpt-4-turbo-preview', temperature: 0.5 };
+  } else if (gradeLevel <= 8) {
+    // 7-8: More sophisticated reasoning
+    return { model: 'gpt-4-turbo-preview', temperature: 0.6 };
+  } else {
+    // 9+: Advanced analytical capabilities
+    return { model: 'gpt-4-turbo-preview', temperature: 0.7 };
+  }
+};
+
+/**
+ * Generates a lesson using the modular prompt system
+ * Automatically selects appropriate prompting strategy based on grade level
+ */
+export async function generateLesson(
+  topic: string, 
+  gradeLevel: number,
+  style: 'standard' | 'enhanced' | 'legacy' = 'standard'
 ): Promise<string> {
-  if (!USE_AI) {
-    throw new Error('AI generation is disabled (USE_AI=0)');
-  }
-
-  const { 
-    model = "anthropic/claude-3-haiku", 
-    temperature = 0.7, 
-    max_tokens, 
-    response_format 
-  } = options;
-
   try {
-    const { data } = await axios.post<ChatResponse>(
-      ENDPOINT,
-      { model, messages, temperature, max_tokens, stream: false, response_format },
-      { headers: HEADERS(process.env.OPENROUTER_API_KEY!) }
-    );
-    return data.choices[0].message.content;
-  } catch (error) {
-    console.error('AI provider error:', error);
-    throw error;
-  }
-}
-
-/**
- * Generate a lesson for a specific grade level and topic
- * This function can either return a simple markdown string (legacy)
- * or generate a full enhanced lesson if the enhanced parameter is true
- */
-export async function generateLessonContent(
-  gradeLevel: number, 
-  topic: string,
-  enhanced: boolean = false
-): Promise<string | EnhancedLessonSpec> {
-  if (!USE_AI) {
-    throw new Error('AI generation is disabled (USE_AI=0)');
-  }
-
-  // If enhanced mode requested, use the enhanced lesson generator
-  if (enhanced) {
-    try {
-      console.log(`Generating enhanced lesson about "${topic}" for grade ${gradeLevel}`);
-      const enhancedLesson = await generateEnhancedLesson(gradeLevel, topic, true);
-      
-      if (!enhancedLesson) {
-        throw new Error('Enhanced lesson generation failed');
-      }
-      
-      return enhancedLesson;
-    } catch (error) {
-      console.error("Error generating enhanced lesson:", error);
-      throw error;
+    const { model, temperature } = getModelConfig(gradeLevel);
+    
+    // Select appropriate prompt based on style preference
+    let systemPrompt: string;
+    let userPrompt: string;
+    
+    switch(style) {
+      case 'enhanced':
+        systemPrompt = LESSON_PROMPTS.ENHANCED_LESSON(gradeLevel, topic);
+        userPrompt = LESSON_PROMPTS.STANDARD_LESSON_USER(gradeLevel, topic);
+        break;
+      case 'legacy':
+        // Legacy support for existing implementations
+        systemPrompt = LESSON_PROMPTS.STANDARD_LESSON(gradeLevel, topic);
+        userPrompt = LESSON_PROMPTS.STANDARD_LESSON_USER(gradeLevel, topic);
+        break;
+      default:
+        systemPrompt = LESSON_PROMPTS.STANDARD_LESSON(gradeLevel, topic);
+        userPrompt = LESSON_PROMPTS.STANDARD_LESSON_USER(gradeLevel, topic);
     }
-  } 
-  
-  // Legacy lesson generation (simple markdown)
-  try {
-    console.log(`Generating legacy lesson about "${topic}" for grade ${gradeLevel}`);
-    
-    const messages: Message[] = [
-      { role: "system", content: LESSON_PROMPTS.LEGACY_LESSON(gradeLevel, topic) },
-      { role: "user", content: LESSON_PROMPTS.STANDARD_LESSON_USER(gradeLevel, topic) }
-    ];
 
-    return await chat(messages, {
-      model: "anthropic/claude-3-haiku",
-      temperature: 0.7,
-      max_tokens: 1500
-    });
-  } catch (error) {
-    console.error("Error generating lesson content:", error);
-    throw error;
-  }
-}
-
-/**
- * Generate quiz questions for a specific grade level and topic
- */
-export async function generateQuizQuestions(gradeLevel: number, topic: string, questionCount: number = 5): Promise<any[]> {
-  if (!USE_AI) {
-    throw new Error('AI generation is disabled (USE_AI=0)');
-  }
-
-  try {
-    // Define the JSON schema
-    const schema = {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          text: { type: 'string' },
-          options: { type: 'array', items: { type: 'string' } },
-          correctIndex: { type: 'integer' },
-          explanation: { type: 'string' }
-        },
-        required: ['text', 'options', 'correctIndex', 'explanation']
-      }
-    };
-
-    const messages: Message[] = [
-      { role: "system", content: QUIZ_PROMPTS.STANDARD_QUIZ(gradeLevel, topic) },
-      { role: "user", content: QUIZ_PROMPTS.STANDARD_QUIZ_USER(gradeLevel, topic, questionCount) }
-    ];
-
-    const response = await chat(messages, {
-      model: "anthropic/claude-3-haiku", 
-      temperature: 0.5,
-      response_format: {
-        type: 'json_schema',
-        schema
-      }
-    });
-
-    // Parse the JSON response
-    return JSON.parse(response);
-  } catch (error) {
-    console.error("Error generating quiz questions:", error);
-    throw error;
-  }
-}
-
-/**
- * Generate personalized feedback for a learner based on their quiz performance
- */
-export async function generateFeedback(quizQuestions: any[], userAnswers: number[], score: number, gradeLevel: number): Promise<string> {
-  if (!USE_AI) {
-    throw new Error('AI generation is disabled (USE_AI=0)');
-  }
-
-  try {
-    const messages: Message[] = [
-      { role: "system", content: FEEDBACK_PROMPTS.PERSONALIZED_FEEDBACK(gradeLevel) },
-      { role: "user", content: FEEDBACK_PROMPTS.QUIZ_FEEDBACK_USER(quizQuestions, userAnswers, score, gradeLevel) }
-    ];
-
-    return await chat(messages, {
-      model: "anthropic/claude-3-haiku",
-      temperature: 0.7
-    });
-  } catch (error) {
-    console.error("Error generating feedback:", error);
-    return "Great effort on your quiz! Keep practicing to improve your understanding of the topic.";
-  }
-}
-
-/**
- * Generate a knowledge graph based on a topic
- */
-export async function generateKnowledgeGraph(topic: string, gradeLevel: number): Promise<any> {
-  if (!USE_AI) {
-    throw new Error('AI generation is disabled (USE_AI=0)');
-  }
-
-  try {
-    const schema = {
-      type: 'object',
-      properties: {
-        nodes: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              id: { type: 'string' },
-              label: { type: 'string' }
-            },
-            required: ['id', 'label']
-          }
-        },
-        edges: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              source: { type: 'string' },
-              target: { type: 'string' }
-            },
-            required: ['source', 'target']
-          }
-        }
-      },
-      required: ['nodes', 'edges']
-    };
-
-    const messages: Message[] = [
-      { role: "system", content: KNOWLEDGE_GRAPH_PROMPTS.KNOWLEDGE_GRAPH() },
-      { role: "user", content: KNOWLEDGE_GRAPH_PROMPTS.KNOWLEDGE_GRAPH_USER(topic, gradeLevel) }
-    ];
-
-    const response = await chat(messages, {
-      model: "anthropic/claude-3-haiku",
-      temperature: 0.5,
-      response_format: {
-        type: 'json_schema',
-        schema
-      }
-    });
-
-    // Parse the JSON response
-    return JSON.parse(response);
-  } catch (error) {
-    console.error("Error generating knowledge graph:", error);
-    
-    // Return a simple fallback graph
-    return {
-      nodes: [
-        { id: "main", label: topic },
-        { id: "sub1", label: `Basic ${topic}` },
-        { id: "sub2", label: `Advanced ${topic}` },
-        { id: "related1", label: "Related Concept 1" },
-        { id: "related2", label: "Related Concept 2" }
+    const completion = await openai.chat.completions.create({
+      model,
+      temperature,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt }
       ],
-      edges: [
-        { source: "main", target: "sub1" },
-        { source: "main", target: "sub2" },
-        { source: "main", target: "related1" },
-        { source: "main", target: "related2" },
-        { source: "sub1", target: "related1" }
-      ]
-    };
+      max_tokens: gradeLevel <= 2 ? 500 : gradeLevel <= 6 ? 1000 : 2000,
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    
+    if (!content) {
+      throw new Error('No content generated from AI model');
+    }
+
+    // Validate content meets grade-level constraints
+    const validation = validateContentLength(content, gradeLevel);
+    if (!validation.valid) {
+      console.warn(`Content length validation failed: ${validation.message}`);
+      // In production, you might want to retry with stricter constraints
+    }
+
+    return content;
+  } catch (error) {
+    console.error('Error generating lesson:', error);
+    throw new Error('Failed to generate lesson content');
   }
 }
+
+/**
+ * Generates quiz questions using grade-appropriate complexity
+ */
+export async function generateQuiz(
+  topic: string,
+  gradeLevel: number,
+  questionCount: number = 5
+): Promise<any[]> {
+  try {
+    const { model, temperature } = getModelConfig(gradeLevel);
+    
+    const completion = await openai.chat.completions.create({
+      model,
+      temperature: temperature * 0.8, // Lower temperature for more consistent quiz generation
+      messages: [
+        { role: 'system', content: QUIZ_PROMPTS.STANDARD_QUIZ(gradeLevel, topic) },
+        { role: 'user', content: QUIZ_PROMPTS.STANDARD_QUIZ_USER(gradeLevel, topic, questionCount) }
+      ],
+      max_tokens: 2000,
+      response_format: { type: "json_object" } // Ensure JSON response for quiz parsing
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    
+    if (!content) {
+      throw new Error('No quiz content generated');
+    }
+
+    try {
+      const quizData = JSON.parse(content);
+      
+      // Ensure quiz questions array exists and has the expected structure
+      const questions = Array.isArray(quizData) ? quizData : quizData.questions || [];
+      
+      // Validate question format for grade level
+      questions.forEach((question, index) => {
+        if (gradeLevel <= 2 && question.text.split(' ').length > 5) {
+          console.warn(`Question ${index + 1} too complex for grade ${gradeLevel}`);
+        }
+      });
+      
+      return questions;
+    } catch (parseError) {
+      console.error('Error parsing quiz JSON:', parseError);
+      throw new Error('Invalid quiz format generated');
+    }
+  } catch (error) {
+    console.error('Error generating quiz:', error);
+    throw new Error('Failed to generate quiz questions');
+  }
+}
+
+/**
+ * Generates personalized feedback based on quiz performance
+ */
+export async function generateFeedback(
+  quizQuestions: any[],
+  userAnswers: number[],
+  score: number,
+  gradeLevel: number
+): Promise<string> {
+  try {
+    const { model, temperature } = getModelConfig(gradeLevel);
+    
+    const completion = await openai.chat.completions.create({
+      model,
+      temperature: temperature * 1.2, // Slightly higher for more personalized feedback
+      messages: [
+        { role: 'system', content: FEEDBACK_PROMPTS.PERSONALIZED_FEEDBACK(gradeLevel) },
+        { role: 'user', content: FEEDBACK_PROMPTS.QUIZ_FEEDBACK_USER(
+          quizQuestions,
+          userAnswers,
+          score,
+          gradeLevel
+        )}
+      ],
+      max_tokens: gradeLevel <= 2 ? 200 : gradeLevel <= 6 ? 400 : 800,
+    });
+
+    const feedback = completion.choices[0]?.message?.content;
+    
+    if (!feedback) {
+      throw new Error('No feedback generated');
+    }
+
+    return feedback;
+  } catch (error) {
+    console.error('Error generating feedback:', error);
+    throw new Error('Failed to generate feedback');
+  }
+}
+
+/**
+ * Generates a knowledge graph for visualizing concept relationships
+ */
+export async function generateKnowledgeGraph(
+  topic: string,
+  gradeLevel: number
+): Promise<any> {
+  try {
+    const { model, temperature } = getModelConfig(gradeLevel);
+    
+    const completion = await openai.chat.completions.create({
+      model,
+      temperature: temperature * 0.7, // Lower for more structured output
+      messages: [
+        { role: 'system', content: KNOWLEDGE_GRAPH_PROMPTS.KNOWLEDGE_GRAPH() },
+        { role: 'user', content: KNOWLEDGE_GRAPH_PROMPTS.KNOWLEDGE_GRAPH_USER(topic, gradeLevel) }
+      ],
+      max_tokens: 1500,
+      response_format: { type: "json_object" }
+    });
+
+    const content = completion.choices[0]?.message?.content;
+    
+    if (!content) {
+      throw new Error('No knowledge graph generated');
+    }
+
+    try {
+      const graphData = JSON.parse(content);
+      
+      // Validate graph structure
+      if (!graphData.nodes || !graphData.edges) {
+        throw new Error('Invalid graph structure');
+      }
+      
+      // Ensure appropriate complexity for grade level
+      const nodeCount = graphData.nodes.length;
+      const expectedNodes = gradeLevel <= 2 ? 5 : gradeLevel <= 6 ? 10 : gradeLevel <= 8 ? 15 : 20;
+      
+      if (nodeCount > expectedNodes * 1.5) {
+        console.warn(`Graph complexity (${nodeCount} nodes) may be too high for grade ${gradeLevel}`);
+      }
+      
+      return graphData;
+    } catch (parseError) {
+      console.error('Error parsing knowledge graph:', parseError);
+      throw new Error('Invalid knowledge graph format');
+    }
+  } catch (error) {
+    console.error('Error generating knowledge graph:', error);
+    throw new Error('Failed to generate knowledge graph');
+  }
+}
+
+/**
+ * Generates educational image descriptions for visual learning
+ */
+export async function generateEducationalImage(
+  topic: string,
+  concept: string,
+  gradeLevel: number
+): Promise<string> {
+  try {
+    const { model, temperature } = getModelConfig(gradeLevel);
+    
+    const completion = await openai.chat.completions.create({
+      model,
+      temperature: temperature * 0.8,
+      messages: [
+        { 
+          role: 'user', 
+          content: IMAGE_PROMPTS.EDUCATIONAL_IMAGE(topic, concept, gradeLevel) 
+        }
+      ],
+      max_tokens: 1000,
+    });
+
+    const imageDescription = completion.choices[0]?.message?.content;
+    
+    if (!imageDescription) {
+      throw new Error('No image description generated');
+    }
+
+    return imageDescription;
+  } catch (error) {
+    console.error('Error generating image description:', error);
+    throw new Error('Failed to generate educational image description');
+  }
+}
+
+/**
+ * Generates educational diagram specifications
+ */
+export async function generateEducationalDiagram(
+  topic: string,
+  diagramType: string,
+  gradeLevel: number
+): Promise<string> {
+  try {
+    const { model, temperature } = getModelConfig(gradeLevel);
+    
+    const completion = await openai.chat.completions.create({
+      model,
+      temperature: temperature * 0.8,
+      messages: [
+        { 
+          role: 'user', 
+          content: IMAGE_PROMPTS.EDUCATIONAL_DIAGRAM(topic, diagramType, gradeLevel) 
+        }
+      ],
+      max_tokens: 1000,
+    });
+
+    const diagramSpec = completion.choices[0]?.message?.content;
+    
+    if (!diagramSpec) {
+      throw new Error('No diagram specification generated');
+    }
+
+    return diagramSpec;
+  } catch (error) {
+    console.error('Error generating diagram specification:', error);
+    throw new Error('Failed to generate diagram specification');
+  }
+}
+
+/**
+ * Utility function to validate content meets grade-level requirements
+ */
+function validateContentLength(
+  content: string, 
+  gradeLevel: number
+): { valid: boolean; message?: string } {
+  const wordCount = content.split(/\s+/).length;
+  
+  const limits = {
+    2: { max: 75, sentenceLength: 5 },
+    4: { max: 200, sentenceLength: 8 },
+    6: { max: 400, sentenceLength: 12 },
+    8: { max: 700, sentenceLength: 15 },
+    12: { max: 2000, sentenceLength: null }
+  };
+  
+  const limit = limits[Math.min(12, Math.max(2, Math.ceil(gradeLevel / 2) * 2))];
+  
+  if (wordCount > limit.max) {
+    return { 
+      valid: false, 
+      message: `Content exceeds maximum word count (${wordCount} > ${limit.max})` 
+    };
+  }
+  
+  if (limit.sentenceLength) {
+    const sentences = content.split(/[.!?]+/);
+    const longSentences = sentences.filter(s => 
+      s.trim().split(/\s+/).length > limit.sentenceLength
+    );
+    
+    if (longSentences.length > sentences.length * 0.2) {
+      return { 
+        valid: false, 
+        message: `Too many sentences exceed length limit for grade ${gradeLevel}` 
+      };
+    }
+  }
+  
+  return { valid: true };
+}
+
+/**
+ * Batch generation for efficiency when creating multiple related items
+ */
+export async function generateLessonPackage(
+  topic: string,
+  gradeLevel: number
+): Promise<{
+  lesson: string;
+  quiz: any[];
+  knowledgeGraph: any;
+  image?: string;
+}> {
+  try {
+    // Generate all components in parallel for efficiency
+    const [lesson, quiz, knowledgeGraph] = await Promise.all([
+      generateLesson(topic, gradeLevel),
+      generateQuiz(topic, gradeLevel),
+      generateKnowledgeGraph(topic, gradeLevel)
+    ]);
+    
+    // Optionally generate an image for visual learners
+    let image;
+    if (gradeLevel <= 6) {
+      // Younger students benefit more from visual aids
+      image = await generateEducationalImage(topic, topic, gradeLevel);
+    }
+    
+    return {
+      lesson,
+      quiz,
+      knowledgeGraph,
+      image
+    };
+  } catch (error) {
+    console.error('Error generating lesson package:', error);
+    throw new Error('Failed to generate complete lesson package');
+  }
+}
+
+export default {
+  generateLesson,
+  generateQuiz,
+  generateFeedback,
+  generateKnowledgeGraph,
+  generateEducationalImage,
+  generateEducationalDiagram,
+  generateLessonPackage
+};
