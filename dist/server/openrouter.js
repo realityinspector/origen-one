@@ -130,7 +130,7 @@ const prompts_3 = require("./prompts");
 /**
  * Generate personalized feedback for a learner based on their quiz performance
  */
-async function generateFeedback(quizQuestions, userAnswers, score) {
+async function generateFeedback(quizQuestions, userAnswers, score, gradeLevel) {
     const questionAnalysis = quizQuestions.map((q, i) => {
         const isCorrect = userAnswers[i] === q.correctIndex;
         return {
@@ -144,11 +144,11 @@ async function generateFeedback(quizQuestions, userAnswers, score) {
     const messages = [
         {
             role: 'system',
-            content: prompts_3.FEEDBACK_PROMPTS.PERSONALIZED_FEEDBACK()
+            content: prompts_3.FEEDBACK_PROMPTS.PERSONALIZED_FEEDBACK(gradeLevel)
         },
         {
             role: 'user',
-            content: prompts_3.FEEDBACK_PROMPTS.QUIZ_FEEDBACK_USER(quizQuestions, userAnswers, score)
+            content: prompts_3.FEEDBACK_PROMPTS.QUIZ_FEEDBACK_USER(quizQuestions, userAnswers, score, gradeLevel)
         }
     ];
     const response = await askOpenRouter({ messages, temperature: 0.7 });

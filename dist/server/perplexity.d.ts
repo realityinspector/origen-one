@@ -48,5 +48,5 @@ export declare function generateQuizQuestions(gradeLevel: number, topic: string,
 /**
  * Generate personalized feedback for a learner based on their quiz performance
  */
-export declare function generateFeedback(quizQuestions: any[], userAnswers: number[], score: number): Promise<string>;
+export declare function generateFeedback(quizQuestions: any[], userAnswers: number[], score: number, gradeLevel: number): Promise<string>;
 export {};
