@@ -89,10 +89,11 @@ async function generateQuizQuestions(gradeLevel, topic, questionCount = 5) {
         throw new Error('Failed to generate quiz questions');
     }
 }
+const prompts_2 = require("./prompts");
 /**
  * Generate personalized feedback for a learner based on their quiz performance
  */
-async function generateFeedback(quizQuestions, userAnswers, score) {
+async function generateFeedback(quizQuestions, userAnswers, score, gradeLevel) {
     const questionAnalysis = quizQuestions.map((q, i) => {
         const isCorrect = userAnswers[i] === q.correctIndex;
         return {
@@ -106,11 +107,11 @@ async function generateFeedback(quizQuestions, userAnswers, score) {
     const messages = [
         {
             role: 'system',
-            content: 'You are an encouraging and supportive educational coach providing feedback to young learners. Focus on positive reinforcement while providing helpful guidance.'
+            content: prompts_2.FEEDBACK_PROMPTS.PERSONALIZED_FEEDBACK(gradeLevel)
         },
         {
             role: 'user',
-            content: `Provide personalized feedback for a student who scored ${score}% on a quiz. Here are the details of their performance:\n\n${JSON.stringify(questionAnalysis)}\n\nProvide encouragement, highlight strengths, and give specific recommendations for improvement. Format your response in a friendly tone appropriate for a young learner.`
+            content: prompts_2.FEEDBACK_PROMPTS.QUIZ_FEEDBACK_USER(quizQuestions, userAnswers, score, gradeLevel)
         }
     ];
     const response = await askPerplexity({ messages });
