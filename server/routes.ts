@@ -12,6 +12,7 @@ import { sql, count } from "drizzle-orm";
 import crypto from "crypto";
 import { users } from "../shared/schema";
 import { getSubjectSVG, generateLessonContent, generateQuizQuestions } from "./content-generator";
+import { pointsService } from "./services/points-service";
 
 // Helper function to ensure consistent string IDs for cross-domain compatibility
 function ensureString(value: string | number | null | undefined): string {
@@ -1232,6 +1233,16 @@ export function registerRoutes(app: Express): Server {
       });
     }
 
+    // After score calculation, before generating new lesson
+    const pointsAwarded = correctCount * 10; // simple logic for now
+    const { newBalance } = await pointsService.awardPoints({
+      learnerId: req.user.id,
+      amount: pointsAwarded,
+      sourceType: "QUIZ_CORRECT",
+      sourceId: lessonId,
+      description: `Quiz score ${score}%`
+    });
+
     // Generate a new lesson
     try {
       const learnerProfile = await storage.getLearnerProfile(req.user.id);
@@ -1335,6 +1346,8 @@ export function registerRoutes(app: Express): Server {
       score,
       correctCount,
       totalQuestions: questions.length,
+      pointsAwarded,
+      newBalance,
       newAchievements: newAchievements.map(a => a.payload)
     });
   }));
@@ -1715,6 +1728,38 @@ export function registerRoutes(app: Express): Server {
       console.error('Error initiating synchronization:', error);
       res.status(500).json({ error: "Failed to initiate synchronization" });
     }
+  }));
+
+  // NEW: Points balance endpoint
+  app.get("/api/points/balance", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
+    const learnerId = req.user?.role === "LEARNER" ? req.user.id : req.query.learnerId;
+    if (!learnerId) return res.status(400).json({ error: "learnerId required" });
+
+    // Parents can only access their children
+    if (req.user?.role === "PARENT" && learnerId.toString() !== req.user.id.toString()) {
+      const children = await storage.getUsersByParentId(req.user.id);
+      if (!children.some(c => c.id.toString() === learnerId.toString())) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+    }
+    const balance = await pointsService.getBalance(learnerId);
+    res.json({ balance });
+  }));
+
+  // NEW: Points history endpoint
+  app.get("/api/points/history", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
+    const learnerId = req.user?.role === "LEARNER" ? req.user.id : req.query.learnerId;
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
+    if (!learnerId) return res.status(400).json({ error: "learnerId required" });
+    // Authorization same as above
+    if (req.user?.role === "PARENT" && learnerId.toString() !== req.user.id.toString()) {
+      const children = await storage.getUsersByParentId(req.user.id);
+      if (!children.some(c => c.id.toString() === learnerId.toString())) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+    }
+    const history = await pointsService.getHistory(learnerId, limit);
+    res.json(history);
   }));
 
   // Error handling middleware
