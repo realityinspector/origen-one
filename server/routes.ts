@@ -13,6 +13,7 @@ import crypto from "crypto";
 import { users } from "../shared/schema";
 import { getSubjectSVG, generateLessonContent, generateQuizQuestions } from "./content-generator";
 import { pointsService } from "./services/points-service";
+import { activityService } from "./services/activity-service";
 
 // Helper function to ensure consistent string IDs for cross-domain compatibility
 function ensureString(value: string | number | null | undefined): string {
@@ -1234,7 +1235,8 @@ export function registerRoutes(app: Express): Server {
     }
 
     // After score calculation, before generating new lesson
-    const pointsAwarded = correctCount * 10; // simple logic for now
+    // Award 1 token for every correct answer
+    const pointsAwarded = correctCount;
     const { newBalance } = await pointsService.awardPoints({
       learnerId: req.user.id,
       amount: pointsAwarded,
@@ -1760,6 +1762,64 @@ export function registerRoutes(app: Express): Server {
     }
     const history = await pointsService.getHistory(learnerId, limit);
     res.json(history);
+  }));
+
+  // Get current token balance for learner
+  app.get("/api/points", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+    const balance = await pointsService.getBalance(req.user.id);
+    res.json({ balance });
+  }));
+
+  // List active activities (rewards) catalog
+  app.get("/api/activities", isAuthenticated, asyncHandler(async (_req, res) => {
+    const activities = await activityService.getAll();
+    res.json(activities);
+  }));
+
+  // Allocate tokens to activities (creates awards)
+  app.post("/api/awards/allocate", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+    const { allocations } = req.body; // [{activityId, tokens}]
+    if (!Array.isArray(allocations)) {
+      return res.status(400).json({ error: "allocations must be an array" });
+    }
+
+    try {
+      const awards = await activityService.allocateTokens(req.user.id, allocations);
+      res.json({ awards });
+    } catch (err: any) {
+      if (err.message === "INSUFFICIENT_TOKENS") {
+        return res.status(400).json({ error: "Not enough tokens" });
+      }
+      console.error(err);
+      res.status(500).json({ error: "Server error" });
+    }
+  }));
+
+  // Mark award as cashed in
+  app.post("/api/awards/:awardId/cash-in", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+    const { awardId } = req.params;
+    await activityService.markCashedIn(awardId, req.user.id);
+    res.json({ status: "OK" });
+  }));
+
+  // Toggle sharing for an award
+  app.post("/api/awards/:awardId/share", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+    const { awardId } = req.params;
+    const { active, title, description } = req.body;
+    const hash = await activityService.toggleShare(awardId, req.user.id, !!active, title, description);
+    res.json({ shareUrl: `${process.env.APP_BASE_URL || ''}/users/${req.user.username}/award/${hash}` });
+  }));
+
+  // Public award share endpoint (no auth)
+  app.get("/users/:username/award/:hash", asyncHandler(async (req, res) => {
+    const { username, hash } = req.params;
+    const share = await activityService.getShareByHash(username, hash);
+    if (!share) return res.status(404).json({ error: "Not found" });
+    res.json(share);
   }));
 
   // Error handling middleware
