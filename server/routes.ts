@@ -1734,7 +1734,8 @@ export function registerRoutes(app: Express): Server {
 
   // NEW: Points balance endpoint
   app.get("/api/points/balance", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
-    const learnerId = req.user?.role === "LEARNER" ? req.user.id : req.query.learnerId;
+    const learnerIdRaw = req.user?.role === "LEARNER" ? req.user.id : req.query.learnerId;
+    const learnerId = String(learnerIdRaw);
     if (!learnerId) return res.status(400).json({ error: "learnerId required" });
 
     // Parents can only access their children
@@ -1750,7 +1751,8 @@ export function registerRoutes(app: Express): Server {
 
   // NEW: Points history endpoint
   app.get("/api/points/history", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
-    const learnerId = req.user?.role === "LEARNER" ? req.user.id : req.query.learnerId;
+    const learnerIdRaw = req.user?.role === "LEARNER" ? req.user.id : req.query.learnerId;
+    const learnerId = String(learnerIdRaw);
     const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
     if (!learnerId) return res.status(400).json({ error: "learnerId required" });
     // Authorization same as above
@@ -1786,7 +1788,7 @@ export function registerRoutes(app: Express): Server {
     }
 
     try {
-      const awards = await activityService.allocateTokens(req.user.id, allocations);
+      const awards = await activityService.allocateTokens(String(req.user.id), allocations);
       res.json({ awards });
     } catch (err: any) {
       if (err.message === "INSUFFICIENT_TOKENS") {
@@ -1801,7 +1803,7 @@ export function registerRoutes(app: Express): Server {
   app.post("/api/awards/:awardId/cash-in", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
     const { awardId } = req.params;
-    await activityService.markCashedIn(awardId, req.user.id);
+    await activityService.markCashedIn(awardId, String(req.user.id));
     res.json({ status: "OK" });
   }));
 
@@ -1810,7 +1812,7 @@ export function registerRoutes(app: Express): Server {
     if (!req.user) return res.status(401).json({ error: "Unauthorized" });
     const { awardId } = req.params;
     const { active, title, description } = req.body;
-    const hash = await activityService.toggleShare(awardId, req.user.id, !!active, title, description);
+    const hash = await activityService.toggleShare(awardId, String(req.user.id), !!active, title, description);
     res.json({ shareUrl: `${process.env.APP_BASE_URL || ''}/users/${req.user.username}/award/${hash}` });
   }));
 
