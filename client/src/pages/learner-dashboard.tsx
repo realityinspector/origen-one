@@ -17,6 +17,7 @@ import LessonCard from '../components/LessonCard';
 import AchievementBadge from '../components/AchievementBadge';
 import { Book, Award, BarChart2, User } from 'react-feather';
 import { useFocusEffect } from '@react-navigation/native';
+import TokenBalance from '../components/TokenBalance';
 
 const LearnerDashboard = ({ navigation }: any) => {
   const { user, logoutMutation } = useAuth();
@@ -109,6 +110,7 @@ const LearnerDashboard = ({ navigation }: any) => {
               </Text>
             </View>
           </View>
+          <TokenBalance />
           <TouchableOpacity
             style={styles.logoutButton}
             onPress={() => logoutMutation.mutate()}
