@@ -37,11 +37,11 @@ export declare const FEEDBACK_PROMPTS: {
     /**
      * System prompt for generating personalized feedback with visual support
      */
-    PERSONALIZED_FEEDBACK: () => string;
+    PERSONALIZED_FEEDBACK: (gradeLevel: number) => string;
     /**
      * User prompt for generating feedback based on quiz performance with visual support
      */
-    QUIZ_FEEDBACK_USER: (quizQuestions: any[], userAnswers: number[], score: number) => string;
+    QUIZ_FEEDBACK_USER: (quizQuestions: any[], userAnswers: number[], score: number, gradeLevel: number) => string;
 };
 export declare const KNOWLEDGE_GRAPH_PROMPTS: {
     /**

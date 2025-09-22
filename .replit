@@ -70,10 +70,6 @@ externalPort = 3000
 localPort = 8000
 externalPort = 80
 
-[[ports]]
-localPort = 39713
-externalPort = 3001
-
 [agent]
 integrations = ["python_openai==1.0.0"]
 expertMode = true

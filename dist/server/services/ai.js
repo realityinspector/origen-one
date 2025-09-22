@@ -133,14 +133,14 @@ async function generateQuizQuestions(gradeLevel, topic, questionCount = 5) {
 /**
  * Generate personalized feedback for a learner based on their quiz performance
  */
-async function generateFeedback(quizQuestions, userAnswers, score) {
+async function generateFeedback(quizQuestions, userAnswers, score, gradeLevel) {
     if (!flags_1.USE_AI) {
         throw new Error('AI generation is disabled (USE_AI=0)');
     }
     try {
         const messages = [
-            { role: "system", content: prompts_1.FEEDBACK_PROMPTS.PERSONALIZED_FEEDBACK() },
-            { role: "user", content: prompts_1.FEEDBACK_PROMPTS.QUIZ_FEEDBACK_USER(quizQuestions, userAnswers, score) }
+            { role: "system", content: prompts_1.FEEDBACK_PROMPTS.PERSONALIZED_FEEDBACK(gradeLevel) },
+            { role: "user", content: prompts_1.FEEDBACK_PROMPTS.QUIZ_FEEDBACK_USER(quizQuestions, userAnswers, score, gradeLevel) }
         ];
         return await chat(messages, {
             model: "anthropic/claude-3-haiku",
