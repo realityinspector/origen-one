@@ -430,6 +430,28 @@ function generateStaticQuizQuestions(topic: string, gradeLevel: number) {
   return questions;
 }
 
+/**
+ * Generate a cryptographically-strong random hash of the given length.  This is
+ * used for public share-links etc.
+ */
+export function generateRandomHash(length: number = 24): string {
+  const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let result = "";
+  const array = new Uint32Array(length);
+  // Use crypto if available (Node 19+, browsers) otherwise Math.random fallback.
+  if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+    crypto.getRandomValues(array);
+    for (let i = 0; i < length; i++) {
+      result += characters[array[i] % characters.length];
+    }
+  } else {
+    for (let i = 0; i < length; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+  }
+  return result;
+}
+
 // Function to check if an achievement should be awarded
 export function checkForAchievements(lessonHistory: Lesson[], completedLesson?: Lesson) {
   const achievements: {
