@@ -26,13 +26,19 @@ export async function generateEnhancedLesson(gradeLevel: number, topic: string) 
   const content = await generateLessonContent(gradeLevel, topic);
   return {
     title: topic,
+    targetGradeLevel: gradeLevel,
     summary: content.slice(0, 160),
-    sections: [{ title: topic, content }],
+    sections: [{ title: topic, content, type: "introduction" as const }],
     keywords: [],
     relatedTopics: [],
-    estimatedDuration: 0,
-    difficultyLevel: "medium",
+    estimatedDuration: 30, // Default 30 minutes
+    difficultyLevel: "intermediate" as const,
     questions: [],
-    graph: {}
+    images: [],
+    diagrams: [],
+    graph: {
+      nodes: [],
+      edges: []
+    }
   };
 }
