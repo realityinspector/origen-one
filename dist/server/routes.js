@@ -49,6 +49,8 @@ const drizzle_orm_1 = require("drizzle-orm");
 const crypto_1 = __importDefault(require("crypto"));
 const schema_1 = require("../shared/schema");
 const content_generator_1 = require("./content-generator");
+const points_service_1 = require("./services/points-service");
+const activity_service_1 = require("./services/activity-service");
 // Helper function to ensure consistent string IDs for cross-domain compatibility
 function ensureString(value) {
     if (value === null || value === undefined)
@@ -1119,6 +1121,16 @@ function registerRoutes(app) {
                 payload: achievement.payload
             });
         }
+        // After score calculation, before generating new lesson
+        // Award 1 token for every correct answer
+        const pointsAwarded = correctCount;
+        const { newBalance } = await points_service_1.pointsService.awardPoints({
+            learnerId: req.user.id,
+            amount: pointsAwarded,
+            sourceType: "QUIZ_CORRECT",
+            sourceId: lessonId,
+            description: `Quiz score ${score}%`
+        });
         // Generate a new lesson
         try {
             const learnerProfile = await storage_1.storage.getLearnerProfile(req.user.id);
@@ -1211,6 +1223,8 @@ function registerRoutes(app) {
             score,
             correctCount,
             totalQuestions: questions.length,
+            pointsAwarded,
+            newBalance,
             newAchievements: newAchievements.map(a => a.payload)
         });
     }));
@@ -1544,6 +1558,94 @@ function registerRoutes(app) {
             console.error('Error initiating synchronization:', error);
             res.status(500).json({ error: "Failed to initiate synchronization" });
         }
+    }));
+    // NEW: Points balance endpoint
+    app.get("/api/points/balance", isAuthenticated, (0, auth_2.asyncHandler)(async (req, res) => {
+        const learnerId = req.user?.role === "LEARNER" ? req.user.id : req.query.learnerId;
+        if (!learnerId)
+            return res.status(400).json({ error: "learnerId required" });
+        // Parents can only access their children
+        if (req.user?.role === "PARENT" && learnerId.toString() !== req.user.id.toString()) {
+            const children = await storage_1.storage.getUsersByParentId(req.user.id);
+            if (!children.some(c => c.id.toString() === learnerId.toString())) {
+                return res.status(403).json({ error: "Forbidden" });
+            }
+        }
+        const balance = await points_service_1.pointsService.getBalance(learnerId);
+        res.json({ balance });
+    }));
+    // NEW: Points history endpoint
+    app.get("/api/points/history", isAuthenticated, (0, auth_2.asyncHandler)(async (req, res) => {
+        const learnerId = req.user?.role === "LEARNER" ? req.user.id : req.query.learnerId;
+        const limit = req.query.limit ? parseInt(req.query.limit) : 50;
+        if (!learnerId)
+            return res.status(400).json({ error: "learnerId required" });
+        // Authorization same as above
+        if (req.user?.role === "PARENT" && learnerId.toString() !== req.user.id.toString()) {
+            const children = await storage_1.storage.getUsersByParentId(req.user.id);
+            if (!children.some(c => c.id.toString() === learnerId.toString())) {
+                return res.status(403).json({ error: "Forbidden" });
+            }
+        }
+        const history = await points_service_1.pointsService.getHistory(learnerId, limit);
+        res.json(history);
+    }));
+    // Get current token balance for learner
+    app.get("/api/points", isAuthenticated, (0, auth_2.asyncHandler)(async (req, res) => {
+        if (!req.user)
+            return res.status(401).json({ error: "Unauthorized" });
+        const balance = await points_service_1.pointsService.getBalance(req.user.id);
+        res.json({ balance });
+    }));
+    // List active activities (rewards) catalog
+    app.get("/api/activities", isAuthenticated, (0, auth_2.asyncHandler)(async (_req, res) => {
+        const activities = await activity_service_1.activityService.getAll();
+        res.json(activities);
+    }));
+    // Allocate tokens to activities (creates awards)
+    app.post("/api/awards/allocate", isAuthenticated, (0, auth_2.asyncHandler)(async (req, res) => {
+        if (!req.user)
+            return res.status(401).json({ error: "Unauthorized" });
+        const { allocations } = req.body; // [{activityId, tokens}]
+        if (!Array.isArray(allocations)) {
+            return res.status(400).json({ error: "allocations must be an array" });
+        }
+        try {
+            const awards = await activity_service_1.activityService.allocateTokens(req.user.id, allocations);
+            res.json({ awards });
+        }
+        catch (err) {
+            if (err.message === "INSUFFICIENT_TOKENS") {
+                return res.status(400).json({ error: "Not enough tokens" });
+            }
+            console.error(err);
+            res.status(500).json({ error: "Server error" });
+        }
+    }));
+    // Mark award as cashed in
+    app.post("/api/awards/:awardId/cash-in", isAuthenticated, (0, auth_2.asyncHandler)(async (req, res) => {
+        if (!req.user)
+            return res.status(401).json({ error: "Unauthorized" });
+        const { awardId } = req.params;
+        await activity_service_1.activityService.markCashedIn(awardId, req.user.id);
+        res.json({ status: "OK" });
+    }));
+    // Toggle sharing for an award
+    app.post("/api/awards/:awardId/share", isAuthenticated, (0, auth_2.asyncHandler)(async (req, res) => {
+        if (!req.user)
+            return res.status(401).json({ error: "Unauthorized" });
+        const { awardId } = req.params;
+        const { active, title, description } = req.body;
+        const hash = await activity_service_1.activityService.toggleShare(awardId, req.user.id, !!active, title, description);
+        res.json({ shareUrl: `${process.env.APP_BASE_URL || ''}/users/${req.user.username}/award/${hash}` });
+    }));
+    // Public award share endpoint (no auth)
+    app.get("/users/:username/award/:hash", (0, auth_2.asyncHandler)(async (req, res) => {
+        const { username, hash } = req.params;
+        const share = await activity_service_1.activityService.getShareByHash(username, hash);
+        if (!share)
+            return res.status(404).json({ error: "Not found" });
+        res.json(share);
     }));
     // Error handling middleware
     app.use((err, req, res, next) => {
