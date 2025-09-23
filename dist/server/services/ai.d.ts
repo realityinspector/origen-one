@@ -1,65 +1,44 @@
 /**
- * AI Service Adapter
- *
- * This module provides a unified interface for AI services including:
- * - OpenRouter for text generation
- * - Stability AI for image generation
- * - Enhanced lesson generation
+ * Generates a lesson using the modular prompt system
+ * Automatically selects appropriate prompting strategy based on grade level
  */
-import { generateEnhancedLesson } from './enhanced-lesson-service';
-import { EnhancedLessonSpec } from '../../shared/schema';
-export { generateEnhancedLesson };
-export type Message = {
-    role: "system" | "user" | "assistant";
-    content: string;
-};
-export type ChatOptions = {
-    model?: string;
-    temperature?: number;
-    max_tokens?: number;
-    response_format?: {
-        type: 'json_schema';
-        schema: any;
-    };
-};
-export interface ChatResponse {
-    id: string;
-    model: string;
-    object: string;
-    created: number;
-    choices: {
-        index: number;
-        finish_reason: string;
-        message: {
-            role: string;
-            content: string;
-        };
-    }[];
-    usage: {
-        prompt_tokens: number;
-        completion_tokens: number;
-        total_tokens: number;
-    };
-}
+export declare function generateLesson(topic: string, gradeLevel: number, style?: 'standard' | 'enhanced' | 'legacy'): Promise<string>;
 /**
- * Makes a request to the OpenRouter API
+ * Generates quiz questions using grade-appropriate complexity
  */
-export declare function chat(messages: Message[], options?: ChatOptions): Promise<string>;
+export declare function generateQuiz(topic: string, gradeLevel: number, questionCount?: number): Promise<any[]>;
 /**
- * Generate a lesson for a specific grade level and topic
- * This function can either return a simple markdown string (legacy)
- * or generate a full enhanced lesson if the enhanced parameter is true
- */
-export declare function generateLessonContent(gradeLevel: number, topic: string, enhanced?: boolean): Promise<string | EnhancedLessonSpec>;
-/**
- * Generate quiz questions for a specific grade level and topic
- */
-export declare function generateQuizQuestions(gradeLevel: number, topic: string, questionCount?: number): Promise<any[]>;
-/**
- * Generate personalized feedback for a learner based on their quiz performance
+ * Generates personalized feedback based on quiz performance
  */
 export declare function generateFeedback(quizQuestions: any[], userAnswers: number[], score: number, gradeLevel: number): Promise<string>;
 /**
- * Generate a knowledge graph based on a topic
+ * Generates a knowledge graph for visualizing concept relationships
  */
 export declare function generateKnowledgeGraph(topic: string, gradeLevel: number): Promise<any>;
+/**
+ * Generates educational image descriptions for visual learning
+ */
+export declare function generateEducationalImage(topic: string, concept: string, gradeLevel: number): Promise<string>;
+/**
+ * Generates educational diagram specifications
+ */
+export declare function generateEducationalDiagram(topic: string, diagramType: string, gradeLevel: number): Promise<string>;
+/**
+ * Batch generation for efficiency when creating multiple related items
+ */
+export declare function generateLessonPackage(topic: string, gradeLevel: number): Promise<{
+    lesson: string;
+    quiz: any[];
+    knowledgeGraph: any;
+    image?: string;
+}>;
+declare const _default: {
+    generateLesson: typeof generateLesson;
+    generateQuiz: typeof generateQuiz;
+    generateFeedback: typeof generateFeedback;
+    generateKnowledgeGraph: typeof generateKnowledgeGraph;
+    generateEducationalImage: typeof generateEducationalImage;
+    generateEducationalDiagram: typeof generateEducationalDiagram;
+    generateLessonPackage: typeof generateLessonPackage;
+};
+export default _default;
