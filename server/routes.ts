@@ -1177,6 +1177,8 @@ export function registerRoutes(app: Express): Server {
 
   // Submit answer to a quiz question
   app.post("/api/lessons/:lessonId/answer", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
+    console.log(`Quiz submission attempt for lesson ${req.params.lessonId} by user ${req.user?.id}`);
+
     if (!req.user) {
       return res.status(401).json({ error: "Unauthorized" });
     }
@@ -1184,7 +1186,10 @@ export function registerRoutes(app: Express): Server {
     const lessonId = req.params.lessonId;
     const { answers } = req.body;
 
+    console.log(`Answers received:`, answers);
+
     if (!Array.isArray(answers)) {
+      console.log(`Invalid answers format: ${typeof answers}`);
       return res.status(400).json({ error: "Answers must be an array" });
     }
 
@@ -1237,6 +1242,7 @@ export function registerRoutes(app: Express): Server {
     // After score calculation, before generating new lesson
     // Award 1 token for every correct answer
     const pointsAwarded = correctCount;
+    console.log(`Awarding ${pointsAwarded} points for quiz completion`);
     const { newBalance } = await pointsService.awardPoints({
       learnerId: req.user.id,
       amount: pointsAwarded,
@@ -1244,10 +1250,14 @@ export function registerRoutes(app: Express): Server {
       sourceId: lessonId,
       description: `Quiz score ${score}%`
     });
+    console.log(`Points awarded successfully, new balance: ${newBalance}`);
 
     // Generate a new lesson
     try {
+      console.log('Attempting to generate new lesson after quiz completion');
       const learnerProfile = await storage.getLearnerProfile(req.user.id);
+      console.log(`Learner profile loaded:`, learnerProfile ? 'found' : 'not found');
+
       if (learnerProfile) {
         // Create a varied lesson even when AI is disabled
         let lessonSpec;
@@ -1292,7 +1302,7 @@ export function registerRoutes(app: Express): Server {
         }
 
         if (USE_AI) {
-          lessonSpec = await generateLesson(learnerProfile.gradeLevel);
+          lessonSpec = await generateLesson(learnerProfile.gradeLevel, `${subject}: ${category}`);
         } else {
           // Generate varied lessons when AI is disabled
           console.log("Generating varied lesson on " + subject + ": " + category);
@@ -1322,6 +1332,7 @@ export function registerRoutes(app: Express): Server {
         }
 
         // Create the new lesson with UUID and varied content
+        console.log(`Creating new lesson: subject=${subject}, category=${category}, difficulty=${difficulty}`);
         await storage.createLesson({
           id: crypto.randomUUID(),
           learnerId: Number(req.user.id),
@@ -1337,6 +1348,7 @@ export function registerRoutes(app: Express): Server {
             description: `An illustration related to ${category}`
           }]
         });
+        console.log('New lesson created successfully');
       }
     } catch (error) {
       console.error("Failed to generate a new lesson after quiz completion:", error);

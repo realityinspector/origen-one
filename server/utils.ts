@@ -86,9 +86,16 @@ export async function generateLesson(
           title: enhancedSpec.title,
           content: formatEnhancedContentForStandardSpec(enhancedSpec),
           questions: enhancedSpec.questions,
-          graph: enhancedSpec.graph,
-          // Store the enhanced spec in the main spec for clients that support it
-          enhancedSpec: enhancedSpec
+          graph: enhancedSpec.graph ? {
+            nodes: enhancedSpec.graph.nodes.map(node => ({
+              id: node.id,
+              label: node.label
+            })),
+            edges: enhancedSpec.graph.edges.map(edge => ({
+              source: edge.source,
+              target: edge.target
+            }))
+          } : undefined
         };
         
         console.log('Enhanced lesson generated successfully');

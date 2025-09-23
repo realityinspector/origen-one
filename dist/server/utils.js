@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateLesson = generateLesson;
+exports.generateRandomHash = generateRandomHash;
 exports.checkForAchievements = checkForAchievements;
 const ai_1 = require("./services/ai");
 // Grade level topics for lesson generation
@@ -67,9 +68,16 @@ async function generateLesson(gradeLevel, topic, useEnhanced = true) {
                     title: enhancedSpec.title,
                     content: formatEnhancedContentForStandardSpec(enhancedSpec),
                     questions: enhancedSpec.questions,
-                    graph: enhancedSpec.graph,
-                    // Store the enhanced spec in the main spec for clients that support it
-                    enhancedSpec: enhancedSpec
+                    graph: enhancedSpec.graph ? {
+                        nodes: enhancedSpec.graph.nodes.map(node => ({
+                            id: node.id,
+                            label: node.label
+                        })),
+                        edges: enhancedSpec.graph.edges.map(edge => ({
+                            source: edge.source,
+                            target: edge.target
+                        }))
+                    } : undefined
                 };
                 console.log('Enhanced lesson generated successfully');
                 return standardSpec;
@@ -377,6 +385,28 @@ function generateStaticQuizQuestions(topic, gradeLevel) {
             });
     }
     return questions;
+}
+/**
+ * Generate a cryptographically-strong random hash of the given length.  This is
+ * used for public share-links etc.
+ */
+function generateRandomHash(length = 24) {
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let result = "";
+    const array = new Uint32Array(length);
+    // Use crypto if available (Node 19+, browsers) otherwise Math.random fallback.
+    if (typeof crypto !== "undefined" && typeof crypto.getRandomValues === "function") {
+        crypto.getRandomValues(array);
+        for (let i = 0; i < length; i++) {
+            result += characters[array[i] % characters.length];
+        }
+    }
+    else {
+        for (let i = 0; i < length; i++) {
+            result += characters.charAt(Math.floor(Math.random() * characters.length));
+        }
+    }
+    return result;
 }
 // Function to check if an achievement should be awarded
 function checkForAchievements(lessonHistory, completedLesson) {
