@@ -1078,12 +1078,15 @@ function registerRoutes(app) {
     }));
     // Submit answer to a quiz question
     app.post("/api/lessons/:lessonId/answer", isAuthenticated, (0, auth_2.asyncHandler)(async (req, res) => {
+        console.log(`Quiz submission attempt for lesson ${req.params.lessonId} by user ${req.user?.id}`);
         if (!req.user) {
             return res.status(401).json({ error: "Unauthorized" });
         }
         const lessonId = req.params.lessonId;
         const { answers } = req.body;
+        console.log(`Answers received:`, answers);
         if (!Array.isArray(answers)) {
+            console.log(`Invalid answers format: ${typeof answers}`);
             return res.status(400).json({ error: "Answers must be an array" });
         }
         const lesson = await storage_1.storage.getLessonById(lessonId);
@@ -1124,6 +1127,7 @@ function registerRoutes(app) {
         // After score calculation, before generating new lesson
         // Award 1 token for every correct answer
         const pointsAwarded = correctCount;
+        console.log(`Awarding ${pointsAwarded} points for quiz completion`);
         const { newBalance } = await points_service_1.pointsService.awardPoints({
             learnerId: req.user.id,
             amount: pointsAwarded,
@@ -1131,9 +1135,12 @@ function registerRoutes(app) {
             sourceId: lessonId,
             description: `Quiz score ${score}%`
         });
+        console.log(`Points awarded successfully, new balance: ${newBalance}`);
         // Generate a new lesson
         try {
+            console.log('Attempting to generate new lesson after quiz completion');
             const learnerProfile = await storage_1.storage.getLearnerProfile(req.user.id);
+            console.log(`Learner profile loaded:`, learnerProfile ? 'found' : 'not found');
             if (learnerProfile) {
                 // Create a varied lesson even when AI is disabled
                 let lessonSpec;
@@ -1171,7 +1178,7 @@ function registerRoutes(app) {
                     }
                 }
                 if (flags_1.USE_AI) {
-                    lessonSpec = await (0, utils_1.generateLesson)(learnerProfile.gradeLevel);
+                    lessonSpec = await (0, utils_1.generateLesson)(learnerProfile.gradeLevel, `${subject}: ${category}`);
                 }
                 else {
                     // Generate varied lessons when AI is disabled
@@ -1197,6 +1204,7 @@ function registerRoutes(app) {
                     };
                 }
                 // Create the new lesson with UUID and varied content
+                console.log(`Creating new lesson: subject=${subject}, category=${category}, difficulty=${difficulty}`);
                 await storage_1.storage.createLesson({
                     id: crypto_1.default.randomUUID(),
                     learnerId: Number(req.user.id),
@@ -1212,6 +1220,7 @@ function registerRoutes(app) {
                             description: `An illustration related to ${category}`
                         }]
                 });
+                console.log('New lesson created successfully');
             }
         }
         catch (error) {
@@ -1561,7 +1570,8 @@ function registerRoutes(app) {
     }));
     // NEW: Points balance endpoint
     app.get("/api/points/balance", isAuthenticated, (0, auth_2.asyncHandler)(async (req, res) => {
-        const learnerId = req.user?.role === "LEARNER" ? req.user.id : req.query.learnerId;
+        const learnerIdRaw = req.user?.role === "LEARNER" ? req.user.id : req.query.learnerId;
+        const learnerId = String(learnerIdRaw);
         if (!learnerId)
             return res.status(400).json({ error: "learnerId required" });
         // Parents can only access their children
@@ -1576,7 +1586,8 @@ function registerRoutes(app) {
     }));
     // NEW: Points history endpoint
     app.get("/api/points/history", isAuthenticated, (0, auth_2.asyncHandler)(async (req, res) => {
-        const learnerId = req.user?.role === "LEARNER" ? req.user.id : req.query.learnerId;
+        const learnerIdRaw = req.user?.role === "LEARNER" ? req.user.id : req.query.learnerId;
+        const learnerId = String(learnerIdRaw);
         const limit = req.query.limit ? parseInt(req.query.limit) : 50;
         if (!learnerId)
             return res.status(400).json({ error: "learnerId required" });
@@ -1611,7 +1622,7 @@ function registerRoutes(app) {
             return res.status(400).json({ error: "allocations must be an array" });
         }
         try {
-            const awards = await activity_service_1.activityService.allocateTokens(req.user.id, allocations);
+            const awards = await activity_service_1.activityService.allocateTokens(String(req.user.id), allocations);
             res.json({ awards });
         }
         catch (err) {
@@ -1627,7 +1638,7 @@ function registerRoutes(app) {
         if (!req.user)
             return res.status(401).json({ error: "Unauthorized" });
         const { awardId } = req.params;
-        await activity_service_1.activityService.markCashedIn(awardId, req.user.id);
+        await activity_service_1.activityService.markCashedIn(awardId, String(req.user.id));
         res.json({ status: "OK" });
     }));
     // Toggle sharing for an award
@@ -1636,7 +1647,7 @@ function registerRoutes(app) {
             return res.status(401).json({ error: "Unauthorized" });
         const { awardId } = req.params;
         const { active, title, description } = req.body;
-        const hash = await activity_service_1.activityService.toggleShare(awardId, req.user.id, !!active, title, description);
+        const hash = await activity_service_1.activityService.toggleShare(awardId, String(req.user.id), !!active, title, description);
         res.json({ shareUrl: `${process.env.APP_BASE_URL || ''}/users/${req.user.username}/award/${hash}` });
     }));
     // Public award share endpoint (no auth)

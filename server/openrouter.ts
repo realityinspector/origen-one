@@ -3,7 +3,7 @@ import axios from 'axios';
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const API_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
-interface Message {
+export interface Message {
   role: 'system' | 'user' | 'assistant';
   content: string;
 }
