@@ -41,8 +41,17 @@ export const SESSION_SECRET = getEnv('SESSION_SECRET', 'dev-secret-change-me');
 export const JWT_SECRET = getEnv('JWT_SECRET', SESSION_SECRET);
 export const JWT_EXPIRY = getEnv('JWT_EXPIRY', '7d');
 
+// LLM Provider Configuration
+export const LLM_PROVIDER = process.env.LLM_PROVIDER || 'openrouter'; // 'openrouter', 'bittensor', 'perplexity'
+
 // For OpenRouter integration
 export const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY || '';
+
+// For Bittensor integration
+export const BITTENSOR_API_KEY = process.env.BITTENSOR_API_KEY || '';
+export const BITTENSOR_SUBNET_1_URL = process.env.BITTENSOR_SUBNET_1_URL || 'https://archive.opentensor.ai/graphql';
+export const BITTENSOR_WALLET_NAME = process.env.BITTENSOR_WALLET_NAME;
+export const BITTENSOR_WALLET_HOTKEY = process.env.BITTENSOR_WALLET_HOTKEY;
 
 // For Perplexity integration
 export const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY || '';
