@@ -150,12 +150,33 @@ import { validateQuizQuestions, generateValidationReport } from './services/cont
 /**
  * Generate quiz questions for a specific grade level and topic
  * WITH CONTENT VALIDATION AND RETRY LOGIC
+ * WITH ADAPTIVE REINFORCEMENT LEARNING
  */
-export async function generateQuizQuestions(gradeLevel: number, topic: string, questionCount: number = 5): Promise<any[]> {
+export async function generateQuizQuestions(
+  gradeLevel: number,
+  topic: string,
+  questionCount: number = 5,
+  learnerId?: number,
+  weakConcepts?: string[],
+  recentQuestions?: string[]
+): Promise<any[]> {
+  // Build adaptive prompt additions
+  let adaptiveInstructions = '';
+
+  if (weakConcepts && weakConcepts.length > 0) {
+    adaptiveInstructions += `\n\nFOCUS ON THESE CONCEPTS (learner needs practice):\n${weakConcepts.map(c => `- ${c}`).join('\n')}\n`;
+    adaptiveInstructions += `Create variations that test these concepts with NEW scenarios and examples.`;
+  }
+
+  if (recentQuestions && recentQuestions.length > 0) {
+    adaptiveInstructions += `\n\nAVOID EXACT DUPLICATES - Learner recently saw:\n${recentQuestions.slice(0, 10).map((q, i) => `${i + 1}. "${q}"`).join('\n')}\n`;
+    adaptiveInstructions += `Generate DIFFERENT questions that test similar concepts with fresh wording and examples.`;
+  }
+
   const messages: Message[] = [
     {
       role: 'system',
-      content: QUIZ_PROMPTS.STANDARD_QUIZ(gradeLevel, topic)
+      content: QUIZ_PROMPTS.STANDARD_QUIZ(gradeLevel, topic) + adaptiveInstructions
     },
     {
       role: 'user',

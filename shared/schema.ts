@@ -243,3 +243,64 @@ export type InsertAchievement = typeof achievements.$inferInsert;
 
 export type DbSyncConfig = typeof dbSyncConfigs.$inferSelect;
 export type InsertDbSyncConfig = typeof dbSyncConfigs.$inferInsert;
+
+// Quiz Answers table (for individual answer tracking)
+export const quizAnswers = pgTable("quiz_answers", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  learnerId: integer("learner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  lessonId: text("lesson_id").notNull().references(() => lessons.id, { onDelete: "cascade" }),
+  questionIndex: integer("question_index").notNull(),
+  questionText: text("question_text").notNull(),
+  questionHash: varchar("question_hash", { length: 64 }).notNull(),
+  userAnswer: integer("user_answer").notNull(),
+  correctAnswer: integer("correct_answer").notNull(),
+  isCorrect: boolean("is_correct").notNull(),
+  conceptTags: text("concept_tags").array(),
+  answeredAt: timestamp("answered_at").defaultNow(),
+}, (table) => [
+  index("idx_learner_answers").on(table.learnerId, table.answeredAt),
+  index("idx_lesson_answers").on(table.lessonId),
+  index("idx_question_hash").on(table.questionHash),
+]);
+
+export const quizAnswersRelations = relations(quizAnswers, ({ one }) => ({
+  learner: one(users, {
+    fields: [quizAnswers.learnerId],
+    references: [users.id],
+  }),
+  lesson: one(lessons, {
+    fields: [quizAnswers.lessonId],
+    references: [lessons.id],
+  }),
+}));
+
+// Concept Mastery table (for tracking mastery levels)
+export const conceptMastery = pgTable("concept_mastery", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  learnerId: integer("learner_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  conceptName: text("concept_name").notNull(),
+  subject: text("subject").notNull(),
+  correctCount: integer("correct_count").notNull().default(0),
+  totalCount: integer("total_count").notNull().default(0),
+  masteryLevel: integer("mastery_level").notNull().default(0), // Store as integer (0-100) for precision
+  lastTested: timestamp("last_tested").defaultNow(),
+  needsReinforcement: boolean("needs_reinforcement").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => [
+  index("idx_learner_mastery").on(table.learnerId, table.subject),
+  index("idx_needs_reinforcement").on(table.learnerId, table.needsReinforcement),
+]);
+
+export const conceptMasteryRelations = relations(conceptMastery, ({ one }) => ({
+  learner: one(users, {
+    fields: [conceptMastery.learnerId],
+    references: [users.id],
+  }),
+}));
+
+// Types for new tables
+export type QuizAnswer = typeof quizAnswers.$inferSelect;
+export type InsertQuizAnswer = typeof quizAnswers.$inferInsert;
+
+export type ConceptMastery = typeof conceptMastery.$inferSelect;
+export type InsertConceptMastery = typeof conceptMastery.$inferInsert;
