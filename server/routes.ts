@@ -29,6 +29,9 @@ function isAuthenticated(req: Request, res: Response, next: NextFunction): void 
 // Import services
 import('./services/subject-recommendation');
 import('./services/enhanced-lesson-service');
+import { storeQuizAnswers, extractConceptTags } from './services/quiz-tracking-service';
+import { bulkUpdateMasteryFromAnswers, getConceptsNeedingReinforcement } from './services/mastery-service';
+import { storeQuestionHashes, getRecentQuestions } from './services/question-deduplication';
 
 function hasRole(roles: string[]) {
   return (req: Request, res: Response, next: NextFunction): void => {
@@ -1226,6 +1229,52 @@ export function registerRoutes(app: Express): Server {
     // Update lesson status
     const updatedLesson = await storage.updateLessonStatus(lessonId, "DONE", score);
 
+    // === NEW: Store individual quiz answers for analytics ===
+    try {
+      await storeQuizAnswers(
+        req.user.id,
+        lessonId,
+        questions,
+        answers,
+        lesson.subject || 'General'
+      );
+      console.log(`✓ Stored ${questions.length} quiz answers`);
+    } catch (error) {
+      console.error('Error storing quiz answers:', error);
+      // Don't fail the request if storage fails
+    }
+
+    // === NEW: Update concept mastery tracking ===
+    try {
+      const conceptsAndCorrectness = questions.map((question, index) => {
+        const concepts = extractConceptTags(question, lesson.subject || 'General');
+        const isCorrect = answers[index] === question.correctIndex;
+        return { concepts, isCorrect };
+      });
+
+      await bulkUpdateMasteryFromAnswers(
+        req.user.id,
+        lesson.subject || 'General',
+        conceptsAndCorrectness
+      );
+      console.log(`✓ Updated concept mastery for ${conceptsAndCorrectness.length} questions`);
+    } catch (error) {
+      console.error('Error updating concept mastery:', error);
+      // Don't fail the request if mastery update fails
+    }
+
+    // === NEW: Store question hashes for deduplication ===
+    try {
+      await storeQuestionHashes(
+        req.user.id,
+        lesson.subject || 'General',
+        questions
+      );
+    } catch (error) {
+      console.error('Error storing question hashes:', error);
+      // Don't fail the request if deduplication storage fails
+    }
+
     // Check for achievements
     const lessonHistory = await storage.getLessonHistory(req.user.id);
     const newAchievements = checkForAchievements(lessonHistory, updatedLesson);
@@ -1319,7 +1368,7 @@ export function registerRoutes(app: Express): Server {
           // Create rich, educational content appropriate for the grade level
           const lessonContent = generateLessonContent(subject, category, learnerProfile.gradeLevel);
 
-          // Generate age-appropriate quiz questions for the specific grade level
+          // Generate age-appropriate quiz questions (non-AI version - no adaptive learning)
           const quizQuestions = generateQuizQuestions(subject, category, learnerProfile.gradeLevel);
 
           // Create the full lesson specification with rich content
