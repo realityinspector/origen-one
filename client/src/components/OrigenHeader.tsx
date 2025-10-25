@@ -60,7 +60,7 @@ const OrigenHeader: React.FC<OrigenHeaderProps> = ({ subtitle }) => {
   return (
     <View style={styles.header}>
       <View style={styles.headerContent}>
-        <TouchableOpacity 
+        <TouchableOpacity
         style={styles.titleContainer}
         onPress={() => {
           // Navigate to home/index page for all users
@@ -71,17 +71,30 @@ const OrigenHeader: React.FC<OrigenHeaderProps> = ({ subtitle }) => {
           }
         }}
       >
-        <Text style={styles.headerTitle}>SUNSCHOOL™</Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.headerTitle}>SUNSCHOOL™</Text>
+          {/* Clear visual mode indicator badge */}
+          {user && (
+            <View style={[
+              styles.modeBadge,
+              isLearnerMode ? styles.learnerModeBadge : styles.grownUpModeBadge
+            ]}>
+              <Text style={styles.modeBadgeText}>
+                {isLearnerMode ? '👦 LEARNER MODE' : '👨 PARENT MODE'}
+              </Text>
+            </View>
+          )}
+        </View>
         <Text style={styles.headerSubtitle}>{subtitle || "powered by SUNSCHOOL AI TUTOR"}</Text>
       </TouchableOpacity>
-        
+
         {user && (
           <View style={styles.navigation}>
             {/* Show LearnerSelector for parents and admins when in learner mode */}
             {isLearnerMode && (user?.role === 'PARENT' || user?.role === 'ADMIN') && (
               <LearnerSelector />
             )}
-            
+
             {getNavItems().map((item, index) => (
               <TouchableOpacity 
                 key={index}
@@ -125,6 +138,11 @@ const styles = StyleSheet.create({
   titleContainer: {
     flexDirection: 'column',
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
   headerTitle: {
     ...typography.h2,
     color: colors.onPrimary,
@@ -135,6 +153,27 @@ const styles = StyleSheet.create({
     ...typography.subtitle1,
     color: colors.onPrimary + 'CC',
     marginTop: 4,
+  },
+  modeBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 2,
+  },
+  learnerModeBadge: {
+    backgroundColor: '#4CAF50',
+    borderColor: '#66BB6A',
+  },
+  grownUpModeBadge: {
+    backgroundColor: '#2196F3',
+    borderColor: '#42A5F5',
+  },
+  modeBadgeText: {
+    ...typography.caption,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 11,
+    letterSpacing: 0.5,
   },
   navigation: {
     flexDirection: 'row',
