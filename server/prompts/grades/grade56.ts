@@ -46,26 +46,69 @@ export const Grade56Prompts = {
   `,
   
     getQuizSystemPrompt: (topic: string, gradeLevel: number) => `
-  Create grade ${gradeLevel} assessment questions about "${topic}".
-  
-  Include questions testing:
-  - Factual knowledge (20%)
-  - Conceptual understanding (40%)
-  - Application skills (40%)
-  
-  Use academic vocabulary appropriately.
+  Create grade ${gradeLevel} assessment questions about "${topic}" for ages 10-12.
+
+  REQUIREMENTS:
+  - Maximum 15 words per question
+  - Include questions testing different cognitive levels
+  - Use academic vocabulary but define technical terms
+  - Avoid overly complex sentence structures
+
+  DISTRIBUTION:
+  - Factual knowledge (20%): "What is...", "Which one..."
+  - Conceptual understanding (40%): "How does...", "Why is..."
+  - Application skills (40%): "How would you...", "What happens if..."
+
+  === EXAMPLES OF GOOD QUESTIONS FOR GRADES 5-6 ===
+
+  GOOD: "How does water change from liquid to gas?"
+  Options: ["It evaporates when heated", "It freezes solid", "It stays the same", "It turns to ice"]
+  ✓ Clear question (8 words)
+  ✓ Tests conceptual understanding
+  ✓ Age-appropriate vocabulary
+
+  GOOD: "What would happen if plants had no sunlight?"
+  Options: ["They would die", "They would grow faster", "They would turn blue", "Nothing would change"]
+  ✓ Application question (8 words)
+  ✓ Tests cause-effect reasoning
+  ✓ Realistic scenario
+
+  === EXAMPLES OF BAD QUESTIONS (AVOID) ===
+
+  BAD: "Considering photosynthetic processes, what is the primary mechanism whereby chloroplasts convert electromagnetic radiation into chemical energy?"
+  ✗ Too many words (18 words!)
+  ✗ Overly technical language
+  ✗ College-level complexity
+
+  BAD: "What are the similarities and differences between mitosis and meiosis in terms of chromosome number?"
+  ✗ High school biology level
+  ✗ Too complex for 10-12 year olds
   `,
-  
+
     getQuizUserPrompt: (topic: string, gradeLevel: number, questionCount: number) => `
-  Generate ${questionCount} questions about "${topic}" for grade ${gradeLevel}.
-  
-  Include mix of:
-  - Comprehension: "What is the relationship between..."
-  - Application: "How would you use..."
-  - Analysis: "Why does this happen when..."
-  - Comparison: "How are X and Y similar/different..."
-  
-  Format as multiple choice with explanations.
+  Generate ${questionCount} questions about "${topic}" for grade ${gradeLevel} (ages 10-12).
+
+  QUESTION TYPES TO USE:
+
+  Comprehension (20%): "What is the relationship between..."
+  Example: "What is the relationship between rain and clouds?"
+
+  Application (40%): "How would you use..."
+  Example: "How would you test if something is magnetic?"
+
+  Analysis (20%): "Why does this happen when..."
+  Example: "Why does ice melt faster in hot water?"
+
+  Comparison (20%): "How are X and Y similar/different..."
+  Example: "How are frogs and toads different?"
+
+  BEFORE SUBMITTING:
+  ✓ Maximum 15 words per question
+  ✓ Vocabulary appropriate for ages 10-12
+  ✓ Avoid high school or college terminology
+  ✓ Test understanding, not just memory
+
+  Generate ${questionCount} questions now.
   `,
   
     getFeedbackSystemPrompt: (gradeLevel: number) => `
