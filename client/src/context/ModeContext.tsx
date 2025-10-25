@@ -128,35 +128,29 @@ export const ModeProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Invalid learner object provided to selectLearner:', learner);
       return;
     }
-    
+
+    console.log('Selecting learner:', learner.name, learner.id);
+
+    // Update selectedLearner state
     setSelectedLearner(learner);
-    
+
+    // Save to localStorage
     if (typeof window !== 'undefined' && learner.id !== undefined) {
-      // Use String() which safely handles undefined/null better than toString()
       window.localStorage.setItem('selectedLearnerId', String(learner.id));
-      console.log('Saved learner ID to localStorage:', learner.id);
-    } else {
-      console.warn('Could not save learner ID to localStorage - invalid ID or not in browser');
-    }
-    
-    // When a learner is selected, automatically switch to LEARNER mode
-    // This ensures that the learner switcher always puts users in learner mode
-    if (mode !== 'LEARNER') {
-      console.log('Switching to LEARNER mode because a learner was selected');
-      setMode('LEARNER');
-    }
-    
-    // Always persist LEARNER mode preference when selecting a learner
-    // This ensures persistence across reloads regardless of current mode
-    if (typeof window !== 'undefined') {
       window.localStorage.setItem('preferredMode', 'LEARNER');
+      console.log('Saved learner ID and mode to localStorage:', learner.id);
     }
-    
-    // Use a small delay to ensure mode state is committed before navigation
-    // This prevents race conditions with route guards that depend on isLearnerMode
-    setTimeout(() => {
-      safeNavigate('/learner');
-    }, 0);
+
+    // Switch to LEARNER mode using state updater callback to ensure immediate update
+    setMode(prevMode => {
+      console.log('Mode update: switching to LEARNER from', prevMode);
+      // Use requestAnimationFrame to navigate after React finishes state updates
+      requestAnimationFrame(() => {
+        console.log('Navigating to /learner after mode switch');
+        safeNavigate('/learner');
+      });
+      return 'LEARNER';
+    });
   };
   
   // Default to the user's actual role, or to stored preference
@@ -215,56 +209,55 @@ export const ModeProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
   
   const toggleMode = () => {
-    // Add debug messages
-    console.log('Toggle mode called', { mode, canToggle: canToggleMode() });
-    
+    console.log('Toggle mode called', { currentMode: mode, canToggle: canToggleMode() });
+
     if (!canToggleMode()) {
-      console.log('Cannot toggle mode');
+      console.log('Cannot toggle mode - conditions not met');
       return;
     }
-    
+
+    const newMode = mode === 'LEARNER' ? 'GROWN_UP' : 'LEARNER';
+
     // For parents and admins switching to learner mode, ensure a learner is selected
-    if (mode === 'GROWN_UP' && (user?.role === 'PARENT' || user?.role === 'ADMIN')) {
+    if (newMode === 'LEARNER' && (user?.role === 'PARENT' || user?.role === 'ADMIN')) {
       if (!selectedLearner && availableLearners && availableLearners.length > 0) {
         // Auto-select the first learner if none is selected
         const firstLearner = availableLearners[0];
         if (firstLearner && typeof firstLearner.id !== 'undefined') {
+          console.log('Auto-selecting first learner for mode switch:', firstLearner.name);
           selectLearner(firstLearner);
+          return; // selectLearner handles mode switch and navigation
         } else {
-          console.error('Cannot auto-select learner: Invalid first learner object', firstLearner);
+          console.error('Cannot auto-select learner: Invalid first learner object');
           return;
         }
       } else if (!selectedLearner && (!availableLearners || availableLearners.length === 0)) {
-        console.log('Cannot switch to learner mode: no learners available');
-        // Continue anyway to allow navigation to /learners page where they can add learners
+        console.log('No learners available - directing to learners management page');
+        safeNavigate('/learners');
+        return;
       }
     }
-    
-    const newMode = mode === 'LEARNER' ? 'GROWN_UP' : 'LEARNER';
-    console.log('Setting new mode', { newMode });
-    
-    // Store the preference if in browser
+
+    console.log('Toggling mode:', mode, '->', newMode);
+
+    // Store the preference
     if (typeof window !== 'undefined') {
       window.localStorage.setItem('preferredMode', newMode);
-      console.log('Stored mode in localStorage');
     }
-    
-    setMode(newMode);
-    
-    // Navigate to the appropriate dashboard
-    if (newMode === 'LEARNER') {
-      // If no learners are available, direct to the learners management page
-      if (!selectedLearner && (!availableLearners || availableLearners.length === 0)) {
-        console.log('No learners available, navigating to learners page');
-        safeNavigate('/learners');
-      } else {
-        console.log('Navigating to learner view');
-        safeNavigate('/learner');
-      }
-    } else {
-      console.log('Navigating to dashboard');
-      safeNavigate('/dashboard');
-    }
+
+    // Update mode state and navigate after state is committed
+    setMode(prevMode => {
+      console.log('Mode state updated:', prevMode, '->', newMode);
+
+      // Use requestAnimationFrame to ensure navigation happens after React state updates
+      requestAnimationFrame(() => {
+        const targetPath = newMode === 'LEARNER' ? '/learner' : '/dashboard';
+        console.log('Navigating to:', targetPath);
+        safeNavigate(targetPath);
+      });
+
+      return newMode;
+    });
   };
   
   return (
