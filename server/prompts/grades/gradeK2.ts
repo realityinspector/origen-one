@@ -1,19 +1,31 @@
 export const GradeK2Prompts = {
     getSystemPrompt: (topic: string, gradeLevel: number) => `
   ### TEACHING 5-7 YEAR OLD CHILDREN
-  
-  You are creating content for children who have just learned to read.
-  
-  ABSOLUTE REQUIREMENTS:
-  - Maximum 5 words per sentence
-  - Maximum 75 words total
-  - Only use words a 5-year-old knows
-  - Only concrete things they can see and touch
-  
-  BANNED WORDS: process, system, adapt, environment, organism, function, structure, cycle, energy, nutrient, habitat, ecosystem, photosynthesis, cells, billions, molecules
-  
-  ALLOWED WORDS: big, small, hot, cold, wet, dry, up, down, eat, drink, run, walk, jump, play, red, blue, green, yellow, sun, moon, water, food, home, mom, dad, dog, cat, tree, flower
-  
+
+  You are creating content for children ages 5-7 who are JUST learning to read.
+  These children have a vocabulary of about 2,000 SIMPLE words.
+
+  ABSOLUTE REQUIREMENTS - NO EXCEPTIONS:
+  - Maximum 5 words per sentence (count carefully!)
+  - Maximum 75 words total for entire lesson
+  - Only use words a kindergartner knows (mom, dad, cat, dog, hot, cold, big, small)
+  - Only concrete things they can SEE, TOUCH, SMELL, TASTE, or HEAR
+  - NO abstract concepts whatsoever
+
+  EXPANDED BANNED WORDS (DO NOT USE ANY OF THESE):
+  process, system, adapt, adaptation, environment, organism, function, structure, cycle,
+  energy, nutrient, habitat, ecosystem, photosynthesis, cells, billions, molecules, chemical,
+  reaction, evolution, species, classification, analyze, determine, conclude, investigate,
+  demonstrate, illustrate, relationship, comparison, similarity, difference, characteristic,
+  property, attribute, feature, complex, simple, various, numerous, several, multiple,
+  approximately, significant, essential, important, therefore, however, although, because
+
+  ONLY USE WORDS LIKE THESE:
+  Nouns: mom, dad, sun, moon, water, food, home, dog, cat, tree, flower, bird, fish, car, ball
+  Adjectives: big, small, hot, cold, wet, dry, red, blue, green, yellow, happy, sad
+  Verbs: is, has, go, run, walk, jump, play, eat, drink, see, look, hear, feel
+  Numbers: one, two, three, four, five (use digits: 1, 2, 3, 4, 5)
+
   Create lesson about "${topic}".
   `,
   
@@ -59,25 +71,83 @@ export const GradeK2Prompts = {
   
     getQuizSystemPrompt: (topic: string, gradeLevel: number) => `
   Create questions for 5-7 year olds about "${topic}".
-  
-  REQUIREMENTS:
-  - 5 words maximum per question
-  - Yes/no or counting questions only
-  - Use pictures when possible
-  - No reading required beyond basic words
+
+  STRICT REQUIREMENTS:
+  - Maximum 5 words per question (count every word!)
+  - ONLY Yes/No OR counting questions (1, 2, 3, 4)
+  - NO multi-part questions
+  - NO complex vocabulary
+  - NO abstract concepts
+
+  === EXAMPLES OF PERFECT QUESTIONS ===
+
+  GOOD: "Is the sun hot?"
+  Answer options: ["Yes", "No", "Maybe", "I don't know"]
+  ✓ Only 4 words
+  ✓ Simple yes/no
+  ✓ Concrete concept (can feel heat)
+
+  GOOD: "How many legs?"
+  Answer options: ["1", "2", "3", "4"]
+  ✓ Only 3 words
+  ✓ Counting question
+  ✓ Observable (can count)
+
+  GOOD: "Is water wet?"
+  Answer options: ["Yes", "No", "Sometimes", "Never"]
+  ✓ Only 3 words
+  ✓ Can test by touching
+
+  === EXAMPLES OF BAD QUESTIONS (NEVER DO THIS) ===
+
+  BAD: "What is the relationship between the sun and plants?"
+  ✗ Too many words (10 words!)
+  ✗ Word "relationship" too abstract
+  ✗ Requires complex thinking
+
+  BAD: "How do animals adapt to their environment?"
+  ✗ Words "adapt" and "environment" too advanced
+  ✗ Abstract concept
+  ✗ Not observable
+
+  BAD: "Which process helps plants make food?"
+  ✗ Word "process" too abstract
+  ✗ Requires prior knowledge
+  ✗ Not simple yes/no or counting
   `,
-  
+
     getQuizUserPrompt: (topic: string, gradeLevel: number, questionCount: number) => `
-  Create ${questionCount} VERY SIMPLE questions about "${topic}".
-  
-  Format:
-  1. "Is [thing] [quality]?" (Yes/No)
-  2. "How many [things]?" (1, 2, 3, 4)
-  3. "What color is [thing]?" (red, blue, green, yellow)
-  4. "Is it big?" (Yes/No)
-  5. "Can it [action]?" (Yes/No)
-  
-  Example: "Is water wet?" Answer: Yes
+  Create ${questionCount} EXTREMELY SIMPLE questions about "${topic}" for ages 5-7.
+
+  MANDATORY QUESTION TYPES (use ONLY these patterns):
+
+  Pattern 1: "Is [thing] [quality]?"
+  Example: "Is ice cold?"
+  Options: ["Yes", "No", "Maybe", "Sometimes"]
+
+  Pattern 2: "How many [things]?"
+  Example: "How many legs?"
+  Options: ["1", "2", "3", "4"] or ["2", "4", "6", "8"]
+
+  Pattern 3: "What color is [thing]?"
+  Example: "What color is grass?"
+  Options: ["Red", "Blue", "Green", "Yellow"]
+
+  Pattern 4: "Can [thing] [action]?"
+  Example: "Can dogs run?"
+  Options: ["Yes", "No", "Maybe", "Sometimes"]
+
+  Pattern 5: "Is it big?"
+  Example: "Is an elephant big?"
+  Options: ["Yes", "No", "Very big", "Very small"]
+
+  BEFORE SUBMITTING EACH QUESTION:
+  ✓ Count words (must be ≤ 5)
+  ✓ Check every word is kindergarten-level
+  ✓ Verify it's yes/no OR counting
+  ✓ Make sure a 5-year-old can understand
+
+  Generate ${questionCount} questions now.
   `,
   
     getFeedbackSystemPrompt: (gradeLevel: number) => `

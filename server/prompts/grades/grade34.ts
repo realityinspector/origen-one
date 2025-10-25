@@ -1,16 +1,30 @@
 export const Grade34Prompts = {
     getSystemPrompt: (topic: string, gradeLevel: number) => `
-  ### TEACHING 8-10 YEAR OLD CHILDREN
-  
-  Create content for children developing reading fluency.
-  
-  REQUIREMENTS:
-  - Maximum 8 words per sentence
-  - Maximum 200 words total
-  - Use grade 3-4 vocabulary
-  - Introduce one new concept at a time
-  - Connect to their experiences
-  
+  ### TEACHING 8-10 YEAR OLD CHILDREN (GRADES 3-4)
+
+  Create content for children ages 8-10 who are developing reading fluency.
+  These children know about 4,000-6,000 words and can read simple paragraphs.
+
+  STRICT REQUIREMENTS:
+  - Maximum 8 words per sentence (count carefully!)
+  - Maximum 200 words total for entire lesson
+  - Use grade 3-4 vocabulary ONLY (no high school or college words)
+  - Introduce ONE new concept at a time
+  - Connect to experiences familiar to 8-10 year olds (school, home, playground)
+  - Use concrete examples they can visualize
+
+  BANNED WORDS FOR GRADES 3-4:
+  molecular, cellular, genetic, heredity, chromosomes, proteins, enzymes, metabolism,
+  symbiosis, mutualism, photosynthesis, respiration, mitosis, meiosis, polynomial,
+  quadratic, exponential, logarithm, derivative, integral, theorem, hypothesis,
+  subsequently, furthermore, nevertheless, consequently, whereas, complexity,
+  comprehensive, synthesize, analyze (use "look at" or "study" instead)
+
+  USE VOCABULARY LIKE THIS:
+  - Science: animals, plants, water, air, heat, light, grow, change, measure
+  - Math: add, subtract, multiply, divide, fraction, equal, pattern, shape
+  - Descriptive: hot/cold, fast/slow, heavy/light, rough/smooth, living/non-living
+
   Create engaging lesson about "${topic}".
   `,
   
@@ -46,26 +60,84 @@ export const Grade34Prompts = {
   `,
   
     getQuizSystemPrompt: (topic: string, gradeLevel: number) => `
-  Create grade ${gradeLevel} questions about "${topic}".
-  
-  REQUIREMENTS:
-  - 10 words maximum per question
+  Create grade ${gradeLevel} questions about "${topic}" for ages 8-10.
+
+  STRICT REQUIREMENTS:
+  - Maximum 10 words per question (count every word!)
   - Multiple choice with 4 options
-  - Test understanding, not memorization
-  - Include "which" and "what" questions
+  - Test understanding, NOT memorization of facts
+  - Use simple, clear wording
+  - Avoid multi-part questions
+
+  === EXAMPLES OF PERFECT QUESTIONS FOR GRADES 3-4 ===
+
+  GOOD: "What makes plants grow?"
+  Options: ["Sunlight and water", "Only rocks", "Just air", "Only dirt"]
+  ✓ Simple vocabulary (4 words)
+  ✓ Tests understanding of basic concept
+  ✓ Clear options at grade level
+
+  GOOD: "Which animal lays eggs?"
+  Options: ["Chicken", "Dog", "Cat", "Horse"]
+  ✓ Direct question (4 words)
+  ✓ Tests classification knowledge
+  ✓ All options are animals they know
+
+  GOOD: "How do seeds travel?"
+  Options: ["Wind or animals carry them", "They walk", "They fly alone", "They don't move"]
+  ✓ Age-appropriate (4 words)
+  ✓ Tests cause-and-effect understanding
+  ✓ Options make sense to test knowledge
+
+  === EXAMPLES OF BAD QUESTIONS (NEVER DO THIS) ===
+
+  BAD: "What is the primary mechanism by which organisms adapt to environmental pressures?"
+  ✗ Too many words (13 words!)
+  ✗ Words "mechanism", "organisms", "environmental" too advanced
+  ✗ Concept too abstract for 8-10 year olds
+
+  BAD: "Considering the relationship between photosynthesis and cellular respiration, which process occurs first?"
+  ✗ Way too complex (14 words!)
+  ✗ Multi-part concept
+  ✗ Requires understanding beyond grade 3-4
+
+  BAD: "What happens to water during the evaporation stage of the hydrological cycle?"
+  ✗ Too technical: "evaporation", "hydrological"
+  ✗ Better to ask: "What happens when water gets hot?"
   `,
-  
+
     getQuizUserPrompt: (topic: string, gradeLevel: number, questionCount: number) => `
-  Create ${questionCount} questions about "${topic}" for grade ${gradeLevel}.
-  
-  Question types:
-  1. "Which one is [characteristic]?"
-  2. "What happens when [action]?"
-  3. "How many [measurement]?"
-  4. "Why does [phenomenon]?"
-  5. "What do all [category] have?"
-  
-  Provide 4 choices (A, B, C, D).
+  Create ${questionCount} questions about "${topic}" for grade ${gradeLevel} (ages 8-10).
+
+  MANDATORY QUESTION PATTERNS (use these types):
+
+  Type 1: "Which [thing] is [characteristic]?"
+  Example: "Which animal is the biggest?"
+  Options: ["Elephant", "Mouse", "Cat", "Dog"]
+
+  Type 2: "What happens when [simple action]?"
+  Example: "What happens when ice gets hot?"
+  Options: ["It melts", "It freezes", "It grows", "It breaks"]
+
+  Type 3: "How many [simple measurement]?"
+  Example: "How many legs does a spider have?"
+  Options: ["8", "6", "4", "2"]
+
+  Type 4: "Why does [simple phenomenon]?"
+  Example: "Why does a ball fall down?"
+  Options: ["Gravity pulls it", "Wind pushes it", "It wants to", "Magic"]
+
+  Type 5: "What do all [category] have?"
+  Example: "What do all birds have?"
+  Options: ["Feathers", "Fur", "Scales", "Shells"]
+
+  BEFORE SUBMITTING:
+  ✓ Count words (must be ≤ 10)
+  ✓ Check vocabulary is grade 3-4 level
+  ✓ Verify a 9-year-old can understand
+  ✓ Make sure you're not using banned words
+
+  Generate ${questionCount} questions now.
   `,
   
     getFeedbackSystemPrompt: (gradeLevel: number) => `

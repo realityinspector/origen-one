@@ -75,9 +75,11 @@ export async function askOpenRouter(options: OpenRouterOptions): Promise<OpenRou
 }
 
 import { LESSON_PROMPTS } from './prompts';
+import { validateLessonContent, generateValidationReport as generateLessonValidationReport } from './services/content-validator';
 
 /**
  * Generate a lesson for a specific grade level and topic
+ * WITH CONTENT VALIDATION AND RETRY LOGIC
  */
 export async function generateLessonContent(gradeLevel: number, topic: string): Promise<string> {
   const messages: Message[] = [
@@ -91,14 +93,63 @@ export async function generateLessonContent(gradeLevel: number, topic: string): 
     }
   ];
 
-  const response = await askOpenRouter({ messages });
-  return response.choices[0].message.content;
+  // Retry up to 2 times if validation fails (fewer attempts for lessons since they're longer)
+  const maxAttempts = 2;
+  let lastContent: string = '';
+  let lastValidationResult: any = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    console.log(`\n=== Lesson Generation Attempt ${attempt}/${maxAttempts} ===`);
+    console.log(`Grade: ${gradeLevel}, Topic: ${topic}`);
+
+    const response = await askOpenRouter({
+      messages,
+      temperature: 0.4 + (attempt * 0.1) // Lower temperature for stricter following
+    });
+
+    const content = response.choices[0].message.content;
+    lastContent = content;
+
+    // Validate lesson content for age-appropriateness
+    const validationResult = validateLessonContent(content, gradeLevel);
+    lastValidationResult = validationResult;
+
+    // Log validation report
+    const report = generateLessonValidationReport(validationResult, 'lesson');
+    console.log(report);
+
+    if (validationResult.isValid) {
+      console.log(`✓ Lesson content validated successfully on attempt ${attempt}`);
+      return content;
+    } else {
+      console.warn(`✗ Lesson validation failed on attempt ${attempt}. Retrying...`);
+
+      // Add validation feedback to messages for next attempt
+      messages.push({
+        role: 'assistant',
+        content: content
+      });
+      messages.push({
+        role: 'user',
+        content: `This lesson has issues:\n${validationResult.issues.join('\n')}\n\nRecommendations:\n${validationResult.recommendations.join('\n')}\n\nPlease rewrite the lesson following ALL grade ${gradeLevel} requirements more carefully.`
+      });
+    }
+  }
+
+  // If all attempts failed validation, return best attempt with warning
+  console.warn(`⚠️  All ${maxAttempts} attempts failed lesson validation. Returning last attempt with issues.`);
+  if (lastValidationResult) {
+    console.warn(`Issues: ${lastValidationResult.issues.join(', ')}`);
+  }
+  return lastContent;
 }
 
 import { QUIZ_PROMPTS } from './prompts';
+import { validateQuizQuestions, generateValidationReport } from './services/content-validator';
 
 /**
  * Generate quiz questions for a specific grade level and topic
+ * WITH CONTENT VALIDATION AND RETRY LOGIC
  */
 export async function generateQuizQuestions(gradeLevel: number, topic: string, questionCount: number = 5): Promise<any[]> {
   const messages: Message[] = [
@@ -149,19 +200,64 @@ export async function generateQuizQuestions(gradeLevel: number, topic: string, q
     }
   };
 
-  const response = await askOpenRouter({ 
-    messages, 
-    response_format,
-    temperature: 0.5
-  });
-  
-  try {
-    // Parse the JSON content directly
-    return JSON.parse(response.choices[0].message.content);
-  } catch (error) {
-    console.error('Failed to parse quiz questions JSON:', error);
-    throw new Error('Failed to generate quiz questions');
+  // Retry up to 3 times if validation fails
+  const maxAttempts = 3;
+  let lastQuestions: any[] = [];
+  let lastValidationResult: any = null;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    console.log(`\n=== Quiz Generation Attempt ${attempt}/${maxAttempts} ===`);
+    console.log(`Grade: ${gradeLevel}, Topic: ${topic}, Questions: ${questionCount}`);
+
+    const response = await askOpenRouter({
+      messages,
+      response_format,
+      temperature: 0.3 + (attempt * 0.1) // Lower temperature for stricter following
+    });
+
+    try {
+      // Parse the JSON content
+      const questions = JSON.parse(response.choices[0].message.content);
+      lastQuestions = questions;
+
+      // Validate quiz questions for age-appropriateness
+      const validationResult = validateQuizQuestions(questions, gradeLevel);
+      lastValidationResult = validationResult;
+
+      // Log validation report
+      const report = generateValidationReport(validationResult, 'quiz');
+      console.log(report);
+
+      if (validationResult.isValid) {
+        console.log(`✓ Quiz questions validated successfully on attempt ${attempt}`);
+        return questions;
+      } else {
+        console.warn(`✗ Validation failed on attempt ${attempt}. Retrying...`);
+
+        // Add validation feedback to messages for next attempt
+        messages.push({
+          role: 'assistant',
+          content: JSON.stringify(questions)
+        });
+        messages.push({
+          role: 'user',
+          content: `These questions have issues:\n${validationResult.issues.join('\n')}\n\nRecommendations:\n${validationResult.recommendations.join('\n')}\n\nPlease regenerate ${questionCount} questions following ALL requirements more carefully.`
+        });
+      }
+    } catch (error) {
+      console.error(`Failed to parse quiz questions JSON on attempt ${attempt}:`, error);
+      if (attempt === maxAttempts) {
+        throw new Error('Failed to generate quiz questions after 3 attempts');
+      }
+    }
   }
+
+  // If all attempts failed validation, return best attempt with warning
+  console.warn(`⚠️  All ${maxAttempts} attempts failed validation. Returning last attempt with issues.`);
+  if (lastValidationResult) {
+    console.warn(`Issues: ${lastValidationResult.issues.join(', ')}`);
+  }
+  return lastQuestions;
 }
 
 import { FEEDBACK_PROMPTS } from './prompts';
