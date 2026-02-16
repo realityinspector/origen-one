@@ -64,6 +64,9 @@ function isAuthenticated(req, res, next) {
 // Import services
 Promise.resolve().then(() => __importStar(require('./services/subject-recommendation')));
 Promise.resolve().then(() => __importStar(require('./services/enhanced-lesson-service')));
+const quiz_tracking_service_1 = require("./services/quiz-tracking-service");
+const mastery_service_1 = require("./services/mastery-service");
+const question_deduplication_1 = require("./services/question-deduplication");
 function hasRole(roles) {
     return (req, res, next) => {
         // First authenticate the user
@@ -1113,6 +1116,39 @@ function registerRoutes(app) {
         const score = Math.round((correctCount / questions.length) * 100);
         // Update lesson status
         const updatedLesson = await storage_1.storage.updateLessonStatus(lessonId, "DONE", score);
+        // Convert user ID to number once for all three operations
+        const learnerId = typeof req.user.id === 'number' ? req.user.id : parseInt(String(req.user.id), 10);
+        // === NEW: Store individual quiz answers for analytics ===
+        try {
+            await (0, quiz_tracking_service_1.storeQuizAnswers)(learnerId, lessonId, questions, answers, lesson.subject || 'General');
+            console.log(`✓ Stored ${questions.length} quiz answers`);
+        }
+        catch (error) {
+            console.error('Error storing quiz answers:', error);
+            // Don't fail the request if storage fails
+        }
+        // === NEW: Update concept mastery tracking ===
+        try {
+            const conceptsAndCorrectness = questions.map((question, index) => {
+                const concepts = (0, quiz_tracking_service_1.extractConceptTags)(question, lesson.subject || 'General');
+                const isCorrect = answers[index] === question.correctIndex;
+                return { concepts, isCorrect };
+            });
+            await (0, mastery_service_1.bulkUpdateMasteryFromAnswers)(learnerId, lesson.subject || 'General', conceptsAndCorrectness);
+            console.log(`✓ Updated concept mastery for ${conceptsAndCorrectness.length} questions`);
+        }
+        catch (error) {
+            console.error('Error updating concept mastery:', error);
+            // Don't fail the request if mastery update fails
+        }
+        // === NEW: Store question hashes for deduplication ===
+        try {
+            await (0, question_deduplication_1.storeQuestionHashes)(learnerId, lesson.subject || 'General', questions);
+        }
+        catch (error) {
+            console.error('Error storing question hashes:', error);
+            // Don't fail the request if deduplication storage fails
+        }
         // Check for achievements
         const lessonHistory = await storage_1.storage.getLessonHistory(req.user.id);
         const newAchievements = (0, utils_1.checkForAchievements)(lessonHistory, updatedLesson);
@@ -1136,97 +1172,111 @@ function registerRoutes(app) {
             description: `Quiz score ${score}%`
         });
         console.log(`Points awarded successfully, new balance: ${newBalance}`);
-        // Generate a new lesson
+        // DISABLED: Automatic lesson generation after quiz completion
+        // TODO: Re-enable once migrations are stable
+        /*
         try {
-            console.log('Attempting to generate new lesson after quiz completion');
-            const learnerProfile = await storage_1.storage.getLearnerProfile(req.user.id);
-            console.log(`Learner profile loaded:`, learnerProfile ? 'found' : 'not found');
-            if (learnerProfile) {
-                // Create a varied lesson even when AI is disabled
-                let lessonSpec;
-                let subject, category, difficulty;
-                // Get subjects from learner profile or use default subjects
-                const subjects = learnerProfile.subjects || ['Math', 'Science', 'History', 'Literature', 'Geography'];
-                const categories = {
-                    'Math': ['Algebra', 'Geometry', 'Statistics', 'Fractions', 'Decimals'],
-                    'Science': ['Biology', 'Chemistry', 'Physics', 'Astronomy', 'Ecology'],
-                    'History': ['Ancient Civilizations', 'World War II', 'American History', 'Renaissance', 'Industrial Revolution'],
-                    'Literature': ['Poetry', 'Fiction', 'Shakespeare', 'Mythology', 'Drama'],
-                    'Geography': ['Continents', 'Countries', 'Climate', 'Landforms', 'Oceans']
-                };
-                // Select a random subject from the learner's preferred subjects
-                subject = subjects[Math.floor(Math.random() * subjects.length)];
-                // Select a random category from the chosen subject
-                const subjectCategories = categories[subject] || categories['Math'];
-                category = subjectCategories[Math.floor(Math.random() * subjectCategories.length)];
-                // Randomly choose difficulty
-                const difficulties = ['beginner', 'intermediate', 'advanced'];
-                difficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
-                // Check for previously completed lessons to avoid repetition
-                const previousLessons = await storage_1.storage.getLearnerLessons(req.user.id);
-                const recentSubjects = previousLessons
-                    .slice(0, 3)
-                    .map(lesson => lesson.subject)
-                    .filter(Boolean);
-                // Choose a different subject if possible
-                if (recentSubjects.includes(subject) && subjects.length > 1) {
-                    const newSubjects = subjects.filter(s => !recentSubjects.includes(s));
-                    if (newSubjects.length > 0) {
-                        subject = newSubjects[Math.floor(Math.random() * newSubjects.length)];
-                        const newCategories = categories[subject] || categories['Math'];
-                        category = newCategories[Math.floor(Math.random() * newCategories.length)];
-                    }
-                }
-                if (flags_1.USE_AI) {
-                    lessonSpec = await (0, utils_1.generateLesson)(learnerProfile.gradeLevel, `${subject}: ${category}`);
-                }
-                else {
-                    // Generate varied lessons when AI is disabled
-                    console.log("Generating varied lesson on " + subject + ": " + category);
-                    // Create detailed, educational SVG images based on the subject
-                    const svgImageData = (0, content_generator_1.getSubjectSVG)(subject, category);
-                    const sampleImage = {
-                        id: crypto_1.default.randomUUID(),
-                        description: "Educational illustration of " + category + " in " + subject,
-                        alt: category + " educational illustration",
-                        promptUsed: "Create an educational illustration about " + category + " in " + subject
-                    };
-                    // Create rich, educational content appropriate for the grade level
-                    const lessonContent = (0, content_generator_1.generateLessonContent)(subject, category, learnerProfile.gradeLevel);
-                    // Generate age-appropriate quiz questions for the specific grade level
-                    const quizQuestions = (0, content_generator_1.generateQuizQuestions)(subject, category, learnerProfile.gradeLevel);
-                    // Create the full lesson specification with rich content
-                    lessonSpec = {
-                        title: `${category} in ${subject}`,
-                        content: lessonContent,
-                        questions: quizQuestions,
-                        images: [sampleImage]
-                    };
-                }
-                // Create the new lesson with UUID and varied content
-                console.log(`Creating new lesson: subject=${subject}, category=${category}, difficulty=${difficulty}`);
-                await storage_1.storage.createLesson({
-                    id: crypto_1.default.randomUUID(),
-                    learnerId: Number(req.user.id),
-                    moduleId: "generated-" + Date.now(),
-                    status: "ACTIVE",
-                    subject,
-                    category,
-                    difficulty,
-                    spec: lessonSpec,
-                    imagePaths: [{
-                            path: `/images/subjects/${subject.toLowerCase()}.svg`,
-                            alt: `${category} educational image`,
-                            description: `An illustration related to ${category}`
-                        }]
-                });
-                console.log('New lesson created successfully');
+          console.log('Attempting to generate new lesson after quiz completion');
+          const learnerProfile = await storage.getLearnerProfile(req.user.id);
+          console.log(`Learner profile loaded:`, learnerProfile ? 'found' : 'not found');
+    
+          if (learnerProfile) {
+            // Create a varied lesson even when AI is disabled
+            let lessonSpec;
+            let subject, category, difficulty;
+    
+            // Get subjects from learner profile or use default subjects
+            const subjects = learnerProfile.subjects || ['Math', 'Science', 'History', 'Literature', 'Geography'];
+            const categories = {
+              'Math': ['Algebra', 'Geometry', 'Statistics', 'Fractions', 'Decimals'],
+              'Science': ['Biology', 'Chemistry', 'Physics', 'Astronomy', 'Ecology'],
+              'History': ['Ancient Civilizations', 'World War II', 'American History', 'Renaissance', 'Industrial Revolution'],
+              'Literature': ['Poetry', 'Fiction', 'Shakespeare', 'Mythology', 'Drama'],
+              'Geography': ['Continents', 'Countries', 'Climate', 'Landforms', 'Oceans']
+            };
+    
+            // Select a random subject from the learner's preferred subjects
+            subject = subjects[Math.floor(Math.random() * subjects.length)];
+    
+            // Select a random category from the chosen subject
+            const subjectCategories = categories[subject] || categories['Math'];
+            category = subjectCategories[Math.floor(Math.random() * subjectCategories.length)];
+    
+            // Randomly choose difficulty
+            const difficulties = ['beginner', 'intermediate', 'advanced'];
+            difficulty = difficulties[Math.floor(Math.random() * difficulties.length)];
+    
+            // Check for previously completed lessons to avoid repetition
+            const previousLessons = await storage.getLearnerLessons(req.user.id);
+            const recentSubjects = previousLessons
+              .slice(0, 3)
+              .map(lesson => lesson.subject)
+              .filter(Boolean);
+    
+            // Choose a different subject if possible
+            if (recentSubjects.includes(subject) && subjects.length > 1) {
+              const newSubjects = subjects.filter(s => !recentSubjects.includes(s));
+              if (newSubjects.length > 0) {
+                subject = newSubjects[Math.floor(Math.random() * newSubjects.length)];
+                const newCategories = categories[subject] || categories['Math'];
+                category = newCategories[Math.floor(Math.random() * newCategories.length)];
+              }
             }
+    
+            if (USE_AI) {
+              lessonSpec = await generateLesson(learnerProfile.gradeLevel, `${subject}: ${category}`);
+            } else {
+              // Generate varied lessons when AI is disabled
+              console.log("Generating varied lesson on " + subject + ": " + category);
+    
+              // Create detailed, educational SVG images based on the subject
+              const svgImageData = getSubjectSVG(subject, category);
+              const sampleImage = {
+                id: crypto.randomUUID(),
+                description: "Educational illustration of " + category + " in " + subject,
+                alt: category + " educational illustration",
+                promptUsed: "Create an educational illustration about " + category + " in " + subject
+              };
+    
+              // Create rich, educational content appropriate for the grade level
+              const lessonContent = generateLessonContent(subject, category, learnerProfile.gradeLevel);
+    
+              // Generate age-appropriate quiz questions (non-AI version - no adaptive learning)
+              const quizQuestions = generateQuizQuestions(subject, category, learnerProfile.gradeLevel);
+    
+              // Create the full lesson specification with rich content
+              lessonSpec = {
+                title: `${category} in ${subject}`,
+                content: lessonContent,
+                questions: quizQuestions,
+                images: [sampleImage]
+              };
+            }
+    
+            // Create the new lesson with UUID and varied content
+            console.log(`Creating new lesson: subject=${subject}, category=${category}, difficulty=${difficulty}`);
+            await storage.createLesson({
+              id: crypto.randomUUID(),
+              learnerId: Number(req.user.id),
+              moduleId: "generated-" + Date.now(),
+              status: "ACTIVE",
+              subject,
+              category,
+              difficulty,
+              spec: lessonSpec,
+              imagePaths: [{
+                path: `/images/subjects/${subject.toLowerCase()}.svg`,
+                alt: `${category} educational image`,
+                description: `An illustration related to ${category}`
+              }]
+            });
+            console.log('New lesson created successfully');
+          }
+        } catch (error) {
+          console.error("Failed to generate a new lesson after quiz completion:", error);
+          // Don't fail the request if new lesson generation fails
         }
-        catch (error) {
-            console.error("Failed to generate a new lesson after quiz completion:", error);
-            // Don't fail the request if new lesson generation fails
-        }
+        */
         res.json({
             lesson: updatedLesson,
             score,

@@ -14,17 +14,25 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { Link, useLocation } from 'wouter';
 import { useAuth } from '../hooks/use-auth';
 import { apiRequest, queryClient } from '../lib/queryClient';
-import { colors, typography, commonStyles } from '../styles/theme';
+import { useTheme } from '../styles/theme';
+import { colors as parentColors, typography as parentTypography, commonStyles as parentCommonStyles } from '../styles/theme';
 import LessonCard from '../components/LessonCard';
 import KnowledgeGraph from '../components/KnowledgeGraph';
 import SubjectSelector from '../components/SubjectSelector';
 import { Book, Award, BarChart2, User, Compass, Zap, Plus, X } from 'react-feather';
 import { useMode } from '../context/ModeContext';
+import FunLoader from '../components/FunLoader';
 
+
+// Use parent colors for static StyleSheet, override with theme at runtime
+const colors = parentColors;
+const typography = parentTypography;
+const commonStyles = parentCommonStyles;
 
 const LearnerHome = () => {
   const { user } = useAuth();
   const { selectedLearner } = useMode();
+  const theme = useTheme();
   const [, setLocation] = useLocation();
   const [refreshing, setRefreshing] = useState(false);
   const [subjectSelectorVisible, setSubjectSelectorVisible] = useState(false);
@@ -142,7 +150,7 @@ const LearnerHome = () => {
   const hasError = lessonError || profileError;
 
   return (
-    <View style={commonStyles.container}>
+    <View style={[commonStyles.container, { backgroundColor: theme.colors.background }]}>
       {/* Subject Selector Modal */}
       <Modal
         visible={subjectSelectorVisible}
@@ -189,14 +197,14 @@ const LearnerHome = () => {
         </View>
 
         {isLoading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.loadingText}>
-              {generateLessonMutation.isPending 
-                ? 'Generating your personalized lesson...'
-                : 'Loading your learning dashboard...'}
-            </Text>
-          </View>
+          <FunLoader
+            progressMessages={
+              generateLessonMutation.isPending
+                ? ['Finding the best lesson for you...', 'Almost ready...', 'Here it comes!']
+                : undefined
+            }
+            message={generateLessonMutation.isPending ? undefined : 'Getting your stuff ready...'}
+          />
         ) : hasError ? (
           <View style={styles.errorContainer}>
             <Text style={styles.errorText}>
@@ -264,7 +272,7 @@ const LearnerHome = () => {
             {profile?.graph && profile.graph.nodes.length > 0 && (
               <View style={styles.sectionContainer}>
                 <View style={styles.sectionHeader}>
-                  <Text style={styles.sectionTitle}>Your Knowledge Graph</Text>
+                  <Text style={styles.sectionTitle}>My Brain Map</Text>
                 </View>
                 <View style={styles.graphContainer}>
                   <KnowledgeGraph graph={profile.graph} />
@@ -281,7 +289,7 @@ const LearnerHome = () => {
                 <Compass size={24} color={colors.onPrimary} />
               </View>
               <View style={styles.journeyContent}>
-                <Text style={styles.journeyTitle}>Your Learning Journey</Text>
+                <Text style={styles.journeyTitle}>My Progress</Text>
                 <Text style={styles.journeyText}>
                   Track your progress and see how far you've come
                 </Text>

@@ -106,7 +106,7 @@ const WelcomePage: React.FC = () => {
                   <TouchableOpacity 
                     style={styles.outlineButton}
                     onPress={() => {
-                      window.open('https://github.com/realityinspector/origen-one', '_blank');
+                      window.open('https://github.com/realityinspector/sunschool', '_blank');
                     }}
                   >
                     <GitHub size={18} color={colors.onPrimary} />

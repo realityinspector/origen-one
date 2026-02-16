@@ -914,7 +914,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   headerSubtitle: {
-    ...typography.body,
+    ...typography.body1,
     color: colors.onPrimary,
     opacity: 0.8,
   },
@@ -949,11 +949,15 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   learnerCard: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceColor,
     borderRadius: 12,
     padding: 16,
     marginBottom: 16,
-    ...commonStyles.shadow,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   learnerInfo: {
     marginBottom: 12,
@@ -964,7 +968,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   learnerEmail: {
-    ...typography.body,
+    ...typography.body1,
     color: colors.textSecondary,
     marginBottom: 8,
   },
@@ -1007,7 +1011,7 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   errorText: {
-    ...typography.body,
+    ...typography.body1,
     color: colors.error,
     marginBottom: 16,
     textAlign: 'center',
@@ -1027,7 +1031,7 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   emptyText: {
-    ...typography.body,
+    ...typography.body1,
     color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 20,
@@ -1055,7 +1059,10 @@ const styles = StyleSheet.create({
     width: '95%',
     maxWidth: 500,
     maxHeight: '90%',
-    ...commonStyles.shadow,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
     elevation: 5,
     overflow: 'hidden',
   },
@@ -1078,7 +1085,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   inputLabel: {
-    ...typography.label,
+    ...typography.subtitle2,
     color: colors.textSecondary,
     marginBottom: 8,
   },
@@ -1089,7 +1096,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    ...typography.body,
+    ...typography.body1,
     color: colors.text,
   },
   gradeLevelContainer: {
@@ -1099,7 +1106,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   gradeLevelButton: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceColor,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 8,
@@ -1114,7 +1121,7 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   gradeLevelButtonText: {
-    ...typography.body,
+    ...typography.body1,
     color: colors.text,
     fontWeight: '600',
   },
@@ -1128,7 +1135,7 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceColor,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 8,
@@ -1176,7 +1183,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionSubtitle: {
-    ...typography.body,
+    ...typography.body1,
     fontWeight: '600',
     color: colors.text,
     marginBottom: 8,
@@ -1259,7 +1266,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderWidth: 1,
     borderColor: colors.border,
-    ...typography.body,
+    ...typography.body1,
     color: colors.text,
   },
   graphSection: {
@@ -1275,7 +1282,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     borderWidth: 1,
     borderColor: colors.border,
-    ...typography.body,
+    ...typography.body1,
     color: colors.text,
   },
   graphAddButton: {
@@ -1295,7 +1302,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   edgeSelectorLabel: {
-    ...typography.label,
+    ...typography.subtitle2,
     color: colors.textSecondary,
     marginBottom: 8,
   },
@@ -1303,7 +1310,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   edgeNodeButton: {
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceColor,
     borderWidth: 1,
     borderColor: colors.border,
     borderRadius: 8,
@@ -1316,8 +1323,8 @@ const styles = StyleSheet.create({
     borderColor: colors.primary,
   },
   edgeNodeButtonDisabled: {
-    backgroundColor: colors.disabled,
-    borderColor: colors.disabled,
+    backgroundColor: colors.divider,
+    borderColor: colors.divider,
     opacity: 0.6,
   },
   edgeNodeButtonText: {
@@ -1337,7 +1344,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.surface,
+    backgroundColor: colors.surfaceColor,
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -1346,7 +1353,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   edgeText: {
-    ...typography.body,
+    ...typography.body1,
     color: colors.text,
     flex: 1,
   },

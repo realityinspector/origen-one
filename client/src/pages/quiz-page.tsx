@@ -12,8 +12,11 @@ import {
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { apiRequest, queryClient } from '../lib/queryClient';
-import { colors, typography, commonStyles } from '../styles/theme';
+import { useTheme, colors, typography, commonStyles } from '../styles/theme';
 import QuizComponent from '../components/QuizComponent';
+import Confetti from '../components/Confetti';
+import AchievementUnlock from '../components/AchievementUnlock';
+import FunLoader from '../components/FunLoader';
 import { ArrowLeft, CheckCircle, AlertCircle } from 'react-feather';
 
 const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
@@ -38,8 +41,11 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
     );
   }
   const [, setLocation] = useLocation();
+  const theme = useTheme();
   const [selectedAnswers, setSelectedAnswers] = useState<number[]>([]);
   const [quizSubmitted, setQuizSubmitted] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
   const [quizScore, setQuizScore] = useState<{
     score: number;
     correctCount: number;
@@ -66,12 +72,23 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
     onSuccess: (data) => {
       setQuizSubmitted(true);
       setQuizScore(data);
+      // Celebrate good scores
+      if (data.score >= 70) {
+        setShowConfetti(true);
+      }
+      // Show achievement unlock if any
+      if (data.newAchievements && data.newAchievements.length > 0) {
+        setTimeout(() => setShowAchievements(true), 1500);
+      }
       // Invalidate related queries to refresh data
       queryClient.invalidateQueries({ queryKey: ['/api/lessons/active'] });
       queryClient.invalidateQueries({ queryKey: ['/api/achievements'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/lessons/history'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/points'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/mastery'] });
       if (lesson?.learnerId) {
         queryClient.invalidateQueries({
-          queryKey: [`/api/learner-profile/${lesson.learnerId}`],
+          queryKey: ['/api/learner-profile', lesson.learnerId],
         });
       }
     },
@@ -128,14 +145,14 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
   if (isLoading || submitAnswersMutation.isPending) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>
-            {submitAnswersMutation.isPending 
-              ? 'Checking your answers...'
-              : 'Loading quiz questions...'}
-          </Text>
-        </View>
+        <FunLoader
+          message={submitAnswersMutation.isPending ? undefined : undefined}
+          progressMessages={
+            submitAnswersMutation.isPending
+              ? ['Checking your answers...', 'Almost done...', 'Calculating your score!']
+              : ['Getting your challenge ready...', 'Almost there...', 'Here it comes!']
+          }
+        />
       </SafeAreaView>
     );
   }
@@ -159,15 +176,31 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.subheader}>
+    <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      {/* Confetti for good scores */}
+      <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
+
+      {/* Achievement unlock modal */}
+      {quizScore?.newAchievements && quizScore.newAchievements.length > 0 && (
+        <AchievementUnlock
+          achievements={quizScore.newAchievements.map(a => ({
+            title: a.title || a.payload?.title || 'Achievement Unlocked!',
+            description: a.description || a.payload?.description,
+            type: a.type,
+          }))}
+          visible={showAchievements}
+          onDismiss={() => setShowAchievements(false)}
+        />
+      )}
+
+      <View style={[styles.subheader, { backgroundColor: theme.colors.surfaceColor, borderBottomColor: theme.colors.divider }]}>
         {!quizSubmitted && (
           <TouchableOpacity style={styles.backButtonSmall} onPress={() => setLocation('/lesson')}>
-            <ArrowLeft size={24} color={colors.textPrimary} />
+            <ArrowLeft size={24} color={theme.colors.textPrimary} />
           </TouchableOpacity>
         )}
-        <Text style={styles.subheaderTitle}>
-          {quizSubmitted ? 'Quiz Results' : 'Knowledge Check'}
+        <Text style={[styles.subheaderTitle, { color: theme.colors.textPrimary }]}>
+          {quizSubmitted ? 'Your Results' : 'Quick Challenge'}
         </Text>
         <View style={{ width: 24 }} />
       </View>
@@ -176,35 +209,40 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
         {quizSubmitted && quizScore ? (
           // Quiz Results View
           <View>
-            <View style={styles.scoreCard}>
+            <View style={[styles.scoreCard, { backgroundColor: theme.colors.surfaceColor }]}>
               <View style={styles.scoreIconContainer}>
                 {quizScore.score >= 70 ? (
-                  <CheckCircle size={48} color={colors.success} />
+                  <CheckCircle size={56} color={theme.colors.success} />
                 ) : (
-                  <AlertCircle size={48} color={colors.warning} />
+                  <AlertCircle size={56} color={theme.colors.warning} />
                 )}
               </View>
-              <Text style={styles.scoreTitle}>
-                {quizScore.score >= 70 ? 'Great job!' : 'Keep practicing!'}
+              <Text style={[styles.scoreTitle, { color: theme.colors.textPrimary }]}>
+                {quizScore.score >= 90 ? 'Amazing!' : quizScore.score >= 70 ? 'Great job!' : 'Almost there! Keep going!'}
               </Text>
-              <Text style={styles.scoreText}>
-                You got {quizScore.correctCount} out of {quizScore.totalQuestions} questions correct
+              <Text style={[styles.scoreText, { color: theme.colors.textSecondary }]}>
+                You got {quizScore.correctCount} out of {quizScore.totalQuestions} right
               </Text>
-              <View style={styles.scoreBarContainer}>
-                <View 
-                  style={[styles.scoreBar, { width: `${quizScore.score}%` }]}
+              <View style={[styles.scoreBarContainer, { backgroundColor: theme.colors.divider }]}>
+                <View
+                  style={[styles.scoreBar, {
+                    width: `${quizScore.score}%`,
+                    backgroundColor: quizScore.score >= 70 ? theme.colors.success : theme.colors.warning,
+                  }]}
                 />
               </View>
-              <Text style={styles.scorePercentage}>{quizScore.score}%</Text>
+              <Text style={[styles.scorePercentage, { color: quizScore.score >= 70 ? theme.colors.success : theme.colors.warning }]}>
+                {quizScore.score}%
+              </Text>
             </View>
 
             {quizScore.newAchievements && quizScore.newAchievements.length > 0 && (
-              <View style={styles.achievementsContainer}>
-                <Text style={styles.achievementsTitle}>Achievements Unlocked!</Text>
+              <View style={[styles.achievementsContainer, { backgroundColor: '#C084FC' }]}>
+                <Text style={styles.achievementsTitle}>Trophies Unlocked!</Text>
                 {quizScore.newAchievements.map((achievement, index) => (
                   <View key={index} style={styles.achievementItem}>
                     <View style={styles.achievementIcon}>
-                      <CheckCircle size={24} color={colors.success} />
+                      <CheckCircle size={24} color="#FFD93D" />
                     </View>
                     <Text style={styles.achievementText}>{achievement.title}</Text>
                   </View>
@@ -213,7 +251,7 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
             )}
 
             <View style={styles.reviewSection}>
-              <Text style={styles.reviewTitle}>Question Review</Text>
+              <Text style={[styles.reviewTitle, { color: theme.colors.textPrimary }]}>Let's Review</Text>
               {lesson.spec.questions.map((question, index) => (
                 <QuizComponent
                   key={index}
@@ -225,21 +263,23 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
               ))}
             </View>
 
-            <TouchableOpacity style={styles.continueButton} onPress={handleContinue}>
-              <Text style={styles.continueButtonText}>Continue Learning</Text>
+            <TouchableOpacity style={[styles.continueButton, { backgroundColor: theme.colors.success }]} onPress={handleContinue}>
+              <Text style={styles.continueButtonText}>Keep Going!</Text>
             </TouchableOpacity>
           </View>
         ) : (
           // Quiz Questions View
           <View>
-            <Text style={styles.quizTitle}>{lesson.spec.title} Quiz</Text>
-            <Text style={styles.quizDescription}>
-              Test your knowledge of the lesson material by answering the following questions.
+            <Text style={[styles.quizTitle, { color: theme.colors.textPrimary }]}>{lesson.spec.title} Challenge</Text>
+            <Text style={[styles.quizDescription, { color: theme.colors.textSecondary }]}>
+              Let's see what you learned! Answer each question below.
             </Text>
 
             {lesson.spec.questions.map((question, index) => (
               <View key={index} style={styles.questionContainer}>
-                <Text style={styles.questionNumber}>Question {index + 1} of {lesson.spec.questions.length}</Text>
+                <Text style={[styles.questionNumber, { color: theme.colors.textSecondary }]}>
+                  Question {index + 1} of {lesson.spec.questions.length}
+                </Text>
                 <QuizComponent
                   question={question}
                   selectedAnswer={selectedAnswers[index]}
@@ -249,16 +289,17 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
               </View>
             ))}
 
-            <TouchableOpacity 
+            <TouchableOpacity
               style={[styles.submitButton, {
-                opacity: selectedAnswers.length === lesson.spec.questions.length && 
+                backgroundColor: theme.colors.primary,
+                opacity: selectedAnswers.length === lesson.spec.questions.length &&
                          selectedAnswers.every(ans => ans !== undefined) ? 1 : 0.5
               }]}
               onPress={handleSubmitQuiz}
-              disabled={selectedAnswers.length !== lesson.spec.questions.length || 
+              disabled={selectedAnswers.length !== lesson.spec.questions.length ||
                        !selectedAnswers.every(ans => ans !== undefined)}
             >
-              <Text style={styles.submitButtonText}>Submit Answers</Text>
+              <Text style={[styles.submitButtonText, { color: theme.colors.onPrimary }]}>I'm Done!</Text>
             </TouchableOpacity>
           </View>
         )}

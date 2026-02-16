@@ -38,12 +38,15 @@ interface OpenRouterResponse {
 export declare function askOpenRouter(options: OpenRouterOptions): Promise<OpenRouterResponse>;
 /**
  * Generate a lesson for a specific grade level and topic
+ * WITH CONTENT VALIDATION AND RETRY LOGIC
  */
 export declare function generateLessonContent(gradeLevel: number, topic: string): Promise<string>;
 /**
  * Generate quiz questions for a specific grade level and topic
+ * WITH CONTENT VALIDATION AND RETRY LOGIC
+ * WITH ADAPTIVE REINFORCEMENT LEARNING
  */
-export declare function generateQuizQuestions(gradeLevel: number, topic: string, questionCount?: number): Promise<any[]>;
+export declare function generateQuizQuestions(gradeLevel: number, topic: string, questionCount?: number, learnerId?: number, weakConcepts?: string[], recentQuestions?: string[]): Promise<any[]>;
 /**
  * Generate personalized feedback for a learner based on their quiz performance
  */

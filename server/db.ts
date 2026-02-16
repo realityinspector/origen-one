@@ -61,7 +61,10 @@ const runKeepAlivePing = async () => {
     const client = await pool.connect();
     try {
       await client.query('SELECT 1');
-      console.log('Keep-alive ping successful');
+      // Only log in development mode to reduce log noise in production
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Keep-alive ping successful');
+      }
     } finally {
       // Make sure we always release the client back to the pool
       client.release();

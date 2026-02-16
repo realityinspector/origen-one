@@ -4,9 +4,48 @@ import cors from "cors";
 import path from "path";
 import { registerRoutes } from "./routes";
 import http from "http";
+import { drizzle } from 'drizzle-orm/neon-serverless';
+import { Pool, neonConfig } from '@neondatabase/serverless';
+import { migrate } from 'drizzle-orm/neon-serverless/migrator';
+import ws from 'ws';
+import * as schema from '../shared/schema';
 
 const app = express();
 const PORT = Number(process.env.PORT || 5000);
+
+// Run database migrations on startup
+async function runMigrations() {
+  try {
+    console.log('Running database migrations...');
+
+    if (!process.env.DATABASE_URL) {
+      throw new Error('DATABASE_URL is required');
+    }
+
+    // Configure Neon to use ws instead of browser WebSocket
+    neonConfig.webSocketConstructor = ws;
+
+    const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const db = drizzle(pool, { schema });
+
+    const migrationsFolder = path.resolve('drizzle', 'migrations');
+    await migrate(db, { migrationsFolder });
+
+    console.log('✓ Database migrations applied successfully!');
+    await pool.end();
+  } catch (error) {
+    console.error('Error applying migrations:', error);
+    // Don't exit - allow server to start even if migrations fail
+    // This prevents deployment failures for already-applied migrations
+  }
+}
+
+// Run migrations before starting server
+runMigrations().then(() => {
+  console.log('Migration check complete, starting server...');
+}).catch((err) => {
+  console.error('Migration check failed:', err);
+});
 
 // Middleware
 // Enhanced CORS to specifically handle sunschool.xyz domain

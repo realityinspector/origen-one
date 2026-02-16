@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { useAuth } from '../hooks/use-auth';
-import OrigenHeader from './OrigenHeader';
+import SunschoolHeader from './SunschoolHeader';
 import AppFooter from './AppFooter';
 import { colors } from '../styles/theme';
 
@@ -24,7 +24,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   
   return (
     <View style={styles.container}>
-      <OrigenHeader />
+      <SunschoolHeader />
       <View style={styles.content}>
         {children}
       </View>

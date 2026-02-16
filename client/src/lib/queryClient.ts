@@ -48,25 +48,53 @@ function getApiBaseUrl() {
 
 const API_URL = getApiBaseUrl();
 
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-      gcTime: 24 * 60 * 60 * 1000, // 24 hours
-      networkMode: 'offlineFirst',
-    },
-  },
-});
-
-// We're using our custom persister defined above for offline support
-
 export const axiosInstance = axios.create({
   baseURL: API_URL,
   headers: {
     "Content-Type": "application/json",
   },
 });
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 30 * 1000, // 30 seconds — learner data changes often
+      gcTime: 24 * 60 * 60 * 1000, // 24 hours
+      networkMode: 'offlineFirst',
+    },
+  },
+});
+
+// Global 401 interceptor — clears auth state and redirects to login on session expiry
+axiosInstance.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401) {
+      const requestUrl = error.config?.url || '';
+      // Don't intercept auth endpoints themselves to avoid loops
+      if (!requestUrl.includes('/login') && !requestUrl.includes('/register') && !requestUrl.includes('/api/user')) {
+        console.warn('Session expired (401) — clearing auth state');
+        // Clear token
+        delete axiosInstance.defaults.headers.common['Authorization'];
+        try {
+          await AsyncStorage.removeItem('AUTH_TOKEN');
+          await AsyncStorage.removeItem('AUTH_TOKEN_DATA');
+        } catch (e) {
+          // ignore cleanup errors
+        }
+        // Clear user from query cache
+        queryClient.setQueryData(['/api/user'], null);
+        // Dispatch event so ModeContext can reset
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('auth-session-expired'));
+          window.location.href = '/auth';
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Add auth token to requests and store it
 export const setAuthToken = async (token: string | null) => {
@@ -189,9 +217,9 @@ type QueryFnOptions = {
 };
 
 export const getQueryFn = (options: QueryFnOptions = { on401: "throw" }) => {
-  return async ({ queryKey }: { queryKey: string[] }) => {
-    const endpoint = queryKey[0];
-    
+  return async ({ queryKey }: { queryKey: readonly unknown[] }) => {
+    const endpoint = queryKey[0] as string;
+
     try {
       const response = await axiosInstance.get(endpoint);
       return response.data;

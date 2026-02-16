@@ -1,5 +1,12 @@
-import { askOpenRouter as chat, type Message, generateLessonContent, generateQuizQuestions, generateFeedback, generateKnowledgeGraph } from "../openrouter";
-export { chat, Message, generateLessonContent, generateQuizQuestions, generateFeedback, generateKnowledgeGraph };
+import { type Message } from "../openrouter";
+import { type BittensorResponse } from "../bittensor";
+export declare const getLLMProvider: () => string;
+export declare const chat: (options: any) => Promise<BittensorResponse>;
+export declare const generateLessonContent: (gradeLevel: number, topic: string) => Promise<string>;
+export declare const generateQuizQuestions: (gradeLevel: number, topic: string, questionCount?: number) => Promise<any[]>;
+export declare const generateFeedback: (quizQuestions: any[], userAnswers: number[], score: number, gradeLevel: number) => Promise<string>;
+export declare const generateKnowledgeGraph: (topic: string, gradeLevel: number) => Promise<any>;
+export { Message };
 /**
  * generateLesson – legacy alias that now proxies to OpenRouter-based
  * generateLessonContent.

@@ -10,13 +10,164 @@ import { BookOpen, Target, Award, BarChart2, Plus, ArrowRight, User } from 'reac
 import { useMode } from '../context/ModeContext';
 import ModeToggle from '../components/ModeToggle';
 
+// Child report data shape returned by the reports endpoint
+interface ChildReport {
+  analytics?: {
+    lessonsCompleted?: number;
+    achievementsCount?: number;
+    averageScore?: number;
+  };
+}
+
+// Individual child card component
+const ChildCard: React.FC<{
+  learner: { id: number; name: string; email: string; role: string };
+  onView: () => void;
+}> = ({ learner, onView }) => {
+  // Fetch report data for this child
+  const { data: report, isLoading: reportLoading } = useQuery<ChildReport>({
+    queryKey: [`/api/reports`, learner.id, 'progress'],
+    queryFn: () =>
+      apiRequest('GET', `/api/reports?learnerId=${learner.id}&type=progress`).then(
+        (res: any) => res.data ?? res,
+      ),
+    enabled: !!learner.id,
+  });
+
+  // Fetch learner profile for grade level
+  const { data: profile, isLoading: profileLoading } = useQuery({
+    queryKey: [`/api/learner-profile/${learner.id}`],
+    queryFn: () =>
+      apiRequest('GET', `/api/learner-profile/${learner.id}`).then(
+        (res: any) => res.data ?? res,
+      ),
+    enabled: !!learner.id,
+  });
+
+  // Fetch lessons to compute average score when the report doesn't provide one
+  const { data: lessons } = useQuery<any[]>({
+    queryKey: [`/api/lessons`, learner.id],
+    queryFn: () =>
+      apiRequest('GET', `/api/lessons?learnerId=${learner.id}`).then(
+        (res: any) => res.data ?? res,
+      ),
+    enabled: !!learner.id,
+  });
+
+  const lessonsCompleted = report?.analytics?.lessonsCompleted ?? 0;
+  const achievementsCount = report?.analytics?.achievementsCount ?? 0;
+
+  // Average score: prefer the analytics value; fall back to computing from lessons
+  let avgScore: number | null = null;
+  if (report?.analytics?.averageScore != null) {
+    avgScore = Math.round(report.analytics.averageScore);
+  } else if (lessons && lessons.length > 0) {
+    const scored = lessons.filter((l: any) => typeof l.score === 'number');
+    if (scored.length > 0) {
+      const total = scored.reduce((sum: number, l: any) => sum + l.score, 0);
+      avgScore = Math.round(total / scored.length);
+    }
+  }
+
+  const gradeLabel = profile?.gradeLevel ? `Grade ${profile.gradeLevel}` : null;
+  const isLoading = reportLoading || profileLoading;
+
+  return (
+    <View style={styles.childCard}>
+      {/* Header row: avatar circle + name / grade */}
+      <View style={styles.childCardHeader}>
+        <View style={styles.childAvatar}>
+          <Text style={styles.childAvatarText}>
+            {learner.name?.charAt(0)?.toUpperCase() ?? '?'}
+          </Text>
+        </View>
+        <View style={styles.childNameContainer}>
+          <Text style={styles.childName}>{learner.name}</Text>
+          {gradeLabel && (
+            <View style={styles.gradeBadge}>
+              <Text style={styles.gradeBadgeText}>{gradeLabel}</Text>
+            </View>
+          )}
+        </View>
+      </View>
+
+      {/* Stats row */}
+      {isLoading ? (
+        <ActivityIndicator size="small" color={colors.primary} style={{ marginVertical: 12 }} />
+      ) : (
+        <View style={styles.childStatsRow}>
+          <View style={styles.childStat}>
+            <BookOpen size={14} color={colors.textSecondary} />
+            <Text style={styles.childStatValue}>{lessonsCompleted}</Text>
+            <Text style={styles.childStatLabel}>Lessons</Text>
+          </View>
+
+          <View style={styles.childStatDivider} />
+
+          <View style={styles.childStat}>
+            <BarChart2 size={14} color={colors.textSecondary} />
+            <Text style={styles.childStatValue}>
+              {avgScore !== null ? `${avgScore}%` : '--'}
+            </Text>
+            <Text style={styles.childStatLabel}>Avg Score</Text>
+          </View>
+
+          <View style={styles.childStatDivider} />
+
+          <View style={styles.childStat}>
+            <Award size={14} color={colors.textSecondary} />
+            <Text style={styles.childStatValue}>{achievementsCount}</Text>
+            <Text style={styles.childStatLabel}>Achievements</Text>
+          </View>
+        </View>
+      )}
+
+      {/* View button */}
+      <TouchableOpacity style={styles.childViewButton} onPress={onView}>
+        <User size={14} color={colors.onPrimary} />
+        <Text style={styles.childViewButtonText}>View</Text>
+        <ArrowRight size={14} color={colors.onPrimary} />
+      </TouchableOpacity>
+    </View>
+  );
+};
+
 const DashboardPage: React.FC = () => {
   const { user, logoutMutation } = useAuth();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
-  const { toggleMode, isLearnerMode } = useMode();
+  const { toggleMode, isLearnerMode, selectLearner, availableLearners } = useMode();
   const [activeTab, setActiveTab] = useState('overview'); // 'overview', 'create', 'progress', 'active'
   const learnerId = user?.role === 'LEARNER' ? user.id : null;
+
+  // Onboarding dismiss state
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const seen = window.localStorage.getItem('hasSeenOnboarding');
+      if (!seen && (user?.role === 'PARENT' || user?.role === 'ADMIN')) {
+        setShowOnboarding(true);
+      }
+    }
+  }, [user]);
+
+  const dismissOnboarding = () => {
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('hasSeenOnboarding', 'true');
+    }
+    setShowOnboarding(false);
+  };
+
+  // Fetch learners for the children overview (parents / admins)
+  const {
+    data: learners,
+    isLoading: learnersLoading,
+  } = useQuery<any[]>({
+    queryKey: ['/api/learners'],
+    queryFn: () => apiRequest('GET', '/api/learners').then((res: any) => res.data ?? res),
+    enabled: user?.role === 'PARENT' || user?.role === 'ADMIN',
+  });
 
   // Fetch active lesson
   const {
@@ -81,12 +232,17 @@ const DashboardPage: React.FC = () => {
     setLocation('/progress');
   };
 
+  // Handle "View" on a child card -- switch into that learner's mode
+  const handleViewChild = (learner: { id: number; name: string; email: string; role: string }) => {
+    selectLearner(learner);
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.pageTitle}>
         <Text style={styles.welcomeText}>Welcome, {user?.name || 'User'}!</Text>
       </View>
-      
+
       <View style={styles.tabs}>
         <TouchableOpacity
           style={[styles.tab, activeTab === 'overview' && styles.activeTab]}
@@ -95,7 +251,7 @@ const DashboardPage: React.FC = () => {
           <BookOpen size={20} color={activeTab === 'overview' ? colors.primary : colors.textSecondary} />
           <Text style={[styles.tabText, activeTab === 'overview' && styles.activeTabText]}>Overview</Text>
         </TouchableOpacity>
-        
+
         {user?.role === 'LEARNER' && (
           <TouchableOpacity
             style={[styles.tab, activeTab === 'create' && styles.activeTab]}
@@ -105,7 +261,7 @@ const DashboardPage: React.FC = () => {
             <Text style={[styles.tabText, activeTab === 'create' && styles.activeTabText]}>Create Lesson</Text>
           </TouchableOpacity>
         )}
-        
+
         {user?.role === 'LEARNER' && (
           <TouchableOpacity
             style={[styles.tab, activeTab === 'progress' && styles.activeTab]}
@@ -116,7 +272,7 @@ const DashboardPage: React.FC = () => {
           </TouchableOpacity>
         )}
       </View>
-      
+
       <ScrollView style={styles.content}>
         {activeTab === 'overview' && (
           <View>
@@ -130,7 +286,7 @@ const DashboardPage: React.FC = () => {
                 </Link>
               </View>
             )}
-            
+
             {user?.role === 'LEARNER' && (
               <View>
                 <View style={styles.featureCard}>
@@ -142,7 +298,7 @@ const DashboardPage: React.FC = () => {
                     <Text style={styles.featureDescription}>
                       Create personalized lessons on any topic using our AI tutor
                     </Text>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.featureButton}
                       onPress={handleCreateLesson}
                     >
@@ -162,7 +318,7 @@ const DashboardPage: React.FC = () => {
                       <Text style={styles.featureDescription}>
                         You have an active lesson on {activeLesson.spec?.title || 'a topic'}
                       </Text>
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={styles.featureButton}
                         onPress={handleContinueLesson}
                       >
@@ -182,7 +338,7 @@ const DashboardPage: React.FC = () => {
                     <Text style={styles.featureDescription}>
                       Track your learning journey with visualizations and achievements
                     </Text>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.featureButton}
                       onPress={handleViewProgress}
                     >
@@ -193,74 +349,66 @@ const DashboardPage: React.FC = () => {
                 </View>
               </View>
             )}
-            
+
             {(user?.role === 'PARENT' || user?.role === 'ADMIN') && (
               <>
-                {/* Onboarding Guide Section */}
-                <View style={styles.onboardingSection}>
-                  <View style={styles.onboardingHeader}>
-                    <Text style={styles.onboardingTitle}>Welcome toSunschool AI Tutor!</Text>
-                    <Text style={styles.onboardingSubtitle}>Your guide to personalized learning</Text>
-                  </View>
-                  
-                  <View style={styles.onboardingSteps}>
-                    <View style={styles.onboardingStep}>
-                      <View style={styles.onboardingStepNumber}>
-                        <Text style={styles.onboardingStepNumberText}>1</Text>
-                      </View>
-                      <View style={styles.onboardingStepContent}>
-                        <Text style={styles.onboardingStepTitle}>Add Your Learners</Text>
-                        <Text style={styles.onboardingStepDescription}>
-                          Start by adding your children or students using the "Manage Learners" option below. You'll be able to track their progress and customize their learning experience.
-                        </Text>
-                      </View>
-                    </View>
-                    
-                    <View style={styles.onboardingStep}>
-                      <View style={styles.onboardingStepNumber}>
-                        <Text style={styles.onboardingStepNumberText}>2</Text>
-                      </View>
-                      <View style={styles.onboardingStepContent}>
-                        <Text style={styles.onboardingStepTitle}>Experience Learner Mode</Text>
-                        <Text style={styles.onboardingStepDescription}>
-                          Toggle to "Learner Mode" to see the app as your child does. In this view, you can create personalized AI lessons, take quizzes, and view their knowledge graphs.
-                        </Text>
-                      </View>
-                    </View>
-                    
-                    <View style={styles.onboardingStep}>
-                      <View style={styles.onboardingStepNumber}>
-                        <Text style={styles.onboardingStepNumberText}>3</Text>
-                      </View>
-                      <View style={styles.onboardingStepContent}>
-                        <Text style={styles.onboardingStepTitle}>Monitor Progress</Text>
-                        <Text style={styles.onboardingStepDescription}>
-                          View detailed reports on your learner's progress, achievements, and areas for improvement. Track their knowledge growth through interactive visualizations.
-                        </Text>
-                      </View>
-                    </View>
-                    
-                    <View style={styles.onboardingStep}>
-                      <View style={styles.onboardingStepNumber}>
-                        <Text style={styles.onboardingStepNumberText}>4</Text>
-                      </View>
-                      <View style={styles.onboardingStepContent}>
-                        <Text style={styles.onboardingStepTitle}>Customize Learning Path</Text>
-                        <Text style={styles.onboardingStepDescription}>
-                          Guide your learner's journey by suggesting topics, reviewing their completed lessons, and helping them create new personalized AI-generated content.
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                  
-                  <View style={styles.onboardingTip}>
-                    <Text style={styles.onboardingTipTitle}>Pro Tip:</Text>
-                    <Text style={styles.onboardingTipText}>
-                      Try creating a lesson yourself first to understand how the AI tutor works. This will help you guide your learners more effectively!
+                {/* One-time onboarding welcome */}
+                {showOnboarding && (
+                  <View style={styles.onboardingBanner}>
+                    <Text style={styles.onboardingBannerTitle}>
+                      Welcome to Sunschool AI Tutor!
                     </Text>
+                    <Text style={styles.onboardingBannerText}>
+                      Add your children below, then tap "View" on any child to experience
+                      personalized AI lessons from their perspective. You can track their
+                      progress, achievements, and knowledge growth right from this dashboard.
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.onboardingDismissButton}
+                      onPress={dismissOnboarding}
+                    >
+                      <Text style={styles.onboardingDismissButtonText}>Got it!</Text>
+                    </TouchableOpacity>
                   </View>
+                )}
+
+                {/* Children Overview Section */}
+                <View style={styles.childrenSection}>
+                  <Text style={styles.sectionTitle}>Children Overview</Text>
+
+                  {learnersLoading ? (
+                    <ActivityIndicator
+                      size="large"
+                      color={colors.primary}
+                      style={{ marginVertical: 24 }}
+                    />
+                  ) : learners && learners.length > 0 ? (
+                    learners.map((learner: any) => (
+                      <ChildCard
+                        key={learner.id}
+                        learner={learner}
+                        onView={() => handleViewChild(learner)}
+                      />
+                    ))
+                  ) : (
+                    <View style={styles.emptyChildrenState}>
+                      <User size={36} color={colors.textSecondary} />
+                      <Text style={styles.emptyChildrenText}>
+                        No children added yet. Add a child to get started with personalized learning.
+                      </Text>
+                    </View>
+                  )}
+
+                  {/* + Add Child button */}
+                  <TouchableOpacity
+                    style={styles.addChildButton}
+                    onPress={() => setLocation('/learners')}
+                  >
+                    <Plus size={18} color={colors.onPrimary} />
+                    <Text style={styles.addChildButtonText}>Add Child</Text>
+                  </TouchableOpacity>
                 </View>
-                
+
                 <View style={styles.contentSection}>
                   <Text style={styles.sectionTitle}>Learner Management</Text>
                   <Link href="/learners">
@@ -273,26 +421,26 @@ const DashboardPage: React.FC = () => {
                     <Text style={styles.linkText}>Database Synchronization</Text>
                   </Link>
                 </View>
-                
+
                 <View style={styles.modeToggleSection}>
                   <View style={styles.modeToggleContent}>
                     <View style={styles.modeToggleHeader}>
-                      <Text style={styles.sectionTitle}>Switch toSunschool Learner Mode</Text>
+                      <Text style={styles.sectionTitle}>Switch to Sunschool Learner Mode</Text>
                       <View style={styles.modeToggleIcon}>
                         <ModeToggle />
                       </View>
                     </View>
-                    
+
                     <Text style={styles.modeToggleDescription}>
-                      Click the toggle button in the top-right corner to switch toSunschool Learner Mode and see the app from a learner's perspective.
+                      Click the toggle button in the top-right corner to switch to Sunschool Learner Mode and see the app from a learner's perspective.
                     </Text>
-                    
-                    <TouchableOpacity 
+
+                    <TouchableOpacity
                       style={styles.modeToggleButton}
                       onPress={toggleMode}
                     >
                       <User size={16} color={colors.onPrimary} />
-                      <Text style={styles.modeToggleButtonText}>Go toSunschool Learner Mode</Text>
+                      <Text style={styles.modeToggleButtonText}>Go to Sunschool Learner Mode</Text>
                     </TouchableOpacity>
                   </View>
                 </View>
@@ -300,14 +448,14 @@ const DashboardPage: React.FC = () => {
             )}
           </View>
         )}
-        
+
         {activeTab === 'create' && user?.role === 'LEARNER' && (
           <View style={styles.createLessonContainer}>
             <Text style={styles.sectionTitle}>Create a New AI Lesson</Text>
             <Text style={styles.sectionDescription}>
               Our AI will generate a personalized educational lesson on any topic you choose!
             </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.primaryButton}
               onPress={handleCreateLesson}
             >
@@ -315,7 +463,7 @@ const DashboardPage: React.FC = () => {
             </TouchableOpacity>
           </View>
         )}
-        
+
         {activeTab === 'progress' && user?.role === 'LEARNER' && (
           <View>
             <View style={styles.statsContainer}>
@@ -325,14 +473,14 @@ const DashboardPage: React.FC = () => {
                 </Text>
                 <Text style={styles.statLabel}>Concepts Learned</Text>
               </View>
-              
+
               <View style={styles.statCard}>
                 <Text style={styles.statValue}>
                   {lessons?.filter((l: any) => l.status === 'DONE').length || 0}
                 </Text>
                 <Text style={styles.statLabel}>Lessons Completed</Text>
               </View>
-              
+
               <View style={styles.statCard}>
                 <Text style={styles.statValue}>
                   {achievements?.length || 0}
@@ -340,7 +488,7 @@ const DashboardPage: React.FC = () => {
                 <Text style={styles.statLabel}>Achievements</Text>
               </View>
             </View>
-            
+
             <Text style={styles.sectionTitle}>Knowledge Graph</Text>
             <View style={styles.graphContainer}>
               {profile?.graph?.nodes && profile.graph.nodes.length > 0 ? (
@@ -353,8 +501,8 @@ const DashboardPage: React.FC = () => {
                 </View>
               )}
             </View>
-            
-            <TouchableOpacity 
+
+            <TouchableOpacity
               style={styles.viewMoreButton}
               onPress={handleViewProgress}
             >
@@ -421,7 +569,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   adminSection: {
-    backgroundColor: colors.warning + '33', // Adding transparency
+    backgroundColor: colors.warning + '33',
     padding: 16,
     borderRadius: 8,
     marginBottom: 24,
@@ -466,7 +614,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    // boxShadow not supported in React Native
     elevation: 2,
   },
   featureIconContainer: {
@@ -523,7 +670,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    // boxShadow not supported in React Native
     elevation: 3,
     alignItems: 'center',
   },
@@ -541,7 +687,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: colors.border,
-    // boxShadow not supported in React Native
     elevation: 1,
   },
   statValue: {
@@ -562,7 +707,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    // boxShadow not supported in React Native
     elevation: 2,
   },
   emptyState: {
@@ -595,7 +739,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: colors.border,
-    // boxShadow not supported in React Native
     elevation: 2,
     overflow: 'hidden',
   },
@@ -630,92 +773,188 @@ const styles = StyleSheet.create({
     color: colors.onPrimary,
     marginLeft: 8,
   },
-  // Removed footer styles as they are now provided by the persistent app footer
-  
-  // Onboarding Guide Styles
-  onboardingSection: {
+
+  // ------------------------------------------------------------------
+  // One-time onboarding banner
+  // ------------------------------------------------------------------
+  onboardingBanner: {
     backgroundColor: colors.surfaceColor,
     borderRadius: 12,
     padding: 24,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: colors.primary + '30',
-    elevation: 4,
+    borderColor: colors.primary + '40',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+  },
+  onboardingBannerTitle: {
+    ...typography.h4,
+    color: colors.primary,
+    marginBottom: 12,
+    fontWeight: '700',
+  },
+  onboardingBannerText: {
+    ...typography.body2,
+    color: colors.textSecondary,
+    lineHeight: 22,
+    marginBottom: 16,
+  },
+  onboardingDismissButton: {
+    backgroundColor: colors.primary,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+  },
+  onboardingDismissButtonText: {
+    ...typography.button,
+    color: colors.onPrimary,
+  },
+
+  // ------------------------------------------------------------------
+  // Children Overview
+  // ------------------------------------------------------------------
+  childrenSection: {
+    marginBottom: 24,
+  },
+  childCard: {
+    backgroundColor: colors.surfaceColor,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    elevation: 3,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowRadius: 6,
   },
-  onboardingHeader: {
-    marginBottom: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    paddingBottom: 16,
-  },
-  onboardingTitle: {
-    ...typography.h4,
-    color: colors.primary,
-    marginBottom: 8,
-    fontWeight: '700',
-  },
-  onboardingSubtitle: {
-    ...typography.subtitle1,
-    color: colors.textSecondary,
-  },
-  onboardingSteps: {
-    marginBottom: 24,
-  },
-  onboardingStep: {
+  childCardHeader: {
     flexDirection: 'row',
-    marginBottom: 20,
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    marginBottom: 12,
   },
-  onboardingStepNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  childAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
-    marginTop: 4,
+    marginRight: 12,
   },
-  onboardingStepNumberText: {
-    ...typography.h6,
+  childAvatarText: {
+    ...typography.h5,
     color: colors.onPrimary,
-    fontWeight: 'bold',
+    fontWeight: '700',
+    marginBottom: 0,
   },
-  onboardingStepContent: {
+  childNameContainer: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  childName: {
+    ...typography.h6,
+    color: colors.text,
+    marginBottom: 0,
+    marginRight: 8,
+  },
+  gradeBadge: {
+    backgroundColor: colors.primary + '15',
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 12,
+  },
+  gradeBadgeText: {
+    ...typography.caption,
+    color: colors.primary,
+    fontWeight: '600',
+  },
+
+  childStatsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-around',
+    backgroundColor: colors.background,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    marginBottom: 12,
+  },
+  childStat: {
+    alignItems: 'center',
     flex: 1,
   },
-  onboardingStepTitle: {
+  childStatValue: {
     ...typography.h6,
     color: colors.text,
-    marginBottom: 8,
-    fontWeight: '600',
+    marginTop: 4,
+    marginBottom: 2,
   },
-  onboardingStepDescription: {
+  childStatLabel: {
+    ...typography.caption,
+    color: colors.textSecondary,
+    fontSize: 11,
+  },
+  childStatDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: colors.border,
+  },
+
+  childViewButton: {
+    backgroundColor: colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 6,
+  },
+  childViewButtonText: {
+    ...typography.button,
+    color: colors.onPrimary,
+    marginHorizontal: 8,
+  },
+
+  emptyChildrenState: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 32,
+    paddingHorizontal: 24,
+  },
+  emptyChildrenText: {
     ...typography.body2,
     color: colors.textSecondary,
-    lineHeight: 20,
+    textAlign: 'center',
+    marginTop: 12,
+    lineHeight: 22,
   },
-  onboardingTip: {
-    backgroundColor: colors.secondary + '15',
+
+  addChildButton: {
+    backgroundColor: colors.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
     borderRadius: 8,
-    padding: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: colors.secondary,
+    marginTop: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
-  onboardingTipTitle: {
-    ...typography.subtitle1,
-    color: colors.secondary,
-    fontWeight: '600',
-    marginBottom: 8,
-  },
-  onboardingTipText: {
-    ...typography.body2,
-    color: colors.text,
-    lineHeight: 20,
+  addChildButtonText: {
+    ...typography.button,
+    color: colors.onPrimary,
+    marginLeft: 8,
   },
 });
 

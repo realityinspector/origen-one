@@ -4,32 +4,46 @@ import { useLocation } from 'wouter';
 import { useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '../lib/queryClient';
 import { useAuth } from '../hooks/use-auth';
-import OrigenHeader from '../components/OrigenHeader';
+import SunschoolHeader from '../components/SunschoolHeader';
+import GradePicker from '../components/GradePicker';
 import { useToast } from '../hooks/use-toast';
+import { useTheme } from '../styles/theme';
 
 const AddLearnerPage = () => {
   const [newLearner, setNewLearner] = useState({
     name: '',
-    gradeLevel: '',
+    gradeLevel: '',   // "K", "1", "2", ... "12"
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
-  
+
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
+  const { colors } = useTheme();
+
+  /**
+   * Convert the display grade string to the numeric value the backend expects.
+   * "K" -> 0, "1" -> 1, ... "12" -> 12
+   */
+  const gradeToNumber = (grade: string): number | null => {
+    if (grade === 'K') return 0;
+    const num = parseInt(grade, 10);
+    if (isNaN(num) || num < 1 || num > 12) return null;
+    return num;
+  };
 
   const handleSubmit = async () => {
     // Validation
     if (!newLearner.name) {
-      setError('Please enter a name for the learner');
+      setError('Please enter a name');
       return;
     }
-    
-    const gradeLevel = parseInt(newLearner.gradeLevel);
-    if (isNaN(gradeLevel) || gradeLevel < 1 || gradeLevel > 12) {
-      setError('Please enter a valid grade level (1-12)');
+
+    const gradeLevel = gradeToNumber(newLearner.gradeLevel);
+    if (gradeLevel === null) {
+      setError('Please select a grade level');
       return;
     }
 
@@ -48,7 +62,7 @@ const AddLearnerPage = () => {
       // Show success toast
       toast({
         title: 'Success',
-        description: 'Learner account created successfully',
+        description: 'Child account created successfully',
       });
 
       // Refresh learners list
@@ -61,68 +75,69 @@ const AddLearnerPage = () => {
       if (err.response?.data?.error) {
         setError(err.response.data.error);
       } else {
-        setError('Failed to create learner account. Please try again.');
+        setError('Failed to create account. Please try again.');
       }
       console.error('Create learner error:', err);
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <OrigenHeader subtitle="Add New Learner" />
-      
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+      <SunschoolHeader subtitle="Add Child" />
+
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.formContainer}>
-          <Text style={styles.title}>
-            {user?.role === 'ADMIN' ? 'Add New Learner Account' : 'Add New Child Account'}
+        <View style={[styles.formContainer, { backgroundColor: colors.surfaceColor }]}>
+          <Text style={[styles.title, { color: colors.textPrimary }]}>
+            {user?.role === 'ADMIN' ? 'Add New Learner Account' : 'Add Child'}
           </Text>
-          
+
           {error ? (
-            <View style={styles.errorContainer}>
-              <Text style={styles.errorText}>{error}</Text>
+            <View style={[styles.errorContainer, { backgroundColor: colors.error + '18' }]}>
+              <Text style={[styles.errorText, { color: colors.error }]}>{error}</Text>
             </View>
           ) : null}
-          
+
           <View style={styles.formGroup}>
-            <Text style={styles.label}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>
               {user?.role === 'ADMIN' ? 'Learner Name' : 'Child\'s Name'}
             </Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, {
+                borderColor: colors.divider,
+                color: colors.textPrimary,
+                backgroundColor: colors.inputBackground,
+              }]}
               value={newLearner.name}
               onChangeText={(text) => setNewLearner({ ...newLearner, name: text })}
               placeholder={user?.role === 'ADMIN' ? "Enter learner's name" : "Enter child's name"}
+              placeholderTextColor={colors.textSecondary}
             />
           </View>
-          
+
           <View style={styles.formGroup}>
-            <Text style={styles.label}>Grade Level (1-12)</Text>
-            <TextInput
-              style={styles.input}
+            <GradePicker
               value={newLearner.gradeLevel}
-              onChangeText={(text) => setNewLearner({ ...newLearner, gradeLevel: text })}
-              keyboardType="numeric"
-              placeholder="Enter grade level"
+              onChange={(grade) => setNewLearner({ ...newLearner, gradeLevel: grade })}
             />
           </View>
-          
+
           <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={styles.cancelButton}
+            <TouchableOpacity
+              style={[styles.cancelButton, { backgroundColor: colors.divider }]}
               onPress={() => setLocation('/learners')}
             >
-              <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>Cancel</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.submitButton, isSubmitting && styles.disabledButton]}
+
+            <TouchableOpacity
+              style={[styles.submitButton, { backgroundColor: colors.primary }, isSubmitting && styles.disabledButton]}
               onPress={handleSubmit}
               disabled={isSubmitting}
             >
               {isSubmitting ? (
-                <ActivityIndicator size="small" color="#FFFFFF" />
+                <ActivityIndicator size="small" color={colors.onPrimary} />
               ) : (
-                <Text style={styles.submitButtonText}>
+                <Text style={[styles.submitButtonText, { color: colors.onPrimary }]}>
                   {user?.role === 'ADMIN' ? 'Create Learner' : 'Add Child'}
                 </Text>
               )}
@@ -137,7 +152,6 @@ const AddLearnerPage = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
   },
   scrollContent: {
     paddingHorizontal: 16,
@@ -145,7 +159,6 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   formContainer: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     padding: 24,
     shadowColor: '#000',
@@ -158,7 +171,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: '600',
-    color: '#1F2937',
     marginBottom: 24,
     textAlign: 'center',
   },
@@ -168,17 +180,13 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#4B5563',
     marginBottom: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
     borderRadius: 8,
     padding: 12,
     fontSize: 16,
-    color: '#1F2937',
-    backgroundColor: '#F9FAFB',
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -186,7 +194,6 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   cancelButton: {
-    backgroundColor: '#F3F4F6',
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 24,
@@ -195,12 +202,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButtonText: {
-    color: '#4B5563',
     fontWeight: '500',
     fontSize: 16,
   },
   submitButton: {
-    backgroundColor: '#6366F1',
     borderRadius: 8,
     paddingVertical: 12,
     paddingHorizontal: 24,
@@ -212,18 +217,15 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   submitButtonText: {
-    color: '#FFFFFF',
     fontWeight: '500',
     fontSize: 16,
   },
   errorContainer: {
-    backgroundColor: '#FEE2E2',
     borderRadius: 8,
     padding: 12,
     marginBottom: 16,
   },
   errorText: {
-    color: '#B91C1C',
     fontSize: 14,
   },
 });

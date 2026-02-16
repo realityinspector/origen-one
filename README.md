@@ -30,13 +30,17 @@ SUNSCHOOL is a web-based educational platform that provides AI-generated lessons
 
 ### Implemented Features
 
-- **AI-Generated Lessons**: Content created using OpenRouter API for personalized learning
+- **AI-Generated Lessons**: Content created using OpenRouter API with age-appropriate validation
+- **Quiz Analytics & Tracking**: Individual answer storage with concept tagging and question deduplication
+- **Concept Mastery System**: Track learner performance across specific concepts (addition, subtraction, etc.)
+- **Adaptive Learning**: Question-level analytics to identify strengths and weaknesses
 - **Achievement System**: Gamified learning with badges and recognition
 - **User Management**: Three-tier system with ADMIN, PARENT, and LEARNER roles
 - **Parent-Child Relationships**: Parents can manage multiple learner accounts
 - **Database Synchronization**: Parents can configure external PostgreSQL database connections for data backup
-- **Progress Tracking**: Basic lesson completion and scoring
+- **Progress Tracking**: Comprehensive lesson completion, scoring, and points history
 - **Cross-Platform Web App**: Works on desktop and mobile browsers
+- **Automatic Database Migrations**: Schema updates applied automatically on server startup
 
 ### User Roles
 
@@ -129,13 +133,20 @@ PORT=5000
 
 ### Database Initialization
 
+The application automatically runs migrations on startup. For manual migration:
+
 ```bash
-# Push schema to database
+# Run migrations manually
+npm run migrate
+
+# Or push schema changes during development
 npm run db:push
 
 # Optional: Seed with sample data
 npm run db:seed
 ```
+
+**Note**: Database migrations are automatically applied when the server starts in production.
 
 ## Running the Application
 
@@ -202,6 +213,11 @@ ts-node scripts/admin-onboard.ts
 - `GET /api/lessons` - List lessons
 - `POST /api/lessons/:lessonId/answer` - Submit lesson answers
 
+### Analytics & Performance
+- `GET /api/learner/:learnerId/concept-performance` - Get concept mastery data
+- `GET /api/learner/:learnerId/recent-answers` - Get recent quiz answers
+- `GET /api/learner/:learnerId/points-history` - Get points history
+
 ### Achievements
 - `GET /api/achievements` - Get user achievements
 
@@ -230,8 +246,39 @@ ts-node scripts/admin-onboard.ts
 - `npm run dev` - Start development server
 - `npm run db:push` - Update database schema
 - `npm run db:seed` - Seed database with test data
+- `npm run migrate` - Run database migrations
 - `npm test` - Run unit tests
 - `npx playwright test` - Run e2e tests
+
+## Troubleshooting
+
+### Common Issues
+
+**Database Connection Errors**
+- Ensure `DATABASE_URL` is properly set in `.env`
+- For Neon databases, the WebSocket constructor is configured automatically
+- Check connection pooling settings in `server/db.ts`
+
+**Migration Failures**
+- Migrations run automatically on startup
+- If migrations fail, the server will still start (prevents deployment failures)
+- Run `npm run migrate` manually to debug migration issues
+- Check `drizzle/migrations/` folder for migration files
+
+**Quiz Submission Errors**
+- Ensure `quiz_answers` table exists (requires migrations)
+- Check browser console for detailed error messages
+- Verify learner has an active lesson before submitting
+
+**TypeScript Compilation Errors**
+- Run `npx tsc --noEmit` to check for type errors
+- Ensure all dependencies are installed: `npm install`
+- Clear build cache: `rm -rf client/dist server/dist`
+
+**Keep-Alive Logging**
+- Keep-alive pings occur every 2 minutes
+- Only logged in development mode (`NODE_ENV=development`)
+- Production mode silences these logs
 
 ## Contributing
 

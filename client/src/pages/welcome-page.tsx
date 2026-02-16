@@ -36,7 +36,7 @@ const WelcomePage: React.FC = () => {
   }
 
   const openGitHub = () => {
-    Linking.openURL('https://github.com/realityinspector/origen-one');
+    Linking.openURL('https://github.com/realityinspector/sunschool');
   };
 
   return (
@@ -168,7 +168,7 @@ const WelcomePage: React.FC = () => {
         <View style={styles.featuresSection}>
           <View style={styles.sectionContainer}>
             <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>Why Families Love Origen</Text>
+              <Text style={styles.sectionTitle}>Why Families Love Sunschool</Text>
               <View style={styles.sectionTitleUnderline} />
             </View>
             
@@ -215,7 +215,7 @@ const WelcomePage: React.FC = () => {
                   </View>
                   <Text style={styles.featureTitle}>Seamless Multi-device Access</Text>
                   <Text style={styles.featureDescription}>
-                    Use Origen on any device with automatic data synchronization. Your child can start on a tablet and continue on a computer.
+                    Use Sunschool on any device with automatic data synchronization. Your child can start on a tablet and continue on a computer.
                   </Text>
                 </View>
               </View>
