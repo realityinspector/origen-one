@@ -30,7 +30,7 @@ async function askOpenRouter(options) {
             headers: {
                 'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
                 'Content-Type': 'application/json',
-                'HTTP-Referer': 'https://origen-ai-tutor.replit.app',
+                'HTTP-Referer': 'https://sunschool.xyz',
                 'X-Title': 'SUNSCHOOL - The Open Source AI Tutor'
             }
         });
