@@ -51,7 +51,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npx tsc && node dist/server/index.js"
+args = "cd client && npm run build && cd .. && npx tsc --skipLibCheck && node dist/server/index.js"
 waitForPort = 5000
 
 [deployment]
