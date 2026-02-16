@@ -40,7 +40,7 @@ function asyncHandler(fn) {
     };
 }
 const scryptAsync = (0, util_1.promisify)(crypto_1.scrypt);
-const JWT_SECRET = process.env.JWT_SECRET || 'origen-secure-jwt-secret-for-development-5a5b2f8e6c7d';
+const JWT_SECRET = process.env.JWT_SECRET || 'sunschool-secure-jwt-secret-for-development-5a5b2f8e6c7d';
 const JWT_EXPIRES_IN = '7d'; // 7 days
 // Password hashing and verification
 async function hashPassword(password) {
