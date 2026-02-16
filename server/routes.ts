@@ -1229,10 +1229,13 @@ export function registerRoutes(app: Express): Server {
     // Update lesson status
     const updatedLesson = await storage.updateLessonStatus(lessonId, "DONE", score);
 
+    // Convert user ID to number once for all three operations
+    const learnerId: number = typeof req.user.id === 'number' ? req.user.id : parseInt(String(req.user.id), 10);
+
     // === NEW: Store individual quiz answers for analytics ===
     try {
       await storeQuizAnswers(
-        req.user.id,
+        learnerId,
         lessonId,
         questions,
         answers,
@@ -1253,7 +1256,7 @@ export function registerRoutes(app: Express): Server {
       });
 
       await bulkUpdateMasteryFromAnswers(
-        req.user.id,
+        learnerId,
         lesson.subject || 'General',
         conceptsAndCorrectness
       );
@@ -1266,7 +1269,7 @@ export function registerRoutes(app: Express): Server {
     // === NEW: Store question hashes for deduplication ===
     try {
       await storeQuestionHashes(
-        req.user.id,
+        learnerId,
         lesson.subject || 'General',
         questions
       );
@@ -1301,7 +1304,9 @@ export function registerRoutes(app: Express): Server {
     });
     console.log(`Points awarded successfully, new balance: ${newBalance}`);
 
-    // Generate a new lesson
+    // DISABLED: Automatic lesson generation after quiz completion
+    // TODO: Re-enable once migrations are stable
+    /*
     try {
       console.log('Attempting to generate new lesson after quiz completion');
       const learnerProfile = await storage.getLearnerProfile(req.user.id);
@@ -1403,6 +1408,7 @@ export function registerRoutes(app: Express): Server {
       console.error("Failed to generate a new lesson after quiz completion:", error);
       // Don't fail the request if new lesson generation fails
     }
+    */
 
     res.json({
       lesson: updatedLesson,

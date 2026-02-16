@@ -174,7 +174,7 @@ export async function getRecentAnswers(
       LIMIT ${limit}
     `);
 
-    return results.rows as QuizAnswer[];
+    return results.rows as unknown as QuizAnswer[];
   } catch (error) {
     console.error('Error fetching recent answers:', error);
     return [];
@@ -197,7 +197,7 @@ export async function getAnswersForConcept(
       ORDER BY answered_at DESC
     `);
 
-    return results.rows as QuizAnswer[];
+    return results.rows as unknown as QuizAnswer[];
   } catch (error) {
     console.error(`Error fetching answers for concept ${concept}:`, error);
     return [];

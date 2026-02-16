@@ -1,4 +1,4 @@
-import React, { createContext, ReactNode, useContext, useEffect, useState } from "react";
+import React, { createContext, ReactNode, useContext, useEffect, useState, useRef } from "react";
 import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
@@ -7,14 +7,14 @@ import {
   UseMutationResult,
 } from "@tanstack/react-query";
 import type { User as SelectUser, InsertUser } from "../../../shared/schema";
-import { 
-  getQueryFn, 
-  apiRequest, 
-  queryClient, 
-  setAuthToken, 
-  initializeAuthFromStorage, 
+import {
+  getQueryFn,
+  apiRequest,
+  queryClient,
+  setAuthToken,
+  initializeAuthFromStorage,
   axiosInstance,
-  queryPersister 
+  queryPersister
 } from "../lib/queryClient";
 import { useToast } from "./use-toast";
 
@@ -48,62 +48,62 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
   const [initializationComplete, setInitializationComplete] = useState(false);
   const [initError, setInitError] = useState<Error | null>(null);
-  
+
   // CRITICAL FIX: Initialize auth with stricter validation and safer defaults
   useEffect(() => {
     // Set initial state as NOT authenticated while we check
     queryClient.setQueryData(["/api/user"], null);
-    
+
     const init = async () => {
       try {
         console.log('Starting FRESH auth initialization with stricter validation');
-        
+
         // First, clear any potentially corrupted state to start fresh
         try {
           await setAuthToken(null);
           await AsyncStorage.removeItem('AUTH_TOKEN');
           await queryPersister.removeClient();
-          
+
           // Remove any other cached data that might cause persistence issues
           await AsyncStorage.removeItem('LEARNER_APP_CACHE');
-          
+
           console.log('Cleared all potential auth data for fresh start');
         } catch (clearError) {
           console.error('Initial state cleanup error (continuing):', clearError);
         }
-        
+
         // Now explicitly check if we have a token in storage and validate it
         const token = await AsyncStorage.getItem('AUTH_TOKEN');
         const hasValidToken = !!token && token.length > 20;
-        
-        console.log('Strict token check:', { 
-          hasToken: !!token, 
+
+        console.log('Strict token check:', {
+          hasToken: !!token,
           tokenLength: token ? token.length : 0,
           seemsValid: hasValidToken
         });
-        
+
         // Only proceed with validation if we have what appears to be a valid token
         if (hasValidToken) {
           try {
             console.log('Setting auth token for validation attempt');
             await setAuthToken(token); // Set the token in headers
-            
+
             // Make a synchronous validation request that blocks initialization
             console.log('Making validation request to /api/user');
-            const response = await axiosInstance.get('/api/user', { 
-              timeout: 5000,  // Short timeout 
+            const response = await axiosInstance.get('/api/user', {
+              timeout: 5000,  // Short timeout
               validateStatus: (status) => status === 200 // Only 200 is valid
             });
-            
+
             // Verify that the response contains a proper user object
             const userData = response.data;
             if (userData && userData.id && userData.role) {
-              console.log('Valid user authentication confirmed:', { 
+              console.log('Valid user authentication confirmed:', {
                 userId: userData.id,
                 role: userData.role,
                 name: userData.name
               });
-              
+
               // User is confirmed valid, update cache
               queryClient.setQueryData(["/api/user"], userData);
             } else {
@@ -126,13 +126,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           console.log('No valid token found, user is not authenticated');
           queryClient.setQueryData(["/api/user"], null);
         }
-        
+
         // Initialization complete
         setInitializationComplete(true);
       } catch (error) {
         console.error('Major error during auth initialization:', error);
         setInitError(error instanceof Error ? error : new Error('Unknown error during auth initialization'));
-        
+
         // Clear all state on major error
         try {
           await setAuthToken(null);
@@ -143,15 +143,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (clearError) {
           console.error('Failed to clear auth state after error:', clearError);
         }
-        
+
         setInitializationComplete(true);
       }
     };
-    
+
     // Run initialization
     init();
   }, []);
-  
+
   // Set up the user query with strict type checking and specific behaviors
   const {
     data: user,
@@ -174,217 +174,108 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   });
 
+  // --- Session expiry detection ---
+  // Track previous user value to detect when session expires (user goes from non-null to null)
+  const previousUserRef = useRef<SelectUser | null>(user);
+  useEffect(() => {
+    const prevUser = previousUserRef.current;
+    previousUserRef.current = user;
+
+    // Only act when user transitions from authenticated to unauthenticated
+    if (prevUser !== null && user === null) {
+      console.log('Session expired: user went from authenticated to null');
+
+      // Clear app-specific localStorage items
+      try {
+        AsyncStorage.removeItem('selectedLearnerId');
+        AsyncStorage.removeItem('preferredMode');
+      } catch (e) {
+        console.error('Failed to clear session storage on expiry:', e);
+      }
+
+      // Dispatch custom event so other contexts (e.g. ModeContext) can reset state
+      window.dispatchEvent(new CustomEvent('auth-session-expired'));
+    }
+  }, [user]);
+
   interface LoginResponse {
     user: SelectUser;
-    userData?: SelectUser; // Fallback for compatibility
     token: string;
   }
 
   const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginData) => {
+    mutationFn: async (credentials: LoginData): Promise<LoginResponse> => {
+      console.log('Sending login request to /api/login:', {
+        username: credentials.username,
+        passwordLength: credentials.password ? credentials.password.length : 0
+      });
+
       try {
-        console.log('Sending login request to server:', {
-          url: '/api/login',
-          username: credentials.username,
-          passwordLength: credentials.password ? credentials.password.length : 0
-        });
-        
-        // Determine whether we're on sunschool.xyz or a Replit environment
-        const baseUrl = window.location.origin;
-        const isSunSchool = baseUrl.includes('sunschool.xyz');
-        
-        // For sunschool.xyz domain, we need to use that as our API endpoint
-        const apiBaseUrl = isSunSchool ? 'https://sunschool.xyz' : baseUrl;
-        console.log('Using API base URL for authentication:', apiBaseUrl);
-        
-        // We'll try multiple endpoint patterns to ensure compatibility with different
-        // deployment environments, including the new domain at https://sunschool.xyz
-        const apiEndpoints: string[] = [
-          '/login',                    // Direct path (production compatibility)
-          '/api/login',                // API path (traditional)
-          `${apiBaseUrl}/login`,       // Full URL with domain (for CORS compatibility)
-          `${apiBaseUrl}/api/login`    // Full URL with API prefix (for CORS compatibility)
-        ];
-        
-        // Try multiple endpoint patterns to handle both deployed and development environments
-        let response: Response | null = null;
-        let jsonResponse = false;
-        let errorMessages: string[] = [];
-        
-        // Try each endpoint until we get a valid JSON response
-        for (const endpoint of apiEndpoints) {
-          if (jsonResponse) break; // Stop if we already got a successful response
-          
-          try {
-            const fullUrl = endpoint.startsWith('http') ? endpoint : `${apiBaseUrl}${endpoint}`;
-            console.log(`Attempting login via endpoint: ${fullUrl}`);
-            
-            // For sunschool.xyz domain we need special CORS settings
-            const corsMode = apiBaseUrl.includes('sunschool.xyz') ? 'cors' : 'same-origin';
-            console.log(`Using CORS mode: ${corsMode} for endpoint: ${fullUrl}`);
-            
-            response = await fetch(fullUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
-                'X-Sunschool-Auth': 'true' // Custom header for special auth handling
-              },
-              body: JSON.stringify(credentials),
-              credentials: 'include', // Important for cookies
-              mode: corsMode as RequestMode
-            });
-            
-            // If we got a JSON response, we're good
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-              console.log(`Successfully received JSON response from endpoint: ${endpoint}`);
-              jsonResponse = true;
-              break; // Found a working endpoint!
-            } else {
-              // If we got here, the response wasn't JSON - capture the error
-              const textPreview = await response.text();
-              errorMessages.push(`Endpoint ${endpoint} returned non-JSON: ${textPreview.substring(0, 50)}`);
-              response = null; // Reset to try the next endpoint
-            }
-          } catch (err) {
-            console.error(`Error with endpoint ${endpoint}:`, err);
-            errorMessages.push(`Endpoint ${endpoint} error: ${err instanceof Error ? err.message : String(err)}`);
-            response = null; // Reset to try the next endpoint
-          }
-        }
-        
-        // If all attempts failed or we didn't get a JSON response, throw a comprehensive error
-        if (!response || !jsonResponse) {
-          throw new Error(`All login attempts failed: ${errorMessages.join('; ')}`);
-        }
-        
-        // If we reached this point, we should have a valid JSON response
-        // Just check if the response is OK
-        if (!response.ok) {
-          throw new Error(`Login failed with status: ${response.status} ${response.statusText}`);
-        }
-        
-        // Add extra validation in case we somehow got here with a non-JSON response
-        if (!jsonResponse) {
-          throw new Error('Unexpected situation: Got past all validation but jsonResponse flag is still false');
-        }
-        
-        // Parse the JSON response
-        const data = await response.json();
-        
-        // Validate response data
-        if (!data) {
-          throw new Error('No response data received from login request');
-        }
-        
-        // Log detailed response info
-        console.log('Login response received:', {
-          status: response.status,
-          hasData: !!data,
-          dataType: typeof data,
-          responseKeys: data ? Object.keys(data) : [],
-          hasToken: data?.token ? 'Yes' : 'No',
-          tokenLength: data?.token ? data.token.length : 0,
-          hasUser: data?.user ? 'Yes (object)' : (typeof data === 'object' ? 'Yes (raw)' : 'No'),
-        });
-        
-        // We need to handle both the exact format expected (token + user) and also the case
-        // where just the user object itself is returned
-        let processedResponse: LoginResponse;
-        
-        if (data.token && (data.user || data.userData)) {
-          // Standard expected response format
-          processedResponse = data as LoginResponse;
-          console.log('Login response is in standard format with token + user');
-        } else if (typeof data === 'object' && 'id' in data && 'role' in data) {
-          // The server returned just the user object directly
-          console.log('Login response contains just the user object, creating standard format');
-          processedResponse = {
-            token: response.headers?.get('authorization')?.replace('Bearer ', '') || '',
-            user: data,
-            userData: data
-          };
-        } else {
-          // Unexpected format
+        const response = await axiosInstance.post('/api/login', credentials);
+        const data = response.data;
+
+        // Validate response format
+        if (!data || !data.token || !data.user) {
           console.error('Unexpected login response format:', data);
-          throw new Error('Unexpected response format from login endpoint');
+          throw new Error('Invalid username or password');
         }
-        
-        return processedResponse;
+
+        console.log('Login response received:', {
+          hasToken: true,
+          tokenLength: data.token.length,
+          userId: data.user.id,
+          role: data.user.role
+        });
+
+        return { token: data.token, user: data.user };
       } catch (err: any) {
-        // Create a more descriptive error object
-        const errorInfo = {
-          message: err.message,
-          responseData: err.response?.data,
-          status: err.response?.status,
-          isTransient: err.response?.data?.isTransient === true
-        };
-        
-        console.error('Login request failed:', errorInfo);
-        
-        // Customize the error message based on response status
-        if (err.response?.status === 503) {
-          // Database connection error
-          errorInfo.message = 'The server database is temporarily unavailable. Please try again in a few moments.';
-        } else if (err.response?.status === 401) {
-          // Invalid credentials
-          errorInfo.message = 'Invalid username or password. Please check your credentials and try again.';
-        } else if (err.response?.status === 500) {
-          // Server error
-          errorInfo.message = 'The server encountered an internal error. Please try again.';
-        } else if (!navigator.onLine) {
-          // No internet connection
-          errorInfo.message = 'Please check your internet connection and try again.';
+        // Map errors to human-readable messages
+        if (!navigator.onLine) {
+          throw new Error('Check your internet connection');
         }
-        
-        // Add better error information
-        const enhancedError = new Error(errorInfo.message);
-        (enhancedError as any).details = errorInfo;
-        
-        throw enhancedError;
+        if (err.response?.status === 401) {
+          throw new Error('Invalid username or password');
+        }
+        if (err.response?.status === 503 || err.response?.status === 500) {
+          throw new Error('Server is temporarily unavailable');
+        }
+        // If it's already a formatted error from the validation above, re-throw as-is
+        if (err.message === 'Invalid username or password' ||
+            err.message === 'Check your internet connection' ||
+            err.message === 'Server is temporarily unavailable') {
+          throw err;
+        }
+        // Network / unknown errors
+        if (!err.response) {
+          throw new Error('Check your internet connection');
+        }
+        throw new Error('Server is temporarily unavailable');
       }
     },
     onSuccess: async (response: LoginResponse) => {
       try {
-        // Store the token in AsyncStorage and set it in axios headers
         console.log('Processing login success:', {
           hasToken: !!response.token,
-          tokenLength: response.token ? response.token.length : 0,
-          hasUser: !!response.user,
-          hasUserData: !!response.userData,
-          userFields: response.user ? Object.keys(response.user) : [],
-          userDataFields: response.userData ? Object.keys(response.userData) : [],
+          tokenLength: response.token.length,
+          userId: response.user.id,
+          role: response.user.role
         });
-        
+
         if (!response.token) {
-          const detailedError = `No authentication token received. Response keys: ${Object.keys(response).join(', ')}`;
-          console.error(detailedError, { response });
-          throw new Error(detailedError);
+          throw new Error('No authentication token received');
         }
-        
+
         await setAuthToken(response.token);
-        console.log('Auth token set successfully:', { tokenLength: response.token.length });
-        
-        // Handle different response formats - some endpoints might return userData vs user
-        const userData = response.user || response.userData;
+        console.log('Auth token set successfully');
+
+        const userData = response.user;
         if (!userData) {
-          const detailedError = `No user data received. Response keys: ${Object.keys(response).join(', ')}`;
-          console.error(detailedError, { response });
-          throw new Error(detailedError);
+          throw new Error('No user data received');
         }
-        
-        console.log('User data received:', {
-          id: userData.id,
-          name: userData.name,
-          role: userData.role,
-          fields: Object.keys(userData)
-        });
-        
+
         // Update the user data in the query cache
         queryClient.setQueryData(["/api/user"], userData);
-        
+
         toast({
           title: "Login successful",
           description: `Welcome back, ${userData?.name || 'user'}!`,
@@ -399,15 +290,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     },
     onError: (error: Error) => {
-      console.error('Login mutation error:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      });
-      
+      console.error('Login mutation error:', error.message);
+
       toast({
         title: "Login failed",
-        description: `Error: ${error.message}\nCheck console for details`,
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -415,253 +302,92 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   interface RegisterResponse {
     user: SelectUser;
-    userData?: SelectUser; // Fallback for compatibility
     token: string;
     wasPromotedToAdmin?: boolean;
   }
 
   const registerMutation = useMutation({
-    mutationFn: async (userData: RegisterData) => {
+    mutationFn: async (userData: RegisterData): Promise<RegisterResponse> => {
+      console.log('Sending registration request to /api/register:', {
+        ...userData,
+        password: '***REDACTED***'
+      });
+
       try {
-        console.log('Sending registration request to server:', {
-          url: '/api/register',
-          userData: { ...userData, password: '***REDACTED***' } // Log without password
-        });
-        
-        // Determine if we're in production (deployed) or development environment
-        const isProduction = window.location.origin.includes('replit.app');
-        const baseUrl = window.location.origin;
-        console.log('Using current domain for registration:', baseUrl);
-        
-        // We'll try both with and without the /api prefix since our server supports both
-        const apiEndpoints: string[] = [
-          '/register',          // Direct path (added for production compatibility)
-          '/api/register'       // API path (traditional)
-        ];
-        
-        // Try multiple endpoint patterns to handle both deployed and development environments
-        let response: Response | null = null;
-        let jsonResponse = false;
-        let errorMessages: string[] = [];
-        
-        // Try each endpoint until we get a valid JSON response
-        for (const endpoint of apiEndpoints) {
-          if (jsonResponse) break; // Stop if we already got a successful response
-          
-          try {
-            const fullUrl = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`;
-            console.log(`Attempting registration via endpoint: ${fullUrl}`);
-            
-            response = await fetch(fullUrl, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Accept': 'application/json'
-              },
-              body: JSON.stringify(userData),
-              credentials: 'include' // Important for cookies
-            });
-            
-            // If we got a JSON response, we're good
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-              console.log(`Successfully received JSON response from endpoint: ${endpoint}`);
-              jsonResponse = true;
-              break; // Found a working endpoint!
-            } else {
-              // If we got here, the response wasn't JSON - capture the error
-              const textPreview = await response.text();
-              errorMessages.push(`Endpoint ${endpoint} returned non-JSON: ${textPreview.substring(0, 50)}`);
-              response = null; // Reset to try the next endpoint
-            }
-          } catch (err) {
-            console.error(`Error with endpoint ${endpoint}:`, err);
-            errorMessages.push(`Endpoint ${endpoint} error: ${err instanceof Error ? err.message : String(err)}`);
-            response = null; // Reset to try the next endpoint
-          }
-        }
-        
-        // If all attempts failed or we didn't get a JSON response, throw a comprehensive error
-        if (!response || !jsonResponse) {
-          throw new Error(`All registration attempts failed: ${errorMessages.join('; ')}`);
-        }
-        
-        // If we reached this point, we should have a valid JSON response
-        // Just check if the response is OK
-        if (!response.ok) {
-          throw new Error(`Registration failed with status: ${response.status} ${response.statusText}`);
-        }
-        
-        // Parse the JSON response
-        const data = await response.json();
-        
-        console.log('Registration response received:', {
-          status: response.status,
-          hasData: !!data,
-          dataType: typeof data,
-          responseKeys: data ? Object.keys(data) : [],
-          hasToken: data?.token ? 'Yes' : 'No',
-          tokenLength: data?.token ? data.token.length : 0,
-          hasUser: data?.user ? 'Yes (object)' : (typeof data === 'object' ? 'Yes (raw)' : 'No'),
-        });
-        
-        // We need to handle both the exact format expected (token + user) and also the case
-        // where just the user object itself is returned
-        let processedResponse: RegisterResponse;
-        
-        if (data.token && (data.user || data.userData)) {
-          // Standard expected response format
-          processedResponse = data as RegisterResponse;
-          console.log('Registration response is in standard format with token + user');
-        } else if (typeof data === 'object' && 'id' in data && 'role' in data) {
-          // The server returned just the user object directly
-          console.log('Registration response contains just the user object, creating standard format');
-          processedResponse = {
-            token: response.headers?.get('authorization')?.replace('Bearer ', '') || '',
-            user: data,
-            userData: data
-          };
-        } else {
-          // Unexpected format
+        const response = await axiosInstance.post('/api/register', userData);
+        const data = response.data;
+
+        // Validate response format
+        if (!data || !data.token || !data.user) {
           console.error('Unexpected registration response format:', data);
-          throw new Error('Unexpected response format from registration endpoint');
+          throw new Error('Registration failed: unexpected server response');
         }
-        
-        return processedResponse;
-      } catch (err: any) {
-        console.error('Registration request failed:', {
-          error: err.message,
-          response: err.response?.data,
-          status: err.response?.status
+
+        console.log('Registration response received:', {
+          hasToken: true,
+          tokenLength: data.token.length,
+          userId: data.user.id,
+          role: data.user.role,
+          wasPromotedToAdmin: data.wasPromotedToAdmin || false
         });
-        throw err;
+
+        return {
+          token: data.token,
+          user: data.user,
+          wasPromotedToAdmin: data.wasPromotedToAdmin
+        };
+      } catch (err: any) {
+        if (!navigator.onLine) {
+          throw new Error('Check your internet connection');
+        }
+        if (err.response?.status === 409) {
+          throw new Error('An account with that username or email already exists');
+        }
+        if (err.response?.status === 503 || err.response?.status === 500) {
+          throw new Error('Server is temporarily unavailable');
+        }
+        // If it's already a formatted error, re-throw as-is
+        if (err.message && !err.response) {
+          throw err;
+        }
+        throw new Error(err.response?.data?.error || 'Server is temporarily unavailable');
       }
     },
-    onSuccess: async (response: any) => {
+    onSuccess: async (response: RegisterResponse) => {
       try {
-        console.log('Processing registration success - raw response:', {
-          responseType: typeof response,
-          isArray: Array.isArray(response),
-          objectKeys: typeof response === 'object' ? Object.keys(response) : 'not an object'
+        console.log('Processing registration success:', {
+          hasToken: !!response.token,
+          tokenLength: response.token.length,
+          userId: response.user.id,
+          role: response.user.role
         });
 
-        let token: string | undefined = undefined;
-        let extractedUserData: any = undefined;
-
-        // Handle different response formats - first extract token
-        if (typeof response === 'string') {
-          // Case 1: The response is just the JWT token as a string
-          console.log('Response is a string, assuming it is the JWT token');
-          token = response;
-        } else if (Array.isArray(response)) {
-          // Case 2: Response is an array (possibly binary data or incorrect format)
-          console.log('Response is an array of length:', response.length);
-          // If it's an array, check if any element looks like a JWT token
-          for (let i = 0; i < response.length; i++) {
-            const item = response[i];
-            if (typeof item === 'string' && item.length > 50 && item.includes('.')) {
-              token = item;
-              console.log(`Found token in array at position ${i}, length:`, token.length);
-              break;
-            }
-          }
-        } else if (typeof response === 'object' && response !== null) {
-          // Case 3: Standard object response
-          console.log('Processing object response with keys:', Object.keys(response));
-          
-          // Look for standard token property
-          if (response.token && typeof response.token === 'string') {
-            token = response.token;
-            console.log('Found token in response.token');
-            // Also look for user data
-            if (response.user) extractedUserData = response.user;
-            else if (response.userData) extractedUserData = response.userData;
-          } 
-          // Special case: maybe the token is buried in another property
-          else if (response.data && response.data.token && typeof response.data.token === 'string') {
-            token = response.data.token;
-            console.log('Found token in response.data.token');
-            // Also look for user data
-            if (response.data.user) extractedUserData = response.data.user;
-            else if (response.data.userData) extractedUserData = response.data.userData;
-          }
-          // Last resort - search all properties for something that looks like a JWT token
-          else {
-            // Look through all properties for a string that looks like a JWT token
-            for (const key of Object.keys(response)) {
-              const val = response[key];
-              if (typeof val === 'string' && val.length > 50 && val.includes('.')) {
-                token = val;
-                console.log(`Found token in property '${key}', length:`, token.length);
-                break;
-              }
-            }
-          }
-        }
-        
-        // If we still don't have a token, this is a problem
-        if (!token) {
-          const detailedError = `No authentication token found in response. Response format: ${typeof response}`;
-          console.error(detailedError, { response });
-          throw new Error(detailedError);
-        }
-        
-        // Store the token
-        console.log('Token extracted successfully, length:', token.length);
-        await setAuthToken(token);
-        console.log('Auth token set successfully in storage and headers');
-        
-        // Now try to get user data if we don't already have it
-        if (!extractedUserData) {
-          try {
-            console.log('Token available but no user data, fetching from /api/user');
-            const userResponse = await axiosInstance.get('/api/user');
-            if (userResponse.data) {
-              extractedUserData = userResponse.data;
-              console.log('Successfully fetched user data from API');
-            }
-          } catch (userFetchError) {
-            console.error('Failed to fetch user data after auth:', userFetchError);
-            // Continue anyway since we at least have a token
-          }
-        }
-        
-        // If we still don't have user data, we can continue with just the token
-        if (!extractedUserData) {
-          console.warn('No user data available after attempting to fetch it');
+        if (!response.token || !response.user) {
           toast({
-            title: "Registration successful",
-            description: "Your account was created. Loading your dashboard...",
+            title: "Registration failed",
+            description: "Unexpected server response. Please try again.",
+            variant: "destructive",
           });
-          
-          // Redirect to dashboard and let the app fetch user data there
-          if (typeof window !== 'undefined') {
-            window.location.href = '/dashboard';
-          }
           return;
         }
-        
-        // If we've reached here, we have both token and user data
-        console.log('User data received:', {
-          id: extractedUserData.id,
-          name: extractedUserData.name,
-          role: extractedUserData.role,
-          fields: Object.keys(extractedUserData)
-        });
-        
+
+        // Store the token
+        await setAuthToken(response.token);
+        console.log('Auth token set successfully');
+
         // Update the user data in the query cache
-        queryClient.setQueryData(["/api/user"], extractedUserData);
-        
+        queryClient.setQueryData(["/api/user"], response.user);
+
         // Show appropriate toast message
         if (response.wasPromotedToAdmin) {
           toast({
             title: "You are the first user!",
-            description: `Welcome, ${extractedUserData?.name || 'user'}! As the first user, you've been automatically granted administrator privileges.`,
+            description: `Welcome, ${response.user?.name || 'user'}! As the first user, you've been automatically granted administrator privileges.`,
           });
         } else {
           toast({
             title: "Registration successful",
-            description: `Welcome, ${extractedUserData?.name || 'user'}!`,
+            description: `Welcome, ${response.user?.name || 'user'}!`,
           });
         }
       } catch (err: any) {
@@ -674,15 +400,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     },
     onError: (error: Error) => {
-      console.error('Registration mutation error:', {
-        message: error.message,
-        stack: error.stack,
-        name: error.name
-      });
-      
+      console.error('Registration mutation error:', error.message);
+
       toast({
         title: "Registration failed",
-        description: `Error: ${error.message}\nCheck console for details`,
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -690,94 +412,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
+      // Call the server logout endpoint
       try {
         console.log('Starting logout process...');
-        
-        // Determine if we're in production (deployed) or development environment
-        const isProduction = window.location.origin.includes('replit.app');
-        const baseUrl = window.location.origin;
-        console.log('Current environment for logout:', { isProduction, baseUrl });
-        
-        // Specify API endpoints differently based on environment
-        let apiEndpoints: string[] = [];
-        
-        if (isProduction) {
-          // Production (deployed) environment endpoints
-          apiEndpoints = [
-            '/api/logout',                               // Standard path
-            '/logout',                                   // Direct path without /api
-            'https://origen-api.replit.app/api/logout', // External API service
-            'https://origen-api.replit.app/logout'       // External API service direct path
-          ];
-        } else {
-          // Development environment endpoints
-          apiEndpoints = [
-            '/api/logout',                               // Standard path
-            `${baseUrl}/api/logout`,                     // Full URL path
-            baseUrl.replace(/:(\d+)$/, ':5000') + '/api/logout'  // Direct Node server port
-          ];
-        }
-        
-        // First try to call the server logout endpoints with fetch for maximum reliability
-        let logoutSuccessful = false;
-        let errorMessages: string[] = [];
-        
-        // Try each endpoint until we get a successful response
-        for (const endpoint of apiEndpoints) {
-          if (logoutSuccessful) break; // Stop if we already got a successful logout
-          
-          try {
-            const fullUrl = endpoint.startsWith('http') ? endpoint : `${baseUrl}${endpoint}`;
-            console.log(`Attempting logout via endpoint: ${fullUrl}`);
-            
-            const response = await fetch(fullUrl, {
-              method: 'POST',
-              credentials: 'include', // Important for cookies
-            });
-            
-            console.log(`Logout response from ${endpoint}:`, { 
-              status: response.status,
-              ok: response.ok,
-              statusText: response.statusText
-            });
-            
-            if (response.ok) {
-              logoutSuccessful = true;
-              console.log(`Successfully logged out via endpoint: ${endpoint}`);
-              break;
-            } else {
-              errorMessages.push(`${endpoint} failed: ${response.status} ${response.statusText}`);
-            }
-          } catch (err) {
-            console.error(`Error with endpoint ${endpoint}:`, err);
-            errorMessages.push(`${endpoint} error: ${err instanceof Error ? err.message : String(err)}`);
-          }
-        }
-        
-        if (!logoutSuccessful) {
-          console.warn('Server logout failed on all endpoints:', errorMessages);
-          console.warn('Continuing with client-side logout anyway');
-        }
+        await axiosInstance.post('/api/logout');
+        console.log('Server logout successful');
       } catch (error) {
-        console.warn('Initial logout process failed, but continuing with client-side cleanup:', error);
-        // We still continue with client-side logout even if there's an error
+        console.warn('Server logout request failed, continuing with client-side cleanup:', error);
+        // Continue with client-side logout even if server call fails
       }
-      
+
       // Thorough cleanup of all authentication state
       try {
         console.log('Clearing all auth tokens and persisted data...');
         // Clear auth token from axios headers
         await setAuthToken(null);
-        
+
         // Clear persisted token
         await AsyncStorage.removeItem('AUTH_TOKEN');
-        
+
         // Clear persisted query cache
         await queryPersister.removeClient();
-        
+
         // Clear any other auth-related storage items
         await AsyncStorage.removeItem('LEARNER_APP_CACHE');
-        
+
         console.log('All auth data cleared successfully');
       } catch (cleanupError) {
         console.error('Error during auth cleanup:', cleanupError);
@@ -787,17 +446,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     onSuccess: async () => {
       // Immediately clear in-memory user data
       queryClient.setQueryData(["/api/user"], null);
-      
+
       // Clear all queries to prevent any auth-dependent data from persisting
       queryClient.clear();
-      
+
       toast({
         title: "Logged out",
         description: "You have been logged out successfully",
       });
-      
+
       console.log('Logout complete, user state cleared');
-      
+
       // Force page reload to ensure clean state if needed
       if (typeof window !== 'undefined') {
         window.location.href = '/auth';
@@ -810,10 +469,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         description: error.message,
         variant: "destructive",
       });
-      
+
       // Even on error, try to clear client-side state
       queryClient.setQueryData(["/api/user"], null);
-      
+
       // Try to force reload to auth page as last resort
       if (typeof window !== 'undefined') {
         window.location.href = '/auth';
@@ -825,10 +484,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   if (initializationComplete && initError) {
     console.error('Auth initialization error, showing fallback UI', initError);
     return (
-      <div style={{ 
-        padding: '20px', 
-        margin: '20px', 
-        backgroundColor: '#f8d7da', 
+      <div style={{
+        padding: '20px',
+        margin: '20px',
+        backgroundColor: '#f8d7da',
         borderRadius: '5px',
         color: '#721c24'
       }}>
@@ -838,16 +497,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           <summary>Error Details</summary>
           <p>{initError.toString()}</p>
         </details>
-        <button 
-          onClick={() => window.location.reload()} 
-          style={{ 
-            marginTop: '10px', 
-            padding: '8px 16px', 
-            backgroundColor: '#6200EE', 
-            color: 'white', 
-            border: 'none', 
+        <button
+          onClick={() => window.location.reload()}
+          style={{
+            marginTop: '10px',
+            padding: '8px 16px',
+            backgroundColor: '#6200EE',
+            color: 'white',
+            border: 'none',
             borderRadius: '4px',
-            cursor: 'pointer' 
+            cursor: 'pointer'
           }}
         >
           Refresh Page
@@ -855,22 +514,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       </div>
     );
   }
-  
+
   // If still initializing, show a loading indicator
   if (!initializationComplete) {
     return (
-      <div style={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center', 
-        justifyContent: 'center', 
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
         marginTop: '40px'
       }}>
-        <div style={{ 
-          width: '40px', 
-          height: '40px', 
-          border: '4px solid #f3f3f3', 
-          borderTop: '4px solid #6200EE', 
+        <div style={{
+          width: '40px',
+          height: '40px',
+          border: '4px solid #f3f3f3',
+          borderTop: '4px solid #6200EE',
           borderRadius: '50%',
           animation: 'spin 1s linear infinite',
           marginBottom: '16px'
@@ -879,7 +538,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       </div>
     );
   }
-  
+
   // Normal rendering when initialization is complete and successful
   return (
     <AuthContext.Provider

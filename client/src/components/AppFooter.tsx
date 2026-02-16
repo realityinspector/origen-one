@@ -17,7 +17,7 @@ const AppFooter: React.FC<AppFooterProps> = () => {
       <View style={styles.footerContent}>
         <View style={styles.footerLeft}>
           <View>
-            <Text style={styles.footerTitle}>ORIGEN™ AI TUTOR</Text>
+            <Text style={styles.footerTitle}>SUNSCHOOL™ AI TUTOR</Text>
             <Text style={styles.footerCopyright}>All materials copyright Sean McDonald {new Date().getFullYear()}</Text>
           </View>
           <TouchableOpacity 
