@@ -7,11 +7,11 @@ import { useAuth } from '../hooks/use-auth';
 import { useMode } from '../context/ModeContext';
 import { LearnerSelector } from './LearnerSelector';
 
-interface OrigenHeaderProps {
+interface SunschoolHeaderProps {
   subtitle?: string;
 }
 
-const OrigenHeader: React.FC<OrigenHeaderProps> = ({ subtitle }) => {
+const SunschoolHeader: React.FC<SunschoolHeaderProps> = ({ subtitle }) => {
   const [location, navigate] = useLocation();
   const { user } = useAuth();
   const { isLearnerMode } = useMode();
@@ -90,9 +90,9 @@ const OrigenHeader: React.FC<OrigenHeaderProps> = ({ subtitle }) => {
 
         {user && (
           <View style={styles.navigation}>
-            {/* Show LearnerSelector for parents and admins when in learner mode */}
-            {isLearnerMode && (user?.role === 'PARENT' || user?.role === 'ADMIN') && (
-              <LearnerSelector />
+            {/* Show LearnerSelector for parents and admins in any mode */}
+            {(user?.role === 'PARENT' || user?.role === 'ADMIN') && (
+              <LearnerSelector subtle={!isLearnerMode} />
             )}
 
             {getNavItems().map((item, index) => (
@@ -126,6 +126,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(255, 255, 255, 0.1)',
     boxShadow: '0 4px 10px rgba(0, 0, 0, 0.1)',
+    zIndex: 100,
+    overflow: 'visible',
   },
   headerContent: {
     maxWidth: 1000,
@@ -134,6 +136,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    overflow: 'visible',
   },
   titleContainer: {
     flexDirection: 'column',
@@ -178,6 +181,8 @@ const styles = StyleSheet.create({
   navigation: {
     flexDirection: 'row',
     alignItems: 'center',
+    zIndex: 1000,
+    overflow: 'visible',
   },
   navItem: {
     flexDirection: 'row',
@@ -204,4 +209,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default OrigenHeader;
+export default SunschoolHeader;

@@ -49,7 +49,7 @@ const HomePage = () => {
           <View style={styles.logoContainer}>
             <Book size={40} color={colors.primary} />
           </View>
-          <Text style={styles.title}>ORIGEN</Text>
+          <Text style={styles.title}>SUNSCHOOL</Text>
           <Text style={styles.subtitle}>Welcome, {user.name}!</Text>
         </View>
 

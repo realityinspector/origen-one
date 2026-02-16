@@ -328,7 +328,7 @@ const AuthPage = () => {
         </View>
         
         <View style={styles.featuresContainer}>
-          <Text style={styles.featuresTitle}>Why Choose ORIGEN?</Text>
+          <Text style={styles.featuresTitle}>Why Choose Sunschool?</Text>
           
           <View style={styles.featureItem}>
             <View style={styles.featureIcon}>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -38,6 +38,13 @@ const ReportsPage: React.FC = () => {
     },
     enabled: (user?.role === 'PARENT' || user?.role === 'ADMIN') && !!user?.id,
   });
+
+  // Auto-select first learner when data loads
+  useEffect(() => {
+    if (learners && learners.length > 0 && selectedLearnerId === null) {
+      setSelectedLearnerId(learners[0].id);
+    }
+  }, [learners, selectedLearnerId]);
 
   // Fetch report data
   const {
@@ -88,24 +95,26 @@ const ReportsPage: React.FC = () => {
         ) : (
           <ScrollView>
             <View style={styles.controlsContainer}>
-              <View style={styles.section}>
-                <Text style={styles.sectionTitle}>Select Learner</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.learnersScroll}>
-                  {learners && learners.map((learner: any) => (
-                    <TouchableOpacity 
-                      key={learner.id}
-                      style={[styles.learnerButton, selectedLearnerId === learner.id && styles.selectedLearnerButton]}
-                      onPress={() => setSelectedLearnerId(learner.id)}
-                    >
-                      <Text 
-                        style={[styles.learnerButtonText, selectedLearnerId === learner.id && styles.selectedLearnerButtonText]}
+              {learners && learners.length > 1 && (
+                <View style={styles.section}>
+                  <Text style={styles.sectionTitle}>Select Learner</Text>
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.learnersScroll}>
+                    {learners.map((learner: any) => (
+                      <TouchableOpacity
+                        key={learner.id}
+                        style={[styles.learnerButton, selectedLearnerId === learner.id && styles.selectedLearnerButton]}
+                        onPress={() => setSelectedLearnerId(learner.id)}
                       >
-                        {learner.name}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
+                        <Text
+                          style={[styles.learnerButtonText, selectedLearnerId === learner.id && styles.selectedLearnerButtonText]}
+                        >
+                          {learner.name}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                </View>
+              )}
 
               {selectedLearnerId && (
                 <View style={styles.section}>
@@ -192,7 +201,7 @@ const ReportsPage: React.FC = () => {
                           <View key={index} style={styles.subjectItem}>
                             <View style={styles.subjectItemHeader}>
                               <Text style={styles.subjectName}>{subject}</Text>
-                              <Text style={styles.subjectCount}>{count} lessons</Text>
+                              <Text style={styles.subjectCount}>{count as number} lessons</Text>
                             </View>
                             <View style={styles.subjectBarContainer}>
                               <View 

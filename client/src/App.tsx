@@ -75,7 +75,7 @@ export default function App() {
   return (
     <div className="app-container">
       <PlausibleAnalytics 
-        domain="origen-ai-tutor.org" 
+        domain="sunschool.xyz" 
         enabled={process.env.NODE_ENV === 'production' && process.env.ENABLE_STATS !== 'false'} 
       />
       {/* Welcome Modal */}
