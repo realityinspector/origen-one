@@ -22,6 +22,142 @@ const brand = {
   white: '#FFFFFF',
 };
 
+// ─── Sacred-geometry sun graphic (SVG) ────────────────────────────────────
+const SacredSunGraphic: React.FC = () => {
+  const cx = 160;
+  const cy = 160;
+  const size = 320;
+
+  // Orbital radii
+  const r1 = 48;  // inner ring
+  const r2 = 80;  // mid ring
+  const r3 = 120; // outer ring
+  const r4 = 150; // outermost halo
+
+  // Points around a circle
+  const pt = (r: number, i: number, n: number) => {
+    const a = (Math.PI * 2 * i) / n - Math.PI / 2;
+    return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+  };
+
+  // Seed of Life: 6 overlapping circles around center
+  const seedCircles = Array.from({ length: 6 }, (_, i) => pt(r1, i, 6));
+
+  // Hexagonal connectors on mid ring
+  const hexPts = Array.from({ length: 6 }, (_, i) => pt(r2, i, 6));
+
+  // 12-point star connectors on outer ring
+  const starPts = Array.from({ length: 12 }, (_, i) => pt(r3, i, 12));
+
+  // Orbital nodes (the "planets")
+  const orbitals = [
+    { r: r2, idx: 0, n: 6, color: brand.secondary, size: 7 },
+    { r: r2, idx: 2, n: 6, color: brand.green, size: 6 },
+    { r: r2, idx: 4, n: 6, color: brand.purple, size: 7 },
+    { r: r3, idx: 1, n: 12, color: brand.gold, size: 5 },
+    { r: r3, idx: 4, n: 12, color: brand.secondary, size: 4 },
+    { r: r3, idx: 7, n: 12, color: brand.green, size: 5 },
+    { r: r3, idx: 10, n: 12, color: brand.purple, size: 4 },
+  ];
+
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox={`0 0 ${size} ${size}`}
+      style={{ overflow: 'visible' }}
+    >
+      <defs>
+        {/* Radial glow for center sun */}
+        <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor={brand.gold} stopOpacity={0.6} />
+          <stop offset="60%" stopColor={brand.secondary} stopOpacity={0.15} />
+          <stop offset="100%" stopColor={brand.secondary} stopOpacity={0} />
+        </radialGradient>
+        {/* Subtle outer halo */}
+        <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stopColor="#FFFFFF" stopOpacity={0} />
+          <stop offset="70%" stopColor="#FFFFFF" stopOpacity={0.03} />
+          <stop offset="100%" stopColor="#FFFFFF" stopOpacity={0.08} />
+        </radialGradient>
+      </defs>
+
+      {/* Outermost halo ring */}
+      <circle cx={cx} cy={cy} r={r4} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={1} />
+
+      {/* Outer 12-pointed star web */}
+      {starPts.map((p, i) => {
+        const next = starPts[(i + 1) % 12];
+        return <line key={`s${i}`} x1={p.x} y1={p.y} x2={next.x} y2={next.y} stroke="rgba(255,255,255,0.1)" strokeWidth={0.7} />;
+      })}
+      {/* Cross-connections every other point (hexagram) */}
+      {starPts.filter((_, i) => i % 2 === 0).map((p, i, arr) => {
+        const opp = arr[(i + 1) % arr.length];
+        return <line key={`sx${i}`} x1={p.x} y1={p.y} x2={opp.x} y2={opp.y} stroke="rgba(255,255,255,0.05)" strokeWidth={0.5} />;
+      })}
+
+      {/* Outer orbit ring */}
+      <circle cx={cx} cy={cy} r={r3} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth={0.8} strokeDasharray="4 6" />
+
+      {/* Mid-ring hexagon */}
+      <polygon
+        points={hexPts.map(p => `${p.x},${p.y}`).join(' ')}
+        fill="none"
+        stroke="rgba(255,255,255,0.15)"
+        strokeWidth={0.8}
+      />
+      {/* Mid orbit ring */}
+      <circle cx={cx} cy={cy} r={r2} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth={0.8} />
+
+      {/* Radial spokes from center to outer ring */}
+      {hexPts.map((p, i) => (
+        <line key={`spoke${i}`} x1={cx} y1={cy} x2={starPts[i * 2].x} y2={starPts[i * 2].y} stroke="rgba(255,255,255,0.07)" strokeWidth={0.6} />
+      ))}
+
+      {/* Seed of Life: 6 overlapping circles */}
+      {seedCircles.map((p, i) => (
+        <circle key={`seed${i}`} cx={p.x} cy={p.y} r={r1} fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth={0.7} />
+      ))}
+
+      {/* Inner ring */}
+      <circle cx={cx} cy={cy} r={r1} fill="none" stroke="rgba(255,255,255,0.18)" strokeWidth={0.8} />
+
+      {/* Center sun glow */}
+      <circle cx={cx} cy={cy} r={56} fill="url(#sunGlow)" />
+
+      {/* Center sun core */}
+      <circle cx={cx} cy={cy} r={16} fill={brand.gold} opacity={0.9} />
+      <circle cx={cx} cy={cy} r={10} fill={brand.secondary} opacity={0.7} />
+      <circle cx={cx} cy={cy} r={4} fill="#FFFFFF" opacity={0.9} />
+
+      {/* Tiny dots at star-web vertices */}
+      {starPts.map((p, i) => (
+        <circle key={`dot${i}`} cx={p.x} cy={p.y} r={1.8} fill="rgba(255,255,255,0.3)" />
+      ))}
+
+      {/* Hex vertex dots */}
+      {hexPts.map((p, i) => (
+        <circle key={`hd${i}`} cx={p.x} cy={p.y} r={2.2} fill="rgba(255,255,255,0.25)" />
+      ))}
+
+      {/* Orbital nodes ("planets") */}
+      {orbitals.map((o, i) => {
+        const p = pt(o.r, o.idx, o.r === r2 ? 6 : 12);
+        return (
+          <g key={`orb${i}`}>
+            <circle cx={p.x} cy={p.y} r={o.size + 4} fill={o.color} opacity={0.12} />
+            <circle cx={p.x} cy={p.y} r={o.size} fill={o.color} opacity={0.85} />
+            <circle cx={p.x} cy={p.y} r={o.size * 0.4} fill="#FFFFFF" opacity={0.5} />
+          </g>
+        );
+      })}
+
+      {/* Outer halo wash */}
+      <circle cx={cx} cy={cy} r={r4} fill="url(#halo)" />
+    </svg>
+  );
+};
+
 const WelcomePage: React.FC = () => {
   const { user, isLoading } = useAuth();
   const [location] = useLocation();
@@ -109,34 +245,10 @@ const WelcomePage: React.FC = () => {
               </View>
             </View>
 
-            {/* Right side: abstract sun graphic */}
+            {/* Right side: sacred geometry sun */}
             {windowWidth >= 768 && (
               <View style={styles.heroRight}>
-                <View style={styles.sunGraphic}>
-                  <Text style={{ fontSize: 72 }}>&#9728;&#65039;</Text>
-                  {/* Orbit dots */}
-                  {[
-                    { color: brand.secondary, top: 10, left: 100 },
-                    { color: brand.green, top: 90, left: 150 },
-                    { color: brand.purple, top: 160, left: 120 },
-                    { color: brand.gold, top: 140, left: 30 },
-                    { color: brand.primary, top: 50, left: 0 },
-                  ].map((dot, i) => (
-                    <View
-                      key={i}
-                      style={{
-                        position: 'absolute',
-                        width: 18,
-                        height: 18,
-                        borderRadius: 9,
-                        backgroundColor: dot.color,
-                        top: dot.top,
-                        left: dot.left,
-                        opacity: 0.85,
-                      }}
-                    />
-                  ))}
-                </View>
+                <SacredSunGraphic />
               </View>
             )}
           </View>
@@ -475,13 +587,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  sunGraphic: {
-    width: 200,
-    height: 200,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
+    minHeight: 320,
   },
 
   /* Trust Bar */
