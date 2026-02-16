@@ -37,13 +37,6 @@ import { useWelcomeModal } from './hooks/use-welcome-modal';
 const HomeRedirect = () => {
   const { user, isLoading } = useAuth();
   
-  console.log("HomeRedirect: User authentication status", { 
-    isAuthenticated: !!user, 
-    isLoading,
-    userId: user?.id,
-    userRole: user?.role
-  });
-  
   if (isLoading) {
     return (
       <div className="loading-screen">
@@ -53,14 +46,10 @@ const HomeRedirect = () => {
     );
   }
   
-  // Force redirect to welcome page for unauthenticated users
   if (!user) {
-    console.log("HomeRedirect: User is not authenticated, redirecting to /welcome");
     return <Redirect to="/welcome" />;
   }
-  
-  // Only proceed with role-based redirects if user is authenticated
-  console.log("HomeRedirect: User is authenticated with role:", user.role);
+
   if (user.role === 'LEARNER') {
     return <Redirect to="/learner" />;
   } else {
@@ -124,10 +113,7 @@ export default function App() {
             
             {/* Root path - will show welcome page but with auth-aware handling */}
             <Route path="/">
-              {() => {
-                console.log("App.tsx: Rendering root path (/), showing welcome page");
-                return <WelcomePage />;
-              }}
+              {() => <WelcomePage />}
             </Route>
             
             {/* Catch-all for 404 */}

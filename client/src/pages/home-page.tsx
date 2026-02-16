@@ -8,7 +8,7 @@ import {
   SafeAreaView 
 } from 'react-native';
 import { useAuth } from '../hooks/use-auth';
-import { colors, typography, commonStyles } from '../styles/theme';
+import { learnerColors, typography, commonStyles } from '../styles/theme';
 import { Book, Award, BarChart2 } from 'react-feather';
 import { useLocation } from 'wouter';
 
@@ -47,7 +47,7 @@ const HomePage = () => {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <View style={styles.logoContainer}>
-            <Book size={40} color={colors.primary} />
+            <Book size={40} color={learnerColors.primary} />
           </View>
           <Text style={styles.title}>SUNSCHOOL</Text>
           <Text style={styles.subtitle}>Welcome, {user.name}!</Text>
@@ -59,7 +59,7 @@ const HomePage = () => {
             onPress={() => navigateBasedOnRole()}
           >
             <View style={styles.cardIconContainer}>
-              <Book size={24} color={colors.primary} />
+              <Book size={24} color={learnerColors.primary} />
             </View>
             <Text style={styles.cardTitle}>Continue Learning</Text>
             <Text style={styles.cardDescription}>
@@ -78,7 +78,7 @@ const HomePage = () => {
                 onPress={() => setLocation('/progress')}
               >
                 <View style={styles.cardIconContainer}>
-                  <BarChart2 size={24} color={colors.primary} />
+                  <BarChart2 size={24} color={learnerColors.primary} />
                 </View>
                 <Text style={styles.cardTitle}>View Progress</Text>
                 <Text style={styles.cardDescription}>
@@ -91,7 +91,7 @@ const HomePage = () => {
                 onPress={() => setLocation('/learner')}
               >
                 <View style={styles.cardIconContainer}>
-                  <Award size={24} color={colors.primary} />
+                  <Award size={24} color={learnerColors.primary} />
                 </View>
                 <Text style={styles.cardTitle}>Achievements</Text>
                 <Text style={styles.cardDescription}>
@@ -131,20 +131,20 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: learnerColors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
   },
   title: {
     ...typography.h1,
-    color: colors.primary,
+    color: learnerColors.primary,
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     ...typography.subtitle1,
-    color: colors.textSecondary,
+    color: learnerColors.textSecondary,
     textAlign: 'center',
   },
   cardContainer: {
@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: learnerColors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
@@ -179,11 +179,11 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
-    backgroundColor: colors.error,
+    backgroundColor: learnerColors.error,
   },
   logoutButtonText: {
     ...typography.button,
-    color: colors.onError,
+    color: learnerColors.onError,
   },
 });
 
