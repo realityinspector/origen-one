@@ -7,8 +7,21 @@ This document outlines the completed migration of Sunschool's LLM infrastructure
 - [x] Phase 1: Research and Setup ✅ COMPLETED
 - [x] Phase 2: Core Integration ✅ COMPLETED
 - [x] Phase 3: Configuration and Feature Flags ✅ COMPLETED
-- [ ] Phase 4: Testing and Validation
-- [ ] Phase 5: Deployment and Monitoring
+- [ ] Phase 4: Testing and Validation (BLOCKED - see Current Blockers)
+- [ ] Phase 5: Deployment and Monitoring (PENDING)
+
+## Current Blockers
+
+### Automatic Lesson Generation
+- Automatic lesson generation after quiz completion is temporarily disabled
+- Located in `server/routes.ts` lines 1307-1411 (commented out)
+- Reason: Ensuring database migration stability before re-enabling
+- Status: Will be re-enabled once migrations are stable in production
+
+### Migration Dependencies
+- Quiz submission now requires `quiz_answers` and `questions_history` tables
+- Migrations run automatically on server startup
+- Phase 4 testing blocked until production migration verification complete
 
 ## Architecture Changes
 
@@ -111,6 +124,9 @@ npx ts-node scripts/test-bittensor-integration.ts
 - [ ] Fallback mechanism functions
 - [ ] Content generation produces valid output
 - [ ] Error handling works as expected
+- [ ] Database migrations complete successfully
+- [ ] Quiz submission with analytics tracking works
+- [ ] Automatic lesson generation (re-enable first) works with all providers
 
 ## Deployment Strategy
 

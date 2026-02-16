@@ -113,6 +113,52 @@ CREATE TABLE sessions (
 );
 ```
 
+#### Quiz Answers (Phase 2 Analytics)
+```sql
+CREATE TABLE quiz_answers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  learner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  lesson_id TEXT NOT NULL REFERENCES lessons(id),
+  question_index INTEGER NOT NULL,
+  question_text TEXT NOT NULL,
+  question_hash TEXT NOT NULL, -- SHA-256 hash for deduplication
+  user_answer INTEGER NOT NULL,
+  correct_answer INTEGER NOT NULL,
+  is_correct BOOLEAN NOT NULL,
+  concept_tags TEXT[] DEFAULT '{}', -- Array of concept tags (e.g., 'addition', 'subtraction')
+  answered_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_quiz_answers_learner ON quiz_answers(learner_id);
+CREATE INDEX idx_quiz_answers_hash ON quiz_answers(question_hash);
+CREATE INDEX idx_quiz_answers_concepts ON quiz_answers USING GIN(concept_tags);
+```
+
+#### Questions History (Deduplication)
+```sql
+CREATE TABLE questions_history (
+  question_hash TEXT PRIMARY KEY,
+  question_text TEXT NOT NULL,
+  first_seen_at TIMESTAMP DEFAULT NOW(),
+  times_asked INTEGER DEFAULT 1,
+  concept_tags TEXT[] DEFAULT '{}'
+);
+```
+
+#### Points History (Gamification)
+```sql
+CREATE TABLE points_history (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  learner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  points INTEGER NOT NULL,
+  reason TEXT NOT NULL, -- e.g., 'lesson_completion', 'quiz_perfect_score'
+  lesson_id TEXT REFERENCES lessons(id),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_points_history_learner ON points_history(learner_id);
+```
+
 ## API Endpoints
 
 ### Authentication
@@ -138,6 +184,11 @@ CREATE TABLE sessions (
 
 ### Achievements
 - `GET /api/achievements` - Get user achievements
+
+### Analytics & Performance (Phase 2)
+- `GET /api/learner/:learnerId/concept-performance` - Get concept mastery analytics
+- `GET /api/learner/:learnerId/recent-answers` - Get recent quiz answers (limit 50)
+- `GET /api/learner/:learnerId/points-history` - Get points history
 
 ### Database Sync (Parent only)
 - `GET /api/sync-configs` - List sync configurations
@@ -200,9 +251,9 @@ CREATE TABLE sessions (
 ## Development Scripts
 
 ### Database Management
-- `npm run db:push` - Push schema changes to database
+- `npm run migrate` - Apply database migrations (also runs automatically on server startup)
+- `npm run db:push` - Push schema changes to database (development)
 - `npm run db:generate` - Generate migration files
-- `npm run db:migrate` - Apply migrations
 - `npm run db:seed` - Populate with sample data
 
 ### User Management
@@ -232,21 +283,47 @@ NODE_ENV=development|production
 USE_AI=1|0  # Enable/disable AI features
 ```
 
+## Phase 2 Analytics Features (Implemented)
+
+### Quiz Tracking System
+- **Individual Answer Storage**: Every quiz answer stored with metadata
+- **Question Deduplication**: SHA-256 hashing prevents duplicate questions
+- **Concept Tagging**: Automatic extraction of educational concepts (addition, subtraction, plants, animals, etc.)
+- **Performance Analytics**: Track accuracy per concept for adaptive learning
+
+### Concept Mastery
+- Aggregated performance data across all concepts
+- Accuracy percentage for each educational concept
+- Total attempts and correct answers tracked
+- Supports subjects: Math, Science, Reading/Language, Cognitive Skills
+
+### Points System
+- Points awarded for lesson completion
+- Bonus points for perfect quiz scores
+- Full points history with reasons and timestamps
+- Integrated with gamification system
+
+### Content Validation
+- Age-appropriate content checking
+- Word count limits per grade level
+- Complexity validation
+- Tone and vocabulary appropriateness
+
 ## Known Limitations
 
 ### Not Yet Implemented
 - Interactive knowledge graphs (schema exists but UI not complete)
 - Enhanced lesson format with images and diagrams
-- Subject recommendations based on performance
-- Advanced quiz system with multiple question types
-- Continuous database synchronization
+- Subject recommendations based on performance (data collection complete, recommendation engine pending)
+- Continuous database synchronization (manual sync works)
 - Real-time collaborative features
+- Automatic lesson generation after quiz completion (temporarily disabled)
 
 ### Current Constraints
-- Basic lesson content generation (text-only)
-- Simple achievement system
+- Lesson content is text and quiz-based (no multimedia)
 - Manual database sync process
 - Limited multimedia support
+- Automatic lesson generation feature temporarily disabled pending migration stability
 
 ## Deployment
 
@@ -260,11 +337,24 @@ npm start
 The application can be containerized but requires PostgreSQL database setup.
 
 ### Environment Setup
-1. Configure PostgreSQL database
-2. Set environment variables
-3. Run database migrations
-4. Create initial admin user
+1. Configure PostgreSQL database (Neon serverless recommended)
+2. Set environment variables in `.env` file
+3. Database migrations run automatically on server startup
+4. Create initial admin user (automatic on first run, credentials saved to `admin-credentials.txt`)
 5. Start application server
+
+### Migration Process
+- Migrations are automatically applied on server startup
+- Migration failures do not prevent server startup (prevents deployment failures)
+- Migrations folder: `drizzle/migrations/`
+- Manual migration: `npm run migrate`
+
+### Database Connection
+- Uses Neon serverless PostgreSQL with WebSocket connections
+- Connection pooling configured for production (max 10 connections)
+- Keep-alive pings every 2 minutes to maintain connection
+- Automatic retry logic with exponential backoff
+- SSL enabled for production environments
 
 ## Testing
 
@@ -290,7 +380,40 @@ The application can be containerized but requires PostgreSQL database setup.
 - Database connectivity verification
 - Memory and performance monitoring
 
-### Troubleshooting
-- TypeScript compilation issues can be bypassed with `TS_NODE_TRANSPILE_ONLY=true`
-- Database connection issues logged with detailed error messages
-- Authentication failures tracked with user context
+### Troubleshooting Common Issues
+
+**Database Connection Errors**
+- Verify `DATABASE_URL` environment variable is set correctly
+- Check Neon dashboard for database status
+- WebSocket constructor is automatically configured for Neon
+- Connection pool errors may indicate too many concurrent connections
+
+**Migration Failures**
+- Check `drizzle/migrations/` folder exists
+- Verify database user has CREATE TABLE permissions
+- Migration errors are logged but don't prevent server startup
+- Run `npm run migrate` manually to debug specific migration issues
+
+**Quiz Submission Errors**
+- Ensure `quiz_answers` table exists (run migrations)
+- Check that learner has an active lesson
+- Verify question format matches expected structure
+- Look for constraint violations in database logs
+
+**Type Errors During Build**
+- Run `npx tsc --noEmit` to check for type errors
+- Ensure all dependencies are installed: `npm install`
+- Clear TypeScript cache: `rm -rf node_modules/.cache`
+- Use `TS_NODE_TRANSPILE_ONLY=true` for deployment to skip strict type checking
+
+**Keep-Alive Logs**
+- Keep-alive pings run every 2 minutes
+- Only visible in development mode (`NODE_ENV=development`)
+- Production mode silences successful ping logs
+- Failed pings are always logged for debugging
+
+**Authentication Issues**
+- Verify JWT_SECRET is set in environment
+- Check token expiration (tokens expire after configured time)
+- Ensure user role matches endpoint requirements
+- Parent users can only access their own learners' data

@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.dbSyncConfigsRelations = exports.dbSyncConfigs = exports.achievementsRelations = exports.achievements = exports.lessonsRelations = exports.lessons = exports.learnerProfilesRelations = exports.learnerProfiles = exports.usersRelations = exports.users = exports.sessions = exports.syncStatusEnum = exports.lessonStatusEnum = exports.userRoleEnum = void 0;
+exports.conceptMasteryRelations = exports.conceptMastery = exports.quizAnswersRelations = exports.quizAnswers = exports.dbSyncConfigsRelations = exports.dbSyncConfigs = exports.achievementsRelations = exports.achievements = exports.lessonsRelations = exports.lessons = exports.learnerProfilesRelations = exports.learnerProfiles = exports.usersRelations = exports.users = exports.sessions = exports.syncStatusEnum = exports.lessonStatusEnum = exports.userRoleEnum = void 0;
 const drizzle_orm_1 = require("drizzle-orm");
 const pg_core_1 = require("drizzle-orm/pg-core");
 // Enums
@@ -109,6 +109,56 @@ exports.dbSyncConfigs = (0, pg_core_1.pgTable)("db_sync_configs", {
 exports.dbSyncConfigsRelations = (0, drizzle_orm_1.relations)(exports.dbSyncConfigs, ({ one }) => ({
     parent: one(exports.users, {
         fields: [exports.dbSyncConfigs.parentId],
+        references: [exports.users.id],
+    }),
+}));
+// Quiz Answers table (for individual answer tracking)
+exports.quizAnswers = (0, pg_core_1.pgTable)("quiz_answers", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    learnerId: (0, pg_core_1.integer)("learner_id").notNull().references(() => exports.users.id, { onDelete: "cascade" }),
+    lessonId: (0, pg_core_1.text)("lesson_id").notNull().references(() => exports.lessons.id, { onDelete: "cascade" }),
+    questionIndex: (0, pg_core_1.integer)("question_index").notNull(),
+    questionText: (0, pg_core_1.text)("question_text").notNull(),
+    questionHash: (0, pg_core_1.varchar)("question_hash", { length: 64 }).notNull(),
+    userAnswer: (0, pg_core_1.integer)("user_answer").notNull(),
+    correctAnswer: (0, pg_core_1.integer)("correct_answer").notNull(),
+    isCorrect: (0, pg_core_1.boolean)("is_correct").notNull(),
+    conceptTags: (0, pg_core_1.text)("concept_tags").array(),
+    answeredAt: (0, pg_core_1.timestamp)("answered_at").defaultNow(),
+}, (table) => [
+    (0, pg_core_1.index)("idx_learner_answers").on(table.learnerId, table.answeredAt),
+    (0, pg_core_1.index)("idx_lesson_answers").on(table.lessonId),
+    (0, pg_core_1.index)("idx_question_hash").on(table.questionHash),
+]);
+exports.quizAnswersRelations = (0, drizzle_orm_1.relations)(exports.quizAnswers, ({ one }) => ({
+    learner: one(exports.users, {
+        fields: [exports.quizAnswers.learnerId],
+        references: [exports.users.id],
+    }),
+    lesson: one(exports.lessons, {
+        fields: [exports.quizAnswers.lessonId],
+        references: [exports.lessons.id],
+    }),
+}));
+// Concept Mastery table (for tracking mastery levels)
+exports.conceptMastery = (0, pg_core_1.pgTable)("concept_mastery", {
+    id: (0, pg_core_1.uuid)("id").defaultRandom().primaryKey(),
+    learnerId: (0, pg_core_1.integer)("learner_id").notNull().references(() => exports.users.id, { onDelete: "cascade" }),
+    conceptName: (0, pg_core_1.text)("concept_name").notNull(),
+    subject: (0, pg_core_1.text)("subject").notNull(),
+    correctCount: (0, pg_core_1.integer)("correct_count").notNull().default(0),
+    totalCount: (0, pg_core_1.integer)("total_count").notNull().default(0),
+    masteryLevel: (0, pg_core_1.integer)("mastery_level").notNull().default(0), // Store as integer (0-100) for precision
+    lastTested: (0, pg_core_1.timestamp)("last_tested").defaultNow(),
+    needsReinforcement: (0, pg_core_1.boolean)("needs_reinforcement").notNull().default(false),
+    createdAt: (0, pg_core_1.timestamp)("created_at").defaultNow(),
+}, (table) => [
+    (0, pg_core_1.index)("idx_learner_mastery").on(table.learnerId, table.subject),
+    (0, pg_core_1.index)("idx_needs_reinforcement").on(table.learnerId, table.needsReinforcement),
+]);
+exports.conceptMasteryRelations = (0, drizzle_orm_1.relations)(exports.conceptMastery, ({ one }) => ({
+    learner: one(exports.users, {
+        fields: [exports.conceptMastery.learnerId],
         references: [exports.users.id],
     }),
 }));

@@ -5,20 +5,26 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  ActivityIndicator,
   SafeAreaView,
 } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '../lib/queryClient';
-import { colors, typography, commonStyles } from '../styles/theme';
+import { useTheme, colors as defaultColors, typography as defaultTypography, commonStyles as defaultCommonStyles } from '../styles/theme';
 import { ChevronRight, ArrowLeft } from 'react-feather';
-import OrigenHeader from '../components/OrigenHeader';
+import SunschoolHeader from '../components/SunschoolHeader';
 import EnhancedLessonContent from '../components/EnhancedLessonContent';
 import DirectHtmlRenderer from '../components/DirectHtmlRenderer';
+import FunLoader from '../components/FunLoader';
+
+// Static stylesheet references
+const colors = defaultColors;
+const typography = defaultTypography;
+const commonStyles = defaultCommonStyles;
 
 const LessonPage = ({ route, navigation }: any) => {
   const { lessonId } = route.params;
   const [isLoading, setIsLoading] = useState(true);
+  const theme = useTheme();
 
   const {
     data: lesson,
@@ -47,7 +53,7 @@ const LessonPage = ({ route, navigation }: any) => {
   if (error) {
     return (
       <SafeAreaView style={styles.container}>
-        <OrigenHeader subtitle="Lesson Error" />
+        <SunschoolHeader subtitle="Lesson Error" />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
             Error loading lesson. Please try again.
@@ -65,12 +71,12 @@ const LessonPage = ({ route, navigation }: any) => {
 
   if (queryLoading || isLoading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <OrigenHeader subtitle="Personalized Lesson" />
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading your personalized lesson...</Text>
-        </View>
+      <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+        <SunschoolHeader subtitle="Personalized Lesson" />
+        <FunLoader
+          message="Getting your lesson ready..."
+          progressMessages={['Finding the best content...', 'Almost ready...', 'Here it comes!']}
+        />
       </SafeAreaView>
     );
   }
@@ -78,7 +84,7 @@ const LessonPage = ({ route, navigation }: any) => {
   if (!lesson) {
     return (
       <SafeAreaView style={styles.container}>
-        <OrigenHeader subtitle="Lesson Not Found" />
+        <SunschoolHeader subtitle="Lesson Not Found" />
         <View style={styles.errorContainer}>
           <Text style={styles.errorText}>
             Lesson not found. Please return to the dashboard.
@@ -96,7 +102,7 @@ const LessonPage = ({ route, navigation }: any) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <OrigenHeader subtitle={lesson.spec.title} />
+      <SunschoolHeader subtitle={lesson.spec.title} />
       <View style={styles.subheader}>
         <TouchableOpacity style={styles.backButtonSmall} onPress={() => navigation.goBack()}>
           <ArrowLeft size={24} color={colors.textPrimary} />
@@ -120,19 +126,18 @@ const LessonPage = ({ route, navigation }: any) => {
           )}
         </View>
 
-        <View style={styles.quizPrompt}>
-          <Text style={styles.quizPromptTitle}>Ready to Test Your Knowledge?</Text>
-          <Text style={styles.quizPromptText}>
-            Now that you've learned about {lesson.spec.title.toLowerCase()}, 
-            let's see what you remember with a quick quiz!
+        <View style={[styles.quizPrompt, { backgroundColor: theme.colors.primary + '20', borderLeftWidth: 4, borderLeftColor: theme.colors.primary }]}>
+          <Text style={[styles.quizPromptTitle, { color: theme.colors.textPrimary }]}>Think you've got it?</Text>
+          <Text style={[styles.quizPromptText, { color: theme.colors.textSecondary }]}>
+            Let's play a quick challenge about {lesson.spec.title.toLowerCase()}!
           </Text>
         </View>
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.quizButton} onPress={handleStartQuiz}>
-          <Text style={styles.quizButtonText}>Start Quiz</Text>
-          <ChevronRight size={20} color={colors.onPrimary} />
+        <TouchableOpacity style={[styles.quizButton, { backgroundColor: theme.colors.primary }]} onPress={handleStartQuiz}>
+          <Text style={[styles.quizButtonText, { color: theme.colors.onPrimary }]}>Let's Go!</Text>
+          <ChevronRight size={20} color={theme.colors.onPrimary} />
         </TouchableOpacity>
       </View>
     </SafeAreaView>
