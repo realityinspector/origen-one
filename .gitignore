@@ -1,2 +1,13 @@
 .DS_Store
 node_modules
+
+# Claude container secrets
+.env.claude
+.env
+
+# Bridge IPC (runtime files)
+.claude/host-request/
+.claude/host-result/
+
+# Admin credentials
+admin-credentials.txt

@@ -259,9 +259,9 @@ export function validateLessonContent(
     7: 700, 8: 700,              // 7-8
   };
 
-  const maxWords = maxContentWords[gradeLevel] || 1000;
-  if (wordCount > maxWords * 1.2) { // 20% over limit
-    issues.push(`Content too long: ${wordCount} words (recommended max ${maxWords})`);
+  const maxContentWordsLimit = maxContentWords[gradeLevel] || 1000;
+  if (wordCount > maxContentWordsLimit * 1.2) { // 20% over limit
+    issues.push(`Content too long: ${wordCount} words (recommended max ${maxContentWordsLimit})`);
     recommendations.push('Focus on core concepts and reduce unnecessary details');
   }
 

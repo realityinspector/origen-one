@@ -95,7 +95,7 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
       {showAnswers && isAnswered && question.explanation && (
         <View style={styles.explanationContainer}>
           <Text style={styles.explanationTitle}>
-            {isCorrect ? 'Correct!' : 'Not quite right'}
+            {isCorrect ? 'You got it!' : 'Good try! Here\'s why:'}
           </Text>
           <Text style={styles.explanationText}>
             {question.explanation}
@@ -109,21 +109,23 @@ const QuizComponent: React.FC<QuizComponentProps> = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: colors.surfaceColor,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    elevation: 2,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    elevation: 3,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
   },
   questionContainer: {
     marginBottom: 24,
   },
   questionText: {
-    ...typography.h3,
-    lineHeight: 28,
+    fontSize: 22,
+    fontWeight: '600',
+    lineHeight: 32,
+    color: colors.textPrimary,
   },
   optionsContainer: {
     marginBottom: 16,
@@ -131,24 +133,25 @@ const styles = StyleSheet.create({
   optionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    borderWidth: 1,
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    borderWidth: 2,
     borderColor: colors.divider,
-    marginBottom: 12,
+    marginBottom: 14,
+    minHeight: 60,
   },
   selectedOption: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryLight,
+    borderColor: '#4A90D9',
+    backgroundColor: '#EBF5FF',
   },
   correctOption: {
-    borderColor: colors.success,
-    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+    borderColor: '#6BCB77',
+    backgroundColor: '#E8F5E9',
   },
   incorrectOption: {
-    borderColor: colors.error,
-    backgroundColor: 'rgba(176, 0, 32, 0.1)',
+    borderColor: '#FF6B6B',
+    backgroundColor: '#FFEBEE',
   },
   optionContent: {
     flex: 1,
@@ -156,36 +159,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   optionText: {
-    ...typography.body1,
-    marginLeft: 12,
+    fontSize: 20,
+    lineHeight: 28,
+    color: colors.textPrimary,
+    marginLeft: 14,
     flex: 1,
   },
   selectedOptionText: {
-    color: colors.primary,
+    color: '#2E6BB5',
     fontWeight: '600',
   },
   correctOptionText: {
-    color: colors.success,
+    color: '#2E7D32',
     fontWeight: '600',
   },
   incorrectOptionText: {
-    color: colors.error,
+    color: '#C62828',
     fontWeight: '600',
   },
   explanationContainer: {
-    backgroundColor: colors.primaryLight,
-    borderRadius: 8,
-    padding: 16,
-    marginTop: 8,
+    backgroundColor: '#EBF5FF',
+    borderRadius: 12,
+    padding: 18,
+    marginTop: 12,
+    borderLeftWidth: 4,
+    borderLeftColor: '#4A90D9',
   },
   explanationTitle: {
-    ...typography.subtitle1,
-    color: colors.onPrimary,
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#2D3436',
     marginBottom: 8,
   },
   explanationText: {
-    ...typography.body2,
-    color: colors.onPrimary,
+    fontSize: 18,
+    lineHeight: 26,
+    color: '#2D3436',
   },
 });
 

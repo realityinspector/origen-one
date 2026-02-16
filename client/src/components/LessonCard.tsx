@@ -44,11 +44,11 @@ const LessonCard: React.FC<LessonCardProps> = ({
     return <Clock size={20} color={colors.textSecondary} />;
   };
   
-  // Get status text
+  // Get status text (kid-friendly)
   const getStatusText = () => {
-    if (isDone) return 'Completed';
-    if (isActive) return 'In Progress';
-    return 'Queued';
+    if (isDone) return 'Done!';
+    if (isActive) return "Let's Go!";
+    return 'Coming Up';
   };
   
   // Get status color
