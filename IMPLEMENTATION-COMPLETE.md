@@ -86,7 +86,7 @@ concept_mastery (
 
 ### Files Modified
 1. `/client/src/context/ModeContext.tsx`
-2. `/client/src/components/OrigenHeader.tsx`
+2. `/client/src/components/SunschoolHeader.tsx`
 
 ### Key Fixes
 
@@ -190,7 +190,7 @@ server/openrouter.ts                              (validation + adaptive learnin
 server/routes.ts                                  (tracking integration)
 shared/schema.ts                                  (new tables)
 client/src/context/ModeContext.tsx                (race condition fixes)
-client/src/components/OrigenHeader.tsx            (visual indicators)
+client/src/components/SunschoolHeader.tsx            (visual indicators)
 ```
 
 ### Total Lines of Code Added: ~1,500

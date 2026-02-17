@@ -50,11 +50,11 @@ CREATE TABLE learner_profiles (
   id TEXT PRIMARY KEY,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   grade_level INTEGER NOT NULL,
-  graph JSON, -- Basic graph structure (not fully implemented)
+  graph JSON, -- Knowledge graph structure
   subjects JSON DEFAULT '["Math", "Science"]',
   subject_performance JSON DEFAULT '{}',
-  recommended_subjects JSON DEFAULT '[]', -- Not implemented
-  struggling_areas JSON DEFAULT '[]', -- Not implemented
+  recommended_subjects JSON DEFAULT '[]',
+  struggling_areas JSON DEFAULT '[]',
   created_at TIMESTAMP DEFAULT NOW()
 );
 ```
@@ -71,7 +71,7 @@ CREATE TABLE lessons (
   difficulty TEXT DEFAULT 'beginner',
   image_paths JSON, -- Basic image storage
   spec JSON, -- Lesson content specification
-  enhanced_spec JSON, -- Extended lesson format (not implemented)
+  enhanced_spec JSON, -- Extended lesson format (sections, images, diagrams)
   score INTEGER,
   created_at TIMESTAMP DEFAULT NOW(),
   completed_at TIMESTAMP
@@ -134,30 +134,11 @@ CREATE INDEX idx_quiz_answers_hash ON quiz_answers(question_hash);
 CREATE INDEX idx_quiz_answers_concepts ON quiz_answers USING GIN(concept_tags);
 ```
 
-#### Questions History (Deduplication)
-```sql
-CREATE TABLE questions_history (
-  question_hash TEXT PRIMARY KEY,
-  question_text TEXT NOT NULL,
-  first_seen_at TIMESTAMP DEFAULT NOW(),
-  times_asked INTEGER DEFAULT 1,
-  concept_tags TEXT[] DEFAULT '{}'
-);
-```
+#### Question Deduplication
+Question deduplication is handled in-memory by the `question-deduplication.ts` service using SHA-256 hashing of the `question_hash` field in the `quiz_answers` table. There is no separate `questions_history` table.
 
-#### Points History (Gamification)
-```sql
-CREATE TABLE points_history (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  learner_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  points INTEGER NOT NULL,
-  reason TEXT NOT NULL, -- e.g., 'lesson_completion', 'quiz_perfect_score'
-  lesson_id TEXT REFERENCES lessons(id),
-  created_at TIMESTAMP DEFAULT NOW()
-);
-
-CREATE INDEX idx_points_history_learner ON points_history(learner_id);
-```
+#### Points Tracking
+Points are tracked via the `points-service.ts` service. Point balances and history are served through the `/api/points/balance` and `/api/learner/:learnerId/points-history` endpoints.
 
 ## API Endpoints
 
@@ -312,17 +293,16 @@ USE_AI=1|0  # Enable/disable AI features
 ## Known Limitations
 
 ### Not Yet Implemented
-- Interactive knowledge graphs (schema exists but UI not complete)
-- Enhanced lesson format with images and diagrams
-- Subject recommendations based on performance (data collection complete, recommendation engine pending)
 - Continuous database synchronization (manual sync works)
 - Real-time collaborative features
-- Automatic lesson generation after quiz completion (temporarily disabled)
+
+### Partially Implemented
+- Interactive knowledge graphs (basic component exists with zoom controls; not fully featured)
+- Subject recommendations (category mapping service exists; full adaptive recommendation algorithm pending)
+- Automatic lesson generation after quiz completion (temporarily disabled pending migration stability)
 
 ### Current Constraints
-- Lesson content is text and quiz-based (no multimedia)
 - Manual database sync process
-- Limited multimedia support
 - Automatic lesson generation feature temporarily disabled pending migration stability
 
 ## Deployment

@@ -167,7 +167,7 @@ npm start
 
 ## Admin Setup
 
-On first run, if no users exist, the system automatically creates an admin user. Check `admin-credentials.txt` for login details.
+The first user to register is automatically promoted to the ADMIN role. After that, new registrations default to the LEARNER role.
 
 ### Manual Admin Creation
 
