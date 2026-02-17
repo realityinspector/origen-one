@@ -1,5 +1,7 @@
 # SUNSCHOOL UX Overhaul Plan
 
+> **NOTE**: This plan was written before the UX overhaul (commit `569340b`). Some items have since been completed — see status markers below. Line number references throughout this document refer to the pre-overhaul codebase and may no longer be accurate.
+
 This document lays out a comprehensive plan to fix SUNSCHOOL's UX problems, organized into three parallel tracks. Each track can be worked independently, though Track 1 should be prioritized since it fixes broken functionality.
 
 The core thesis: **the app has an identity crisis**. The same monochrome UI tries to serve busy parents (who need a polished SaaS dashboard) and young children (who need a colorful, game-like experience). Neither audience is served well. We fix this by creating two distinct visual/functional experiences that share a common backend.
@@ -208,38 +210,17 @@ The current parent experience is an onboarding guide that never goes away, plus 
 
 The child-facing UI needs to feel like a game, not a spreadsheet. This track transforms the learner mode into something a 7-year-old would enjoy.
 
-### 3.1 Create a kid-friendly color theme
+### 3.1 Create a kid-friendly color theme — COMPLETED ✅
+
+> **Status:** Implemented in commit `569340b`. The dual-theme system is live in `client/src/styles/theme.tsx` with `parentColors` (monochrome) and `learnerColors` (colorful). The `getTheme()` function switches palettes based on mode, and `useTheme()` hook is available throughout the app.
 
 **Files:** `client/src/styles/theme.tsx`
 
-**Problem:** The entire color palette is grayscale. `colors.primary` is `#121212` (near-black). `colors.success` is `#4D4D4D` (dark gray). `colors.warning` is `#A0A0A0` (light gray). There are no blues, greens, purples, oranges, or any warm colors. The comment on line 3 says "Scandinavian neocontemporary black and white" — which is a fine aesthetic for a SaaS dashboard but wrong for children.
-
-**Why it matters:** Color is one of the strongest signals of audience. A black-and-white app tells kids "this is for adults." Studies show children engage 40-60% more with colorful educational interfaces.
-
-**Fix:**
-- Create a dual-theme system: `parentTheme` and `learnerTheme`.
-- Parent theme: Keep the current sophisticated monochrome palette. It's actually fine for the parent dashboard — clean, professional.
-- Learner theme: Bright, warm, inviting:
-  ```ts
-  export const learnerColors = {
-    primary: '#4A90D9',       // Friendly blue
-    primaryDark: '#2E6BB5',
-    primaryLight: '#7BB3E8',
-    secondary: '#FF8C42',     // Warm orange
-    accent1: '#6BCB77',       // Success green
-    accent2: '#FFD93D',       // Gold/reward yellow
-    accent3: '#C084FC',       // Fun purple
-    background: '#F8FAFF',    // Warm off-white
-    surfaceColor: '#FFFFFF',
-    error: '#FF6B6B',         // Soft red (not scary)
-    success: '#6BCB77',       // Actually green, not gray
-    warning: '#FFD93D',
-    text: '#2D3436',          // Soft black
-    textSecondary: '#636E72',
-  };
-  ```
-- The `ModeContext` already tracks `LEARNER` vs `GROWN_UP` mode — use this to switch themes.
-- Wrap the theme export in a hook: `useTheme()` returns the appropriate palette based on mode.
+**What was done:**
+- Dual-theme system with `parentColors` and `learnerColors` palettes
+- Parent theme: sophisticated monochrome (`#121212` primary)
+- Learner theme: bright and inviting (`#4A90D9` blue, `#FF8C42` orange, `#6BCB77` green, `#FFD93D` gold, `#C084FC` purple)
+- `ModeContext` drives theme switching via `getTheme()` / `useTheme()`
 
 ### 3.2 Add celebration animations for quiz results
 
