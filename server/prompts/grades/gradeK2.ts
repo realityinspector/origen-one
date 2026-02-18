@@ -206,5 +206,23 @@ export const GradeK2Prompts = {
   - No subtraction beyond 10
   - Use objects: 🍎🍎 + 🍎 = __
   - Show fingers for counting
+  `,
+
+    getSVGPrompt: (topic: string, concept: string, gradeLevel: number) => `
+  SVG ILLUSTRATION FOR AGES 5-7 (Grade K-2)
+
+  STRICT CONSTRAINTS:
+  - Maximum 5 shapes total
+  - Use only primary colors: red (#FF0000), blue (#0066FF), yellow (#FFD700), green (#00CC00)
+  - Large shapes only (minimum 40px radius or 60px width)
+  - One-word labels only, font-size 18px or larger
+  - Simple, friendly, recognizable objects
+  - White background
+  - viewBox="0 0 400 300"
+  - Use rounded corners (rx="10") on rectangles
+  - No complex paths — use basic shapes: circle, rect, ellipse
+
+  Topic: "${topic}"
+  Concept: "${concept}"
   `
   };

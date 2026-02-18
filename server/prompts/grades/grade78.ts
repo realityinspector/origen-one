@@ -140,5 +140,23 @@ export const Grade78Prompts = {
   - Functions: f(x) = 2x + 5
   - Inequalities: 3x - 7 < 14
   - Slope: m = (y₂-y₁)/(x₂-x₁)
+  `,
+
+    getSVGPrompt: (topic: string, concept: string, gradeLevel: number) => `
+  SVG ILLUSTRATION FOR AGES 12-14 (Grades 7-8)
+
+  GUIDELINES:
+  - Detailed diagrams with 12-20 elements
+  - Include annotations and callout labels
+  - Show quantitative relationships and data representations
+  - Use scientific/academic styling with clear typography
+  - Font-size 11px or larger for labels, 14px+ for titles
+  - viewBox="0 0 700 500"
+  - Include legends or keys where appropriate
+  - Use subtle gridlines or axes for data-oriented diagrams
+  - Support multiple interconnected systems
+
+  Topic: "${topic}"
+  Concept: "${concept}"
   `
   };

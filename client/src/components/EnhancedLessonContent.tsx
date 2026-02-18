@@ -15,6 +15,7 @@ interface LessonImage {
   alt: string;
   base64Data?: string;
   svgData?: string;
+  path?: string;
   promptUsed: string;
 }
 
@@ -141,9 +142,23 @@ const EnhancedLessonContent: React.FC<EnhancedLessonContentProps> = ({ enhancedS
         </View>
       );
     } else if (image.svgData) {
+      // SVG content is sanitized server-side via DOMPurify in svg-llm-service.ts
       return (
         <View style={[styles.imageContainer, { borderColor: theme.colors.primary + '30' }]}>
           <div dangerouslySetInnerHTML={{ __html: image.svgData }} />
+          <Text style={[styles.imageCaption, { color: theme.colors.textSecondary }]}>
+            {image.description}
+          </Text>
+        </View>
+      );
+    } else if (image.path) {
+      return (
+        <View style={[styles.imageContainer, { borderColor: theme.colors.primary + '30' }]}>
+          <Image
+            source={{ uri: image.path }}
+            style={styles.image}
+            resizeMode="contain"
+          />
           <Text style={[styles.imageCaption, { color: theme.colors.textSecondary }]}>
             {image.description}
           </Text>
