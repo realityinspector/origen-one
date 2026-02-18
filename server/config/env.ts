@@ -55,3 +55,10 @@ export const BITTENSOR_WALLET_HOTKEY = process.env.BITTENSOR_WALLET_HOTKEY;
 
 // For Perplexity integration
 export const PERPLEXITY_API_KEY = process.env.PERPLEXITY_API_KEY || '';
+
+// Image Generation Configuration
+export const IMAGE_PROVIDER = process.env.IMAGE_PROVIDER || 'openrouter'; // 'openrouter' | 'svg-llm' | 'stability'
+export const OPENROUTER_IMAGE_MODEL = process.env.OPENROUTER_IMAGE_MODEL || 'openai/dall-e-3';
+export const OPENROUTER_SVG_MODEL = process.env.OPENROUTER_SVG_MODEL || 'anthropic/claude-sonnet-4';
+export const IMAGE_GENERATION_TIMEOUT = parseInt(process.env.IMAGE_GENERATION_TIMEOUT || '30000');
+export const MAX_IMAGES_PER_LESSON = parseInt(process.env.MAX_IMAGES_PER_LESSON || '4');

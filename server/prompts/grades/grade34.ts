@@ -200,5 +200,22 @@ export const Grade34Prompts = {
   - Fractions: 1/2, 1/4, 3/4
   - Word problems with 2 steps
   - Numbers up to 10,000
+  `,
+
+    getSVGPrompt: (topic: string, concept: string, gradeLevel: number) => `
+  SVG ILLUSTRATION FOR AGES 8-10 (Grades 3-4)
+
+  GUIDELINES:
+  - 5-8 elements/shapes
+  - Clear, readable labels (1-2 words each), font-size 14px or larger
+  - Use a friendly color palette with good contrast
+  - Show parts and wholes — label important components
+  - Include simple arrows or lines to connect related items
+  - viewBox="0 0 500 350"
+  - Use familiar objects for scale reference
+  - White or light background
+
+  Topic: "${topic}"
+  Concept: "${concept}"
   `
   };

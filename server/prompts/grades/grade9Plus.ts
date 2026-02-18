@@ -148,5 +148,24 @@ export const Grade9PlusPrompts = {
   - Limits: lim(x→∞) f(x)
   - Vectors: a⃗ · b⃗ = |a||b|cosθ
   - Statistics: σ² = Σ(x-μ)²/n
+  `,
+
+    getSVGPrompt: (topic: string, concept: string, gradeLevel: number) => `
+  SVG ILLUSTRATION FOR HIGH SCHOOL / ADVANCED (Grade 9+)
+
+  GUIDELINES:
+  - Complex, multi-layer diagrams with 15-30+ elements
+  - Publication-quality styling with precise labeling
+  - Include mathematical notation where relevant
+  - Use multi-panel layouts for comparing models or showing transformations
+  - Font-size 10px or larger for annotations, 14px+ for titles
+  - viewBox="0 0 800 600"
+  - Include detailed legends, axes, and scales
+  - Support statistical visualizations (bar charts, scatter plots)
+  - Show derivations, formulas, or proof steps inline
+  - Use professional academic color schemes (muted, high-contrast)
+
+  Topic: "${topic}"
+  Concept: "${concept}"
   `
   };

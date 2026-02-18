@@ -1,5 +1,5 @@
 import { askOpenRouter } from '../openrouter';
-import { generateEducationalImage, generateEducationalDiagram } from './stability-service';
+import { generateImage, generateDiagram, MAX_IMAGES_PER_LESSON } from './image-generation-router';
 import { EnhancedLessonSpec, LessonSection, LessonImage, LessonDiagram } from '../../shared/schema';
 import { saveBase64Image } from './image-storage';
 
@@ -250,112 +250,97 @@ export async function generateEnhancedLesson(
     });
     enhancedLesson.featuredImage = featuredImageId;
     
-    // 4. If images are requested, generate them with Stability AI
+    // 4. If images are requested, generate them via the image generation router
     if (withImages) {
-      console.log(`Generating ${allImagePrompts.length} images for the lesson...`);
-      
-      // Generate all images concurrently
-      const imagePromises = allImagePrompts.map(async (imagePrompt) => {
-        const result = await generateEducationalImage(
+      // Cap the number of images per lesson
+      const cappedPrompts = allImagePrompts.slice(0, MAX_IMAGES_PER_LESSON);
+      console.log(`Generating ${cappedPrompts.length} images for the lesson (max ${MAX_IMAGES_PER_LESSON})...`);
+
+      // Generate all images concurrently via the router
+      const imagePromises = cappedPrompts.map(async (imagePrompt) => {
+        const result = await generateImage(
           imagePrompt.prompt,
-          imagePrompt.description
+          imagePrompt.description,
+          gradeLevel,
+          { subject: subject || topic }
         );
-        
+
         if (result) {
-          try {
-            // Save the image to the filesystem and get the relative path
-            const imagePath = await saveBase64Image(
-              result.base64Data,
-              `lesson_${topic.replace(/\s+/g, '_')}_${imagePrompt.id}`
-            );
-            
+          // If SVG result, no need to save to filesystem
+          if (result.svgData) {
             return {
               id: imagePrompt.id,
               description: imagePrompt.description,
               alt: imagePrompt.description,
-              base64Data: result.base64Data, // Keep the base64 data for immediate use
+              svgData: result.svgData,
               promptUsed: result.promptUsed,
-              path: imagePath // Add the file path for persistent storage
-            };
-          } catch (saveError) {
-            console.error('Error saving image to filesystem:', saveError);
-            
-            // If saving fails, still return the image with base64 data
-            return {
-              id: imagePrompt.id,
-              description: imagePrompt.description,
-              alt: imagePrompt.description,
-              base64Data: result.base64Data,
-              promptUsed: result.promptUsed
             };
           }
+
+          // Base64 result — try to save to filesystem
+          if (result.base64Data) {
+            try {
+              const imagePath = await saveBase64Image(
+                result.base64Data,
+                `lesson_${topic.replace(/\s+/g, '_')}_${imagePrompt.id}`
+              );
+
+              return {
+                id: imagePrompt.id,
+                description: imagePrompt.description,
+                alt: imagePrompt.description,
+                base64Data: result.base64Data,
+                promptUsed: result.promptUsed,
+                path: imagePath,
+              };
+            } catch (saveError) {
+              console.error('Error saving image to filesystem:', saveError);
+              return {
+                id: imagePrompt.id,
+                description: imagePrompt.description,
+                alt: imagePrompt.description,
+                base64Data: result.base64Data,
+                promptUsed: result.promptUsed,
+              };
+            }
+          }
         }
-        
+
         // If image generation fails, create a placeholder
         return {
           id: imagePrompt.id,
           description: imagePrompt.description,
           alt: imagePrompt.description,
-          promptUsed: imagePrompt.prompt
+          promptUsed: imagePrompt.prompt,
         };
       });
-      
-      // Add images as they complete
+
       const images = await Promise.all(imagePromises);
       enhancedLesson.images = images;
-      
-      // 5. Generate a diagram related to the topic
+
+      // 5. Generate a diagram related to the topic via the router
       try {
         console.log('Generating a diagram for the lesson...');
         const diagramTypes = ['concept map', 'flowchart', 'comparison', 'cycle'];
         const randomDiagramType = diagramTypes[Math.floor(Math.random() * diagramTypes.length)];
-        
-        const diagram = await generateEducationalDiagram(
+
+        const diagramResult = await generateDiagram(
           topic,
           randomDiagramType,
+          gradeLevel,
           `${randomDiagramType} diagram about ${topic}`
         );
-        
-        if (diagram) {
-          // Map the diagram type to a valid enum value
+
+        if (diagramResult) {
           const mappedDiagramType = mapDiagramType(randomDiagramType);
-          
+
           enhancedLesson.diagrams.push({
-            id: generateId(10),
+            id: diagramResult.id,
             type: mappedDiagramType,
-            title: `${randomDiagramType.charAt(0).toUpperCase() + randomDiagramType.slice(1)} of ${topic}`,
-            svgData: '', // We're using base64 images instead of SVG
-            description: `Visual representation of ${topic} as a ${randomDiagramType}`
+            title: diagramResult.title,
+            svgData: diagramResult.svgData,
+            description: diagramResult.description,
           });
-          
-          try {
-            // Save the diagram to the filesystem
-            const diagramPath = await saveBase64Image(
-              diagram.base64Data,
-              `diagram_${topic.replace(/\s+/g, '_')}_${randomDiagramType.replace(/\s+/g, '_')}`
-            );
-            
-            // Add the diagram to the images array as well
-            enhancedLesson.images.push({
-              id: generateId(10),
-              description: `${randomDiagramType.charAt(0).toUpperCase() + randomDiagramType.slice(1)} of ${topic}`,
-              alt: `Visual representation of ${topic} as a ${randomDiagramType}`,
-              base64Data: diagram.base64Data,
-              promptUsed: diagram.promptUsed,
-              path: diagramPath // Add the file path for persistent storage
-            });
-          } catch (saveError) {
-            console.error('Error saving diagram to filesystem:', saveError);
-            
-            // If saving fails, still add the diagram with base64 data
-            enhancedLesson.images.push({
-              id: generateId(10),
-              description: `${randomDiagramType.charAt(0).toUpperCase() + randomDiagramType.slice(1)} of ${topic}`,
-              alt: `Visual representation of ${topic} as a ${randomDiagramType}`,
-              base64Data: diagram.base64Data,
-              promptUsed: diagram.promptUsed
-            });
-          }
         }
       } catch (error) {
         console.error('Error generating diagram:', error);

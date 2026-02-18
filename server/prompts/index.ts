@@ -93,6 +93,13 @@ export const IMAGE_PROMPTS = {
   }
 };
 
+export const SVG_PROMPTS = {
+  EDUCATIONAL_SVG: (topic: string, concept: string, gradeLevel: number) => {
+    const gradePrompts = getGradePrompts(gradeLevel);
+    return gradePrompts.getSVGPrompt(topic, concept, gradeLevel);
+  }
+};
+
 // Legacy support functions
 export function getReadingLevelInstructions(gradeLevel: number): string {
   const gradePrompts = getGradePrompts(gradeLevel);
@@ -110,6 +117,7 @@ export default {
   FEEDBACK_PROMPTS,
   KNOWLEDGE_GRAPH_PROMPTS,
   IMAGE_PROMPTS,
+  SVG_PROMPTS,
   getReadingLevelInstructions,
   getMathematicalNotationRules
 };
