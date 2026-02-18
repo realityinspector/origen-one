@@ -111,9 +111,9 @@ export default function App() {
             <LearnerRoute path="/quiz/:lessonId" component={QuizPage} />
             <LearnerRoute path="/progress" component={ProgressPage} />
             
-            {/* Root path - will show welcome page but with auth-aware handling */}
+            {/* Root path - redirect authenticated users to their home, others to welcome */}
             <Route path="/">
-              {() => <WelcomePage />}
+              {() => <HomeRedirect />}
             </Route>
             
             {/* Catch-all for 404 */}

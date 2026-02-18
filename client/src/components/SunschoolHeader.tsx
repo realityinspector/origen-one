@@ -63,11 +63,11 @@ const SunschoolHeader: React.FC<SunschoolHeaderProps> = ({ subtitle }) => {
         <TouchableOpacity
         style={styles.titleContainer}
         onPress={() => {
-          // Navigate to home/index page for all users
-          if (typeof window !== 'undefined') {
-            window.location.href = '/';
+          // Navigate to the appropriate authenticated home page
+          if (user?.role === 'LEARNER') {
+            navigate('/learner');
           } else {
-            navigate('/');
+            navigate('/dashboard');
           }
         }}
       >

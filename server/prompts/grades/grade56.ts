@@ -176,5 +176,22 @@ export const Grade56Prompts = {
   - Basic algebra: 3x + 5 = 20
   - Area and volume formulas
   - Ratios: 3:5 = 12:__
+  `,
+
+    getSVGPrompt: (topic: string, concept: string, gradeLevel: number) => `
+  SVG ILLUSTRATION FOR AGES 10-12 (Grades 5-6)
+
+  GUIDELINES:
+  - 8-12 elements/shapes
+  - Include arrows and connections showing relationships
+  - Labels with brief descriptions (2-4 words), font-size 12px or larger
+  - Show cause-and-effect or process steps
+  - Use a professional but accessible color scheme
+  - viewBox="0 0 600 400"
+  - Include a title text element at the top
+  - Add scale markers or measurement indicators where relevant
+
+  Topic: "${topic}"
+  Concept: "${concept}"
   `
   };
