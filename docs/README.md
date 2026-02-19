@@ -4,6 +4,7 @@ This folder contains supplementary documentation for the SUNSCHOOL project.
 
 ## Current Documentation
 
+- **[AGENTS.md](AGENTS.md)** - AI agents architecture, lesson generation pipeline, SVG illustration system, and adaptive learning integration
 - **[GAMIFY-DESIGN.md](GAMIFY-DESIGN.md)** - Comprehensive design document for the gamification system. Most features described are NOT yet implemented. See the status section at the top of that document for implementation details.
 
 ## Archive
