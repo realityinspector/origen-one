@@ -157,8 +157,8 @@ Points are tracked via the `points-service.ts` service. Point balances and histo
 - `PUT /api/learner-profile/:userId` - Update learner profile (PARENT, ADMIN)
 
 ### Lessons
-- `POST /api/lessons/create` - Create new lesson
-- `GET /api/lessons/active` - Get active lesson
+- `POST /api/lessons/create` - Create new lesson (supports `learnerId` in body for parent-as-learner mode)
+- `GET /api/lessons/active` - Get active lesson (supports `?learnerId=` query param for parent-as-learner mode)
 - `GET /api/lessons/:lessonId` - Get specific lesson
 - `GET /api/lessons` - List lessons
 - `POST /api/lessons/:lessonId/answer` - Submit lesson answers
@@ -215,12 +215,21 @@ Points are tracked via the `points-service.ts` service. Point balances and histo
 ## Data Flow
 
 ### Lesson Creation Process
-1. User requests lesson creation via API
-2. Backend generates lesson content using OpenRouter AI
-3. Lesson stored in database with status 'QUEUED'
-4. Frontend can retrieve and display lesson
-5. User completes lesson and submits answers
-6. Backend calculates score and updates lesson status
+1. User requests lesson creation via API (with `learnerId` for parent-as-learner mode)
+2. Backend validates permissions (parent can create for their children)
+3. Backend generates lesson content using OpenRouter AI with SVG illustrations
+4. Lesson stored in database with status 'ACTIVE'
+5. Frontend retrieves and displays lesson with embedded SVG images
+6. User completes lesson and submits quiz answers
+7. Backend calculates score and updates lesson status
+
+### Parent-as-Learner Mode
+Parents can switch to "Learner Mode" to view their children's lessons:
+1. Parent clicks "Go to Sunschool Learner Mode" on the dashboard
+2. Parent selects a child learner from the picker
+3. Frontend sends requests with the child's `learnerId`
+4. `/api/lessons/create` uses `learnerId` from request body (not `req.user.id`)
+5. `/api/lessons/active` uses `learnerId` from query parameter
 
 ### Database Sync Process
 1. Parent configures external PostgreSQL connection
@@ -340,13 +349,35 @@ The application can be containerized but requires PostgreSQL database setup.
 
 ### Available Tests
 - Unit tests with Jest
-- End-to-end tests with Playwright
+- End-to-end tests with Playwright (comprehensive child lesson flow)
 - Database sync testing script
 
 ### Test Scripts
 - `npm test` - Run unit tests
-- `npx playwright test` - Run e2e tests
+- `npx playwright test` - Run e2e tests (local server)
+- `PLAYWRIGHT_BASE_URL=https://sunschool.xyz npx playwright test` - Run e2e tests against production
 - `./test-db-sync.sh` - Test database synchronization
+
+### E2E Test: Child Lesson Flow (`tests/e2e/child-lesson-flow.spec.ts`)
+
+Full integration test covering the complete user journey:
+
+| Step | What it tests |
+|------|---------------|
+| Register parent | API registration with UI login fallback |
+| Add child | Child creation with grade picker |
+| Switch to learner mode | Parent dashboard to learner view navigation |
+| Generate lesson | "Random Lesson" click, AI lesson generation, polling for completion |
+| View lesson | Lesson content rendering with SVGs and images |
+| Take quiz | DOM-based quiz option selection across 3 questions |
+| Submit quiz | "I'm Done!" submission and results display |
+| Return home | Navigation back to learner home |
+
+**Configuration** (`playwright.config.ts`):
+- Viewport: 1280x900
+- Timeout: 10 minutes (AI lesson generation is slow)
+- Screenshots saved to `tests/e2e/screenshots/`
+- Auto-starts local server when targeting localhost
 
 ## Monitoring & Debugging
 

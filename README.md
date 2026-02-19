@@ -31,6 +31,8 @@ SUNSCHOOL is a web-based educational platform that provides AI-generated lessons
 ### Implemented Features
 
 - **AI-Generated Lessons**: Content created using OpenRouter API with age-appropriate validation
+- **SVG & Image Integration**: Lessons include dynamically generated SVG illustrations and OpenRouter image model support
+- **Parent-as-Learner Mode**: Parents can switch to learner mode to view and generate lessons for their children
 - **Quiz Analytics & Tracking**: Individual answer storage with concept tagging and question deduplication
 - **Concept Mastery System**: Track learner performance across specific concepts (addition, subtraction, etc.)
 - **Adaptive Learning**: Question-level analytics to identify strengths and weaknesses
@@ -41,6 +43,7 @@ SUNSCHOOL is a web-based educational platform that provides AI-generated lessons
 - **Progress Tracking**: Comprehensive lesson completion, scoring, and points history
 - **Cross-Platform Web App**: Works on desktop and mobile browsers
 - **Automatic Database Migrations**: Schema updates applied automatically on server startup
+- **End-to-End Testing**: Comprehensive Playwright test suite covering the full child lesson flow
 
 ### User Roles
 
@@ -76,8 +79,9 @@ SUNSCHOOL is a web-based educational platform that provides AI-generated lessons
 - **PostgreSQL** (Neon serverless) with **Drizzle ORM**
 
 ### AI Integration
-- **OpenRouter API** for lesson content generation
+- **OpenRouter API** for lesson content generation and image models
 - **Perplexity API** for enhanced knowledge context
+- **SVG Generation** for subject-specific educational illustrations
 
 ### Development Tools
 - **Jest** for unit testing
@@ -249,6 +253,22 @@ ts-node scripts/admin-onboard.ts
 - `npm run migrate` - Run database migrations
 - `npm test` - Run unit tests
 - `npx playwright test` - Run e2e tests
+- `PLAYWRIGHT_BASE_URL=https://sunschool.xyz npx playwright test` - Run e2e tests against production
+
+### E2E Test Suite
+
+The Playwright test at `tests/e2e/child-lesson-flow.spec.ts` covers the complete user flow:
+
+1. **Parent Registration** - Register a new parent account (API fallback + UI login)
+2. **Add Child Learner** - Create a child with grade level selection
+3. **Switch to Learner Mode** - Navigate from parent dashboard to learner view
+4. **Generate Lesson** - Click "Random Lesson" and wait for AI lesson generation
+5. **View Lesson** - Verify lesson content with SVG illustrations, Key Concepts, Examples, Practice sections
+6. **Take Quiz** - Answer 3 multiple-choice questions with DOM-based option selection
+7. **Submit & Review** - Submit answers and verify quiz results
+8. **Return Home** - Navigate back to learner home
+
+Screenshots are saved to `tests/e2e/screenshots/` for visual verification.
 
 ## Troubleshooting
 
