@@ -14,6 +14,7 @@ import { apiRequest } from '../lib/queryClient';
 import { colors, typography, commonStyles } from '../styles/theme';
 import { ChevronRight, ArrowLeft } from 'react-feather';
 import SimpleMarkdownRenderer from '../components/SimpleMarkdownRenderer';
+import EnhancedLessonContent from '../components/EnhancedLessonContent';
 
 const ActiveLessonPage = () => {
   const [, setLocation] = useLocation();
@@ -115,18 +116,15 @@ const ActiveLessonPage = () => {
         <View style={styles.lessonContent}>
           <Text style={styles.lessonTitle}>{lesson.spec.title}</Text>
           
-          {/* Render SVG image if available */}
-          {lesson.spec.svg && (
-            <View style={styles.imageContainer}>
-              <div dangerouslySetInnerHTML={{ __html: lesson.spec.svg }} />
-            </View>
+          {/* Use EnhancedLessonContent when enhancedSpec is available (has SVG images & diagrams) */}
+          {lesson.enhancedSpec ? (
+            <EnhancedLessonContent enhancedSpec={lesson.enhancedSpec} />
+          ) : (
+            <SimpleMarkdownRenderer
+              content={lesson.spec.content}
+              images={lesson.spec.images || []}
+            />
           )}
-          
-          {/* Use SimpleMarkdownRenderer for markdown formatting */}
-          <SimpleMarkdownRenderer 
-            content={lesson.spec.content}
-            images={lesson.spec.images || []}
-          />
         </View>
 
         <View style={styles.quizPrompt}>

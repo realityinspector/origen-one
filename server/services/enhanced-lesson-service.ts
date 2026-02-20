@@ -153,7 +153,7 @@ export async function generateEnhancedLesson(
           content: `Create an educational lesson about "${topic}" for grade ${gradeLevel} students.`
         }
       ],
-      model: 'anthropic/claude-3-opus-20240229',
+      model: 'google/gemini-3.1-pro-preview',
       temperature: 0.7,
       response_format: {
         type: 'json_schema',
@@ -355,6 +355,18 @@ export async function generateEnhancedLesson(
       }));
     }
     
+    // 6. Generate quiz questions for the lesson
+    try {
+      console.log('Generating quiz questions for enhanced lesson...');
+      const questions = await generateEnhancedQuestions(enhancedLesson, 3);
+      if (questions.length > 0) {
+        enhancedLesson.questions = questions;
+        console.log(`Generated ${questions.length} quiz questions`);
+      }
+    } catch (quizError) {
+      console.error('Error generating quiz questions for enhanced lesson:', quizError);
+    }
+
     console.log('Enhanced lesson generation complete');
     return enhancedLesson;
   } catch (error) {
@@ -383,10 +395,10 @@ export async function generateEnhancedQuestions(
         },
         {
           role: 'user',
-          content: `Create ${questionCount} multiple-choice questions for a grade ${enhancedLesson.targetGradeLevel} lesson titled "${enhancedLesson.title}". Here's the lesson content:\n\n${lessonContent}\n\nFormat each question as a JSON object with "question", "options" (array of 4 choices), "correctAnswer" (index of correct option, 0-3), and "explanation" fields.`
+          content: `Create ${questionCount} multiple-choice questions for a grade ${enhancedLesson.targetGradeLevel} lesson titled "${enhancedLesson.title}". Here's the lesson content:\n\n${lessonContent}\n\nFormat each question as a JSON object with "text" (the question), "options" (array of 4 choices), "correctIndex" (index of correct option, 0-3), and "explanation" fields.`
         }
       ],
-      model: 'anthropic/claude-3-opus-20240229',
+      model: 'google/gemini-3.1-pro-preview',
       temperature: 0.7,
       response_format: {
         type: 'json_schema',
@@ -395,12 +407,12 @@ export async function generateEnhancedQuestions(
           items: {
             type: 'object',
             properties: {
-              question: { type: 'string' },
-              options: { 
+              text: { type: 'string' },
+              options: {
                 type: 'array',
                 items: { type: 'string' }
               },
-              correctAnswer: { type: 'number' },
+              correctIndex: { type: 'number' },
               explanation: { type: 'string' }
             }
           }
