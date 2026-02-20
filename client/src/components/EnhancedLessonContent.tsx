@@ -6,8 +6,8 @@ import {
   Image,
   ScrollView,
 } from 'react-native';
-import Markdown from 'react-native-markdown-display';
 import { colors, typography, useTheme } from '../styles/theme';
+import SimpleMarkdownRenderer from './SimpleMarkdownRenderer';
 
 interface LessonImage {
   id: string;
@@ -68,58 +68,6 @@ function getLevelEmoji(level: string): string {
 
 const EnhancedLessonContent: React.FC<EnhancedLessonContentProps> = ({ enhancedSpec }) => {
   const theme = useTheme();
-
-  // Build markdown styles using the current theme
-  const themedMarkdownStyles = {
-    body: {
-      color: theme.colors.textPrimary,
-      fontSize: 20,
-      lineHeight: 32,
-    },
-    heading1: {
-      fontSize: 36,
-      fontWeight: '700' as const,
-      color: theme.colors.textPrimary,
-      marginTop: 24,
-      marginBottom: 16,
-    },
-    heading2: {
-      fontSize: 30,
-      fontWeight: '700' as const,
-      color: theme.colors.textPrimary,
-      marginTop: 20,
-      marginBottom: 12,
-    },
-    heading3: {
-      fontSize: 24,
-      fontWeight: '700' as const,
-      color: theme.colors.textPrimary,
-      marginTop: 16,
-      marginBottom: 8,
-    },
-    paragraph: {
-      fontSize: 20,
-      color: theme.colors.textPrimary,
-      lineHeight: 32,
-      marginBottom: 16,
-    },
-    list_item: {
-      marginBottom: 8,
-    },
-    bullet_list: {
-      marginBottom: 16,
-    },
-    ordered_list: {
-      marginBottom: 16,
-    },
-    blockquote: {
-      borderLeftWidth: 4,
-      borderLeftColor: theme.colors.primary,
-      paddingLeft: 16,
-      opacity: 0.8,
-      marginVertical: 16,
-    },
-  };
 
   // Helper function to find an image by ID
   const findImageById = (id: string) => {
@@ -258,9 +206,7 @@ const EnhancedLessonContent: React.FC<EnhancedLessonContentProps> = ({ enhancedS
             })}
 
             {/* Section Content */}
-            <Markdown style={themedMarkdownStyles}>
-              {section.content}
-            </Markdown>
+            <SimpleMarkdownRenderer content={section.content} />
           </View>
         </React.Fragment>
       ))}
