@@ -116,8 +116,8 @@ const LessonPage = ({ route, navigation }: any) => {
           <Text style={styles.lessonTitle}>{lesson.spec.title}</Text>
           
           {/* Check if we have enhanced content */}
-          {lesson.spec.enhancedSpec ? (
-            <EnhancedLessonContent enhancedSpec={lesson.spec.enhancedSpec} />
+          {lesson.enhancedSpec ? (
+            <EnhancedLessonContent enhancedSpec={lesson.enhancedSpec} />
           ) : (
             <DirectHtmlRenderer 
               content={lesson.spec.content}
