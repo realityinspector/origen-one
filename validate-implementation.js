@@ -7,7 +7,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { execSync } = require('child_process');
+const { execFileSync } = require('child_process');
 
 console.log('🔍 SUNSCHOOL Implementation Validation Report');
 console.log('============================================\n');
@@ -73,8 +73,8 @@ console.log('✨ Checking Feature Implementation...');
 // Check for specific features by searching code
 function grepForFeature(pattern, description) {
   try {
-    const output = execSync(`grep -r "${pattern}" server/ client/ shared/ --include="*.ts" --include="*.tsx" -l | head -5`, { encoding: 'utf8' });
-    return output.trim().split('\n').filter(f => f).length > 0;
+    const output = execFileSync('grep', ['-r', pattern, 'server/', 'client/', 'shared/', '--include=*.ts', '--include=*.tsx', '-l'], { encoding: 'utf8' });
+    return output.trim().split('\n').filter(f => f).slice(0, 5).length > 0;
   } catch (e) {
     return false;
   }
@@ -90,7 +90,7 @@ results.features.subjectRecommendation = grepForFeature('subject.?recommendation
 // Check for API endpoints
 function checkApiEndpoint(endpoint) {
   try {
-    const output = execSync(`grep "${endpoint}" server/routes.ts`, { encoding: 'utf8' });
+    const output = execFileSync('grep', [endpoint, 'server/routes.ts'], { encoding: 'utf8' });
     return output.includes(endpoint);
   } catch (e) {
     return false;

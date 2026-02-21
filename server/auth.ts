@@ -42,9 +42,13 @@ export async function setupAuth(app: Express) {
       
       // Log detailed information about the login request for debugging
       const origin = req.headers.origin || req.headers.referer || 'unknown';
-      const isSunschool = origin.includes('sunschool.xyz');
+      let isSunschool = false;
+      try {
+        const parsedOrigin = new URL(origin);
+        isSunschool = parsedOrigin.hostname === 'sunschool.xyz' || parsedOrigin.hostname.endsWith('.sunschool.xyz');
+      } catch {}
       console.log(`Login attempt for username: ${username} from origin: ${origin}`);
-      
+
       // For sunschool.xyz domain, add special CORS headers for authentication
       if (isSunschool) {
         console.log('Adding special CORS headers for sunschool.xyz domain');
@@ -105,8 +109,12 @@ export async function setupAuth(app: Express) {
   app.get("/api/user", authenticateJwt, asyncHandler(async (req: AuthRequest, res: Response) => {
     // Log the request info for debugging
     const origin = req.headers.origin || req.headers.referer || 'unknown';
-    const isSunschool = origin.includes('sunschool.xyz');
-    
+    let isSunschool = false;
+    try {
+      const parsedOrigin = new URL(origin);
+      isSunschool = parsedOrigin.hostname === 'sunschool.xyz' || parsedOrigin.hostname.endsWith('.sunschool.xyz');
+    } catch {}
+
     if (isSunschool) {
       // Add special CORS headers for sunschool.xyz domain
       res.header('Access-Control-Allow-Origin', origin);

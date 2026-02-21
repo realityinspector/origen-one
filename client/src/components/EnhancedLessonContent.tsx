@@ -6,6 +6,7 @@ import {
   Image,
   ScrollView,
 } from 'react-native';
+import DOMPurify from 'isomorphic-dompurify';
 import { colors, typography, useTheme } from '../styles/theme';
 import SimpleMarkdownRenderer from './SimpleMarkdownRenderer';
 
@@ -90,10 +91,9 @@ const EnhancedLessonContent: React.FC<EnhancedLessonContentProps> = ({ enhancedS
         </View>
       );
     } else if (image.svgData) {
-      // SVG content is sanitized server-side via DOMPurify in svg-llm-service.ts
       return (
         <View style={[styles.imageContainer, { borderColor: theme.colors.primary + '30' }]}>
-          <div dangerouslySetInnerHTML={{ __html: image.svgData }} />
+          <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(image.svgData, { USE_PROFILES: { svg: true, svgFilters: true } }) }} />
           <Text style={[styles.imageCaption, { color: theme.colors.textSecondary }]}>
             {image.description}
           </Text>
@@ -226,7 +226,7 @@ const EnhancedLessonContent: React.FC<EnhancedLessonContentProps> = ({ enhancedS
                 {diagram.title}
               </Text>
               <View style={styles.diagramContainer}>
-                <div dangerouslySetInnerHTML={{ __html: diagram.svgData }} />
+                <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(diagram.svgData, { USE_PROFILES: { svg: true, svgFilters: true } }) }} />
               </View>
               <Text style={[styles.diagramDescription, { color: theme.colors.textSecondary }]}>
                 {diagram.description}
