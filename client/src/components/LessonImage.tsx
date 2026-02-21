@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
+import DOMPurify from 'isomorphic-dompurify';
 import { colors, typography } from '../styles/theme';
 
 interface LessonImageProps {
@@ -24,9 +25,9 @@ export const LessonImage: React.FC<LessonImageProps> = ({
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        <div 
+        <div
           style={{ width: '100%', height: '200px' }}
-          dangerouslySetInnerHTML={{ __html: svgData }} 
+          dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(svgData, { USE_PROFILES: { svg: true, svgFilters: true } }) }}
         />
       </View>
       {description && (

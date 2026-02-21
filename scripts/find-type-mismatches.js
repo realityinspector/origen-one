@@ -141,7 +141,8 @@ function scanSourceFiles() {
     try {
       const items = fs.readdirSync(directory);
       for (const item of items) {
-        const itemPath = path.join(directory, item);
+        const itemPath = path.resolve(directory, item);
+        if (!itemPath.startsWith(path.resolve(directory) + path.sep) && itemPath !== path.resolve(directory)) continue;
         const stats = fs.statSync(itemPath);
         
         if (stats.isDirectory() && !IGNORE_DIRS.includes(item)) {
