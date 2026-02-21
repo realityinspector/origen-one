@@ -52,7 +52,11 @@ export async function saveBase64Image(base64Data: string, fileName: string): Pro
  */
 export function readImage(imagePath: string): Buffer {
   try {
-    const fullPath = path.join(process.cwd(), 'public', imagePath);
+    const publicDir = path.join(process.cwd(), 'public');
+    const fullPath = path.resolve(publicDir, imagePath);
+    if (!fullPath.startsWith(publicDir + path.sep)) {
+      throw new Error('Path traversal detected');
+    }
     return fs.readFileSync(fullPath);
   } catch (error) {
     console.error(`Error reading image from ${imagePath}:`, error);
@@ -66,7 +70,11 @@ export function readImage(imagePath: string): Buffer {
  */
 export function deleteImage(imagePath: string): void {
   try {
-    const fullPath = path.join(process.cwd(), 'public', imagePath);
+    const publicDir = path.join(process.cwd(), 'public');
+    const fullPath = path.resolve(publicDir, imagePath);
+    if (!fullPath.startsWith(publicDir + path.sep)) {
+      throw new Error('Path traversal detected');
+    }
     if (fs.existsSync(fullPath)) {
       fs.unlinkSync(fullPath);
     }

@@ -10,8 +10,13 @@ const filesToFix = [
 
 // Process each file
 filesToFix.forEach(filePath => {
-  const fullPath = path.resolve(process.cwd(), filePath);
-  
+  const baseDir = process.cwd();
+  const fullPath = path.resolve(baseDir, filePath);
+  if (!fullPath.startsWith(baseDir + path.sep)) {
+    console.error(`Skipping ${filePath}: path outside project directory`);
+    return;
+  }
+
   if (fs.existsSync(fullPath)) {
     console.log(`Processing ${filePath}...`);
     let content = fs.readFileSync(fullPath, 'utf8');
