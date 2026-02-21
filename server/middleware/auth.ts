@@ -150,7 +150,11 @@ export async function authenticateJwt(req: AuthRequest, res: Response, next: Nex
   
   // Log more detailed information about the request
   const origin = req.headers.origin || req.headers.referer || 'unknown';
-  const isSunschool = origin.includes('sunschool.xyz');
+  let isSunschool = false;
+  try {
+    const parsedOrigin = new URL(origin);
+    isSunschool = parsedOrigin.hostname === 'sunschool.xyz' || parsedOrigin.hostname.endsWith('.sunschool.xyz');
+  } catch {}
   
   // No token found in any location
   if (!token) {
