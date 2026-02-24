@@ -1137,7 +1137,13 @@ export function registerRoutes(app: Express): Server {
       return res.status(404).json({ error: "Lesson not found" });
     }
 
-    if (lesson.learnerId.toString() !== ensureString(req.user.id)) {
+    // Allow the learner themselves, their parent, or an admin to submit answers
+    const isOwner = lesson.learnerId.toString() === ensureString(req.user.id);
+    const isParent = req.user.role === "PARENT" &&
+      (await storage.getUsersByParentId(req.user.id)).some(u => u.id.toString() === lesson.learnerId.toString());
+    const isAdmin = req.user.role === "ADMIN";
+
+    if (!isOwner && !isParent && !isAdmin) {
       return res.status(403).json({ error: "Forbidden" });
     }
 
