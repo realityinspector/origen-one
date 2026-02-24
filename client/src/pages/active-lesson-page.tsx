@@ -15,9 +15,11 @@ import { colors, typography, commonStyles } from '../styles/theme';
 import { ChevronRight, ArrowLeft } from 'react-feather';
 import SimpleMarkdownRenderer from '../components/SimpleMarkdownRenderer';
 import EnhancedLessonContent from '../components/EnhancedLessonContent';
+import { useMode } from '../context/ModeContext';
 
 const ActiveLessonPage = () => {
   const [, setLocation] = useLocation();
+  const { selectedLearner } = useMode();
   const [isLoading, setIsLoading] = useState(true);
 
   const {
@@ -25,8 +27,9 @@ const ActiveLessonPage = () => {
     error,
     isLoading: queryLoading,
   } = useQuery({
-    queryKey: ['/api/lessons/active'],
-    queryFn: () => apiRequest('GET', '/api/lessons/active').then(res => res.data),
+    queryKey: ['/api/lessons/active', selectedLearner?.id],
+    queryFn: () => apiRequest('GET', `/api/lessons/active?learnerId=${selectedLearner?.id}`).then(res => res.data),
+    enabled: !!selectedLearner?.id,
     retry: 1,
   });
 
