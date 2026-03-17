@@ -524,7 +524,7 @@ export class DatabaseStorage implements IStorage {
     // distinguish "no active lesson" (undefined) from "database is down" (throw).
     const result = await db.select()
       .from(lessons)
-      .where(and(eq(lessons.learnerId, Number(Number(learnerId))), eq(lessons.status, "ACTIVE")))
+      .where(and(eq(lessons.learnerId, Number(learnerId)), eq(lessons.status, "ACTIVE")))
       .orderBy(desc(lessons.createdAt))
       .limit(1);
     const lessonList = Array.isArray(result) ? result : [result];
@@ -546,7 +546,7 @@ export class DatabaseStorage implements IStorage {
       const result = await db
         .select()
         .from(lessons)
-        .where(eq(lessons.learnerId, Number(Number(learnerIdNum))))
+        .where(eq(lessons.learnerId, Number(learnerIdNum)))
         .orderBy(desc(lessons.createdAt));
 
       return Array.isArray(result) ? result.map(lesson => lesson as Lesson) : [result as Lesson];
@@ -561,7 +561,7 @@ export class DatabaseStorage implements IStorage {
       const result = await db
         .select()
         .from(lessons)
-        .where(eq(lessons.learnerId, Number(Number(learnerId))))
+        .where(eq(lessons.learnerId, Number(learnerId)))
         .orderBy(desc(lessons.createdAt))
         .limit(limit);
       return Array.isArray(result) ? result.map(lesson => lesson as Lesson) : [result as Lesson];
@@ -717,11 +717,11 @@ export class DatabaseStorage implements IStorage {
         // Delete the learner profile if it exists
         const profile = await this.getLearnerProfile(id);
         if (profile) {
-          await db.delete(learnerProfiles).where(eq(learnerProfiles.userId, Number(Number(id))));
+          await db.delete(learnerProfiles).where(eq(learnerProfiles.userId, Number(id)));
         }
 
         // Delete any lessons associated with this learner
-        await db.delete(lessons).where(eq(lessons.learnerId, Number(Number(id))));
+        await db.delete(lessons).where(eq(lessons.learnerId, Number(id)));
 
         // Delete any achievements associated with this learner
         await db.delete(achievements).where(eq(achievements.learnerId, id.toString()));
