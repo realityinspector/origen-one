@@ -253,9 +253,12 @@ test.describe('Learner: Quiz Assessment', () => {
     await page.waitForLoadState('networkidle');
     await screenshot(page, 'quiz-07-back-to-home');
 
-    // Verify page rendered with substantial content
-    const headings = await page.getByRole('heading').count();
-    expect(headings).toBeGreaterThanOrEqual(1);
+    // Verify learner home rendered
+    const hasChildName = await page.getByText(/Hello|Child_/i)
+      .first().isVisible({ timeout: 15000 }).catch(() => false);
+    const hasContent = await page.getByText(/Current Lesson|Progress|SELECT A SUBJECT/i)
+      .first().isVisible({ timeout: 5000 }).catch(() => false);
+    expect(hasChildName || hasContent).toBeTruthy();
   });
 
   test.afterEach(async ({ page }, testInfo) => {

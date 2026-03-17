@@ -112,9 +112,10 @@ test.describe('Learner: Lesson Flow', () => {
     await expect(page.getByText('Current Lesson')).toBeVisible({ timeout: 30000 });
     await screenshot(page, `${TEST_NAME}-08-lesson-card-info`);
 
-    // The page should contain visible headings and content
-    const headings = await page.getByRole('heading').count();
-    expect(headings).toBeGreaterThanOrEqual(1);
+    // The page should contain learner home content
+    const hasChildName = await page.getByText(/Hello|Child_/i)
+      .first().isVisible({ timeout: 5000 }).catch(() => false);
+    expect(hasChildName).toBeTruthy();
   });
 
   test.afterEach(async ({ page }, testInfo) => {

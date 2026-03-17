@@ -204,9 +204,12 @@ export async function setupLearnerSession(
   // Create child learner via API
   const learnerId = await createChildViaAPI(page, childName);
 
-  // Store learner ID for app to use
+  // Store learner ID and set mode to LEARNER for app to use
   await page.evaluate(
-    (id) => localStorage.setItem('selectedLearnerId', String(id)),
+    (id) => {
+      localStorage.setItem('selectedLearnerId', String(id));
+      localStorage.setItem('preferredMode', 'LEARNER');
+    },
     learnerId
   );
 

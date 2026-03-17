@@ -218,17 +218,14 @@ test.describe('Learner: Content Display', () => {
     await page.waitForLoadState('networkidle');
     await screenshot(page, 'content-05-knowledge-graph');
 
-    // The learner home should have structural elements
-    const headings = await page.getByRole('heading').count();
-    expect(headings).toBeGreaterThanOrEqual(1);
-
-    // Look for knowledge graph or learning overview using semantic locators
-    const hasProgressSection = await page.getByText(/Progress|My Progress|Knowledge/i)
-      .first().isVisible({ timeout: 10000 }).catch(() => false);
-    const hasGoalsStrip = await page.getByText(/Goals|Rewards/i)
+    // The learner home should show child greeting and lesson/progress sections
+    const hasChildName = await page.getByText(/Hello|Child_/i)
+      .first().isVisible({ timeout: 15000 }).catch(() => false);
+    const hasLessonSection = await page.getByText(/Current Lesson|active lesson|SELECT A SUBJECT/i)
       .first().isVisible({ timeout: 5000 }).catch(() => false);
-    const hasImages = (await page.getByRole('img').count()) > 0;
+    const hasProgressSection = await page.getByText(/Progress|My Progress|Knowledge/i)
+      .first().isVisible({ timeout: 5000 }).catch(() => false);
 
-    expect(hasProgressSection || hasGoalsStrip || hasImages).toBeTruthy();
+    expect(hasChildName || hasLessonSection || hasProgressSection).toBeTruthy();
   });
 });

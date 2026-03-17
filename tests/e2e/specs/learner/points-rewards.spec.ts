@@ -15,6 +15,7 @@ import {
   generateAndWaitForLesson,
   createRewardGoal,
   apiCall,
+  spaNavigate,
 } from '../../helpers/learner-setup';
 
 test.describe('Learner: Points & Rewards', () => {
@@ -26,20 +27,24 @@ test.describe('Learner: Points & Rewards', () => {
   test('can view point balance on learner home', async ({ page }) => {
     await setupLearnerSession(page, 'reward');
 
-    await page.goto('/learner');
-    await page.waitForLoadState('networkidle');
+    await spaNavigate(page, '/learner');
     await screenshot(page, 'points-01-learner-home');
 
-    // The learner home should render with structural content
-    const headings = await page.getByRole('heading').count();
-    expect(headings).toBeGreaterThanOrEqual(1);
+    // The learner home should show the child's name and lesson section
+    const hasChildName = await page.getByText(/Hello|Child_/i)
+      .first().isVisible({ timeout: 15000 }).catch(() => false);
+    const hasLessonSection = await page.getByText(/Current Lesson|active lesson|SELECT A SUBJECT/i)
+      .first().isVisible({ timeout: 5000 }).catch(() => false);
+    const hasProgress = await page.getByText(/Progress|My Progress/i)
+      .first().isVisible({ timeout: 5000 }).catch(() => false);
+
+    expect(hasChildName || hasLessonSection || hasProgress).toBeTruthy();
   });
 
   test('can check point balance via API and see it reflected', async ({ page }) => {
     await setupLearnerSession(page, 'reward_balance');
 
-    await page.goto('/learner');
-    await page.waitForLoadState('networkidle');
+    await spaNavigate(page, '/learner');
 
     // Check points balance via API
     const learnerId = await page.evaluate(() =>
@@ -66,13 +71,8 @@ test.describe('Learner: Points & Rewards', () => {
     const goalId = await createRewardGoal(page, 'Extra Screen Time', 10);
 
     // Navigate to goals page
-    await page.goto('/goals');
-    await page.waitForLoadState('networkidle');
+    await spaNavigate(page, '/goals');
     await screenshot(page, 'points-03-goals-page');
-
-    // The goals page should render
-    const headings = await page.getByRole('heading').count();
-    expect(headings).toBeGreaterThanOrEqual(0);
 
     // If a goal was created, it should appear on the page
     if (goalId) {
@@ -83,6 +83,10 @@ test.describe('Learner: Points & Rewards', () => {
         await screenshot(page, 'points-03-goal-visible');
       }
     }
+
+    // The goals page should render with some content
+    const bodyText = await page.evaluate(() => document.body.innerText);
+    expect(bodyText.length).toBeGreaterThan(50);
   });
 
   test('can see reward goal progress and save points action', async ({ page }) => {
@@ -91,8 +95,7 @@ test.describe('Learner: Points & Rewards', () => {
     // Create a reward goal
     const goalId = await createRewardGoal(page, 'Movie Night', 5);
 
-    await page.goto('/goals');
-    await page.waitForLoadState('networkidle');
+    await spaNavigate(page, '/goals');
     await screenshot(page, 'points-04-goal-progress');
 
     if (goalId) {
@@ -173,13 +176,15 @@ test.describe('Learner: Points & Rewards', () => {
       expect(newBalance).toBeGreaterThanOrEqual(initialBalance);
     }
 
-    // Navigate to learner home and verify UI reflects points
-    await page.goto('/learner');
-    await page.waitForLoadState('networkidle');
+    // Navigate to learner home and verify UI reflects content
+    await spaNavigate(page, '/learner');
     await screenshot(page, 'points-05-after-quiz');
 
-    // Verify page rendered
-    const headings = await page.getByRole('heading').count();
-    expect(headings).toBeGreaterThanOrEqual(1);
+    // Verify learner home has content
+    const hasChildName = await page.getByText(/Hello|Child_/i)
+      .first().isVisible({ timeout: 15000 }).catch(() => false);
+    const hasContent = await page.getByText(/Current Lesson|Progress|SELECT A SUBJECT/i)
+      .first().isVisible({ timeout: 5000 }).catch(() => false);
+    expect(hasChildName || hasContent).toBeTruthy();
   });
 });
