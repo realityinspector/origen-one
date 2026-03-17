@@ -16,10 +16,13 @@ import { ChevronRight, ArrowLeft } from 'react-feather';
 import EnhancedLessonContent from '../components/EnhancedLessonContent';
 import { useMode } from '../context/ModeContext';
 
+const IMAGE_POLL_TIMEOUT_MS = 120_000;
+
 const ActiveLessonPage = () => {
   const [, setLocation] = useLocation();
   const { selectedLearner } = useMode();
   const [isLoading, setIsLoading] = useState(true);
+  const [pollStartedAt] = useState(() => Date.now());
 
   // Use context learnerId, falling back to localStorage if context hasn't hydrated yet
   const learnerId = selectedLearner?.id ?? (() => {
@@ -41,8 +44,13 @@ const ActiveLessonPage = () => {
     enabled: !!learnerId,
     retry: 1,
     // Re-poll every 5s while images are still being generated in the background
+    // Stop polling after 120s or if image generation failed
     refetchInterval: (query) => {
       const d = query.state.data as any;
+      // Stop if image generation was flagged as failed
+      if (d?.spec?.imageGenerationFailed) return false;
+      // Stop if we've been polling too long
+      if (Date.now() - pollStartedAt > IMAGE_POLL_TIMEOUT_MS) return false;
       if (!d?.spec?.images?.length) return 5000;
       const hasReal = d.spec.images.some((img: any) => img.svgData || img.base64Data || img.path);
       return hasReal ? false : 5000;

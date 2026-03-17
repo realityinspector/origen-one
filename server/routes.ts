@@ -1019,20 +1019,34 @@ export function registerRoutes(app: Express): Server {
         }
       }
 
-      // Background image generation
+      // Background image generation with timeout and failure recovery
       const lessonId = newLesson.id;
       const savedSpec = spec;
+      const IMAGE_TIMEOUT_MS = 120_000;
       backgroundTask(`images-${lessonId}`, async () => {
-        const { images, diagrams } = await generateLessonImages(
-          savedSpec, topic, gradeLevel, finalSubject
-        );
-        if (images?.length) {
-          const imgPaths = images
-            .filter((img: any) => img.path)
-            .map((img: any) => ({ path: img.path, alt: img.alt || img.description, description: img.description }));
-          const mergedSpec = { ...savedSpec, images, diagrams: diagrams || [] };
-          await storage.updateLessonImages(lessonId, mergedSpec, imgPaths);
-          console.log(`[BG] Images generated for lesson ${lessonId}`);
+        try {
+          const imagePromise = generateLessonImages(
+            savedSpec, topic, gradeLevel, finalSubject
+          );
+          const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('Image generation timed out after 120s')), IMAGE_TIMEOUT_MS)
+          );
+          const { images, diagrams } = await Promise.race([imagePromise, timeoutPromise]);
+          if (images?.length) {
+            const imgPaths = images
+              .filter((img: any) => img.path)
+              .map((img: any) => ({ path: img.path, alt: img.alt || img.description, description: img.description }));
+            const mergedSpec = { ...savedSpec, images, diagrams: diagrams || [] };
+            await storage.updateLessonImages(lessonId, mergedSpec, imgPaths);
+            console.log(`[BG] Images generated for lesson ${lessonId}`);
+          }
+        } catch (imgErr) {
+          console.error(`[BG] Image generation failed for lesson ${lessonId}:`, imgErr);
+          // Flag the lesson so the client stops polling
+          const failedSpec = { ...savedSpec, imageGenerationFailed: true };
+          await storage.updateLessonImages(lessonId, failedSpec, []).catch(e =>
+            console.error(`[BG] Failed to flag image failure for lesson ${lessonId}:`, e)
+          );
         }
       });
 
@@ -1041,6 +1055,42 @@ export function registerRoutes(app: Express): Server {
       console.error('Error creating custom lesson:', error);
       return res.status(500).json({ error: "Failed to generate lesson content" });
     }
+  }));
+
+  // Retry image generation for a lesson where it previously failed
+  app.post("/api/lessons/:lessonId/retry-images", isAuthenticated, asyncHandler(async (req: AuthRequest, res) => {
+    if (!req.user) return res.status(401).json({ error: "Unauthorized" });
+    const lesson = await storage.getLessonById(req.params.lessonId);
+    if (!lesson) return res.status(404).json({ error: "Lesson not found" });
+    if (!lesson.spec) return res.status(400).json({ error: "Lesson has no spec" });
+
+    const lessonSpec = lesson.spec as any;
+    const IMAGE_TIMEOUT_MS = 120_000;
+    backgroundTask(`retry-images-${lesson.id}`, async () => {
+      try {
+        const imagePromise = generateLessonImages(
+          lessonSpec, lessonSpec.title || 'Lesson', lessonSpec.targetGradeLevel || 3, lesson.subject || 'general'
+        );
+        const timeoutPromise = new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Image retry timed out after 120s')), IMAGE_TIMEOUT_MS)
+        );
+        const { images, diagrams } = await Promise.race([imagePromise, timeoutPromise]);
+        if (images?.length) {
+          const imgPaths = images
+            .filter((img: any) => img.path)
+            .map((img: any) => ({ path: img.path, alt: img.alt || img.description, description: img.description }));
+          const mergedSpec = { ...lessonSpec, images, diagrams: diagrams || [], imageGenerationFailed: false };
+          await storage.updateLessonImages(lesson.id, mergedSpec, imgPaths);
+          console.log(`[BG] Retry images succeeded for lesson ${lesson.id}`);
+        }
+      } catch (imgErr) {
+        console.error(`[BG] Image retry failed for lesson ${lesson.id}:`, imgErr);
+        const failedSpec = { ...lessonSpec, imageGenerationFailed: true };
+        await storage.updateLessonImages(lesson.id, failedSpec, []).catch(() => {});
+      }
+    });
+
+    return res.json({ message: "Image generation retry started" });
   }));
 
   // Get a specific lesson by ID
