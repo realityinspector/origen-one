@@ -486,8 +486,8 @@ export async function generateLessonWithRetry(
       lastError = err instanceof Error ? err : new Error(String(err));
       const errMsg = lastError.message;
 
-      // Fatal errors — don't waste retries
-      const isFatal = /API error: 40[13]/.test(errMsg) || /API key/.test(errMsg);
+      // Fatal errors — don't waste retries (401 unauthorized, 402 no credits, 403 forbidden)
+      const isFatal = /API error: 40[123]/.test(errMsg) || /API key/.test(errMsg) || /Insufficient credits/.test(errMsg);
       if (isFatal) {
         console.error(`[LessonRetry] Fatal error on attempt ${attempt}/${maxRetries}: ${errMsg}`);
         throw lastError;
