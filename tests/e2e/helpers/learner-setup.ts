@@ -148,8 +148,11 @@ export async function setupLearnerSession(
   const learnerId = childResult.data?.id;
   if (!learnerId) throw new Error(`Failed to create child: ${JSON.stringify(childResult)}`);
 
-  // Store learnerId in localStorage for specs that read it
-  await page.evaluate((id) => localStorage.setItem('selectedLearnerId', String(id)), learnerId);
+  // Store learnerId and set learner mode in localStorage
+  await page.evaluate((id) => {
+    localStorage.setItem('selectedLearnerId', String(id));
+    localStorage.setItem('preferredMode', 'LEARNER');
+  }, learnerId);
 
   // Reload the dashboard so the SPA picks up the newly-created child
   await page.reload();
@@ -353,6 +356,9 @@ export async function spaNavigate(page: Page, path: string): Promise<void> {
  * learner home view, or falls back to page.goto('/learner').
  */
 export async function enterLearnerContext(page: Page, _childName?: string): Promise<void> {
+  // Set preferred mode to LEARNER in localStorage so LearnerRoute doesn't redirect
+  await page.evaluate(() => localStorage.setItem('preferredMode', 'LEARNER'));
+
   // Reload to pick up the child card
   await page.goto('/dashboard');
   await page.waitForLoadState('networkidle');

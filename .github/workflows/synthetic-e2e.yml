@@ -82,6 +82,9 @@ jobs:
           JWT_SECRET: test-jwt-secret
           NODE_ENV: test
           CI: true
+          ENABLE_SVG_LLM: '0'
+          ENABLE_OPENROUTER_IMAGES: '0'
+          MAX_IMAGES_PER_LESSON: '0'
 
       - name: Generate synthetic report
         if: always()
