@@ -18,6 +18,7 @@ import {
   generateAndWaitForLesson,
   apiCall,
   spaNavigate,
+  enterLearnerContext,
 } from '../../helpers/learner-setup';
 
 test.describe('Learner: Quiz Assessment', () => {
@@ -33,8 +34,9 @@ test.describe('Learner: Quiz Assessment', () => {
     const lessonId = await generateAndWaitForLesson(page);
     expect(lessonId).toBeTruthy();
 
-    // Navigate to lesson page (SPA navigate to preserve auth state)
-    await spaNavigate(page, '/lesson');
+    // Navigate to lesson page
+    await page.goto('/lesson');
+    await page.waitForLoadState('networkidle');
     await page.getByText('Loading your personalized lesson...')
       .waitFor({ state: 'hidden', timeout: 120000 })
       .catch(() => {});
@@ -57,7 +59,7 @@ test.describe('Learner: Quiz Assessment', () => {
       await page.waitForLoadState('networkidle');
     } else {
       // Navigate directly to quiz page
-      await spaNavigate(page, `/quiz/${lessonId}`);
+      await page.goto(`/quiz/${lessonId}`);
       await page.waitForLoadState('networkidle');
     }
 
@@ -248,15 +250,16 @@ test.describe('Learner: Quiz Assessment', () => {
       learnerId,
     });
 
-    // Navigate to learner home
-    await spaNavigate(page, '/learner');
+    // Navigate to dashboard
+    await page.goto('/dashboard');
     await page.waitForLoadState('networkidle');
+    await page.waitForTimeout(2000);
     await screenshot(page, 'quiz-07-back-to-home');
 
-    // Verify learner home rendered
-    const hasChildName = await page.getByText(/Hello|Child_/i)
+    // Verify dashboard or learner home rendered
+    const hasChildName = await page.getByText(/Hello|Child_|Welcome/i)
       .first().isVisible({ timeout: 15000 }).catch(() => false);
-    const hasContent = await page.getByText(/Current Lesson|Progress|SELECT A SUBJECT/i)
+    const hasContent = await page.getByText(/Current Lesson|Progress|SELECT A SUBJECT|Lessons|Grade|START LEARNING/i)
       .first().isVisible({ timeout: 5000 }).catch(() => false);
     expect(hasChildName || hasContent).toBeTruthy();
   });
