@@ -132,3 +132,6 @@ jobs:
         SESSION_SECRET: test-secret
         JWT_SECRET: test-jwt-secret
         NODE_ENV: test
+        ENABLE_SVG_LLM: '0'
+        ENABLE_OPENROUTER_IMAGES: '0'
+        MAX_IMAGES_PER_LESSON: '0'
