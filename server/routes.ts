@@ -976,6 +976,9 @@ export function registerRoutes(app: Express): Server {
         if (/API error: 402/.test(errMsg) || /Insufficient credits/.test(errMsg)) {
           return res.status(402).json({ error: "AI service billing issue. Please check OpenRouter credits." });
         }
+        if (/API error: 403/.test(errMsg) || /Key limit exceeded/.test(errMsg)) {
+          return res.status(402).json({ error: "AI service key limit exceeded. The OpenRouter API key's monthly spending limit needs to be increased at https://openrouter.ai/settings/keys" });
+        }
         return res.status(503).json({ error: "Lesson generation failed after multiple attempts. Please try again." });
       }
 
