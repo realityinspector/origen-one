@@ -33,6 +33,7 @@ import { findOrCreateTemplate } from './services/lesson-template-service';
 import { storeQuizAnswers, extractConceptTags } from './services/quiz-tracking-service';
 import { bulkUpdateMasteryFromAnswers, getConceptsNeedingReinforcement } from './services/mastery-service';
 import { storeQuestionHashes, getRecentQuestions } from './services/question-deduplication';
+import { validatePromptInput, delimitUserInput } from './services/prompt-safety';
 
 function hasRole(roles: string[]) {
   return (req: Request, res: Response, next: NextFunction): void => {
@@ -902,6 +903,26 @@ export function registerRoutes(app: Express): Server {
 
     if (!gradeLevel || !learnerId) {
       return res.status(400).json({ error: "Missing required fields: gradeLevel, learnerId" });
+    }
+
+    // Validate prompt safety on user-provided text fields
+    if (topic) {
+      const topicCheck = await validatePromptInput(topic);
+      if (!topicCheck.safe) {
+        return res.status(400).json({ error: `Invalid topic: ${topicCheck.reason}` });
+      }
+    }
+    if (subject) {
+      const subjectCheck = await validatePromptInput(subject);
+      if (!subjectCheck.safe) {
+        return res.status(400).json({ error: `Invalid subject: ${subjectCheck.reason}` });
+      }
+    }
+    if (category) {
+      const categoryCheck = await validatePromptInput(category);
+      if (!categoryCheck.safe) {
+        return res.status(400).json({ error: `Invalid category: ${categoryCheck.reason}` });
+      }
     }
 
     // Validate user permissions
