@@ -125,6 +125,11 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
         queryClient.invalidateQueries({ queryKey: ['/api/learner-profile', lesson.learnerId] });
       }
     },
+    onError: (_error) => {
+      // Mutation failed — answers are preserved in state so the user can retry.
+      // No state reset here; the submit button will re-enable automatically
+      // because isPending becomes false.
+    },
   });
 
   const handleSelectAnswer = (questionIndex: number, answerIndex: number) => {
@@ -152,9 +157,18 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
     }
   };
 
+  const [navigationFailed, setNavigationFailed] = useState(false);
   const handleContinue = () => {
-    // Redirect to learner home to see the new auto-generated lesson
-    setLocation('/learner');
+    try {
+      setLocation('/learner');
+      // If setLocation doesn't throw but the route doesn't change, fallback after a tick
+      setTimeout(() => {
+        // If we're still on this page after 500ms, show fallback
+        setNavigationFailed(true);
+      }, 500);
+    } catch {
+      setNavigationFailed(true);
+    }
   };
 
   if (error) {
@@ -175,16 +189,11 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
     );
   }
 
-  if (isLoading || submitAnswersMutation.isPending) {
+  if (isLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <FunLoader
-          message={submitAnswersMutation.isPending ? undefined : undefined}
-          progressMessages={
-            submitAnswersMutation.isPending
-              ? ['Checking your answers...', 'Almost done...', 'Calculating your score!']
-              : ['Getting your challenge ready...', 'Almost there...', 'Here it comes!']
-          }
+          progressMessages={['Getting your challenge ready...', 'Almost there...', 'Here it comes!']}
         />
       </SafeAreaView>
     );
@@ -272,8 +281,11 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
             </ScrollView>
             <TouchableOpacity style={[styles.skipDelegation, { borderColor: theme.colors.divider }]}
               onPress={() => setShowDelegation(false)}>
-              <Text style={[{ color: theme.colors.textSecondary, fontWeight: '600' }]}>Keep in Balance</Text>
+              <Text style={[{ color: theme.colors.textSecondary, fontWeight: '600' }]}>Skip for Now</Text>
             </TouchableOpacity>
+            <Text style={{ fontSize: 11, color: theme.colors.textSecondary, textAlign: 'center', marginTop: 6 }}>
+              Points stay in your balance until you save them
+            </Text>
           </View>
         </View>
       </Modal>
@@ -435,6 +447,17 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
             <TouchableOpacity style={[styles.continueButton, { backgroundColor: theme.colors.success }]} onPress={handleContinue}>
               <Text style={styles.continueButtonText}>Keep Going!</Text>
             </TouchableOpacity>
+
+            {navigationFailed && (
+              <TouchableOpacity
+                style={[styles.fallbackLink]}
+                onPress={() => { window.location.href = '/learner'; }}
+              >
+                <Text style={[styles.fallbackLinkText, { color: theme.colors.primary }]}>
+                  Tap here if the page didn't change
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         ) : (
           // Quiz Questions View
@@ -512,17 +535,41 @@ const QuizPage = ({ params }: { params?: { lessonId?: string } }) => {
               );
             })}
 
+            {/* Submission error banner with retry */}
+            {submitAnswersMutation.isError && (
+              <View style={[styles.submissionErrorBanner, { backgroundColor: '#FFF3F0', borderColor: theme.colors.error }]}>
+                <AlertCircle size={20} color={theme.colors.error} />
+                <Text style={[styles.submissionErrorText, { color: theme.colors.error }]}>
+                  Something went wrong saving your answers. Your answers are safe — try again!
+                </Text>
+              </View>
+            )}
+
+            {/* Saving indicator */}
+            {submitAnswersMutation.isPending && (
+              <View style={styles.savingIndicator}>
+                <Text style={[styles.savingText, { color: theme.colors.textSecondary }]}>
+                  Saving your answers...
+                </Text>
+              </View>
+            )}
+
             <TouchableOpacity
               style={[styles.submitButton, {
-                backgroundColor: theme.colors.primary,
-                opacity: selectedAnswers.length === displayQuestions.length &&
-                         selectedAnswers.every(ans => ans !== undefined) ? 1 : 0.5
+                backgroundColor: submitAnswersMutation.isError ? theme.colors.error : theme.colors.primary,
+                opacity: submitAnswersMutation.isPending ? 0.6 :
+                         (selectedAnswers.length === displayQuestions.length &&
+                         selectedAnswers.every(ans => ans !== undefined) ? 1 : 0.5)
               }]}
               onPress={handleSubmitQuiz}
-              disabled={selectedAnswers.length !== displayQuestions.length ||
+              disabled={submitAnswersMutation.isPending ||
+                       selectedAnswers.length !== displayQuestions.length ||
                        !selectedAnswers.every(ans => ans !== undefined)}
             >
-              <Text style={[styles.submitButtonText, { color: theme.colors.onPrimary }]}>I'm Done!</Text>
+              <Text style={[styles.submitButtonText, { color: theme.colors.onPrimary }]}>
+                {submitAnswersMutation.isPending ? 'Saving...' :
+                 submitAnswersMutation.isError ? 'Try Again' : "I'm Done!"}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -726,8 +773,8 @@ const styles = StyleSheet.create({
   pointsRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 6, gap: 8 },
   pointsEmoji: { fontSize: 18 },
   pointsLabel: { fontSize: 14, fontWeight: '600' },
-  goToGoalsBtn: { borderWidth: 1.5, borderRadius: 10, paddingVertical: 10, alignItems: 'center', marginTop: 8 },
-  goToGoalsBtnText: { fontWeight: '700', fontSize: 14 },
+  goToGoalsBtn: { borderWidth: 1.5, borderRadius: 10, paddingVertical: 10, paddingHorizontal: 16, alignItems: 'center', marginTop: 8 },
+  goToGoalsBtnText: { fontWeight: '700', fontSize: 14, textAlign: 'center' },
   // Delegation overlay
   delegationOverlay: {
     flex: 1,
@@ -815,6 +862,44 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '700',
     color: '#E65100',
+  },
+  // Submission error banner
+  submissionErrorBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    marginBottom: 12,
+    gap: 10,
+  },
+  submissionErrorText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+    lineHeight: 20,
+  },
+  // Saving indicator
+  savingIndicator: {
+    alignItems: 'center',
+    paddingVertical: 8,
+    marginBottom: 4,
+  },
+  savingText: {
+    fontSize: 14,
+    fontWeight: '600',
+    fontStyle: 'italic',
+  },
+  // Navigation fallback
+  fallbackLink: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    marginBottom: 24,
+  },
+  fallbackLinkText: {
+    fontSize: 14,
+    fontWeight: '600',
+    textDecorationLine: 'underline',
   },
 });
 

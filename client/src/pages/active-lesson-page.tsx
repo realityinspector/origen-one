@@ -1,28 +1,36 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   SafeAreaView,
 } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { apiRequest } from '../lib/queryClient';
+import { apiRequest, queryClient } from '../lib/queryClient';
 import { colors, typography, commonStyles } from '../styles/theme';
-import { ChevronRight, ArrowLeft } from 'react-feather';
-import EnhancedLessonContent from '../components/EnhancedLessonContent';
+import { ArrowLeft, RefreshCw } from 'react-feather';
+import LessonCardCarousel from '../components/LessonCardCarousel';
 import { useMode } from '../context/ModeContext';
 
-const IMAGE_POLL_TIMEOUT_MS = 120_000;
+function friendlyLessonError(error: any): { emoji: string; message: string } {
+  const msg = (error?.message || String(error || '')).toLowerCase();
+  const status = error?.status || 0;
+  if (status === 402 || msg.includes('billing') || msg.includes('credits')) {
+    return { emoji: '🔧', message: "Our lesson machine needs a tune-up. Ask a grown-up to check the settings." };
+  }
+  if (msg.includes('timeout') || msg.includes('network error') || msg.includes('no response')) {
+    return { emoji: '🌐', message: "We couldn't reach the lesson server. Check your internet and try again!" };
+  }
+  return { emoji: '😕', message: "We had trouble loading your lesson. Let's try again!" };
+}
 
 const ActiveLessonPage = () => {
   const [, setLocation] = useLocation();
   const { selectedLearner } = useMode();
   const [isLoading, setIsLoading] = useState(true);
-  const [pollStartedAt] = useState(() => Date.now());
 
   // Use context learnerId, falling back to localStorage if context hasn't hydrated yet
   const learnerId = selectedLearner?.id ?? (() => {
@@ -44,13 +52,8 @@ const ActiveLessonPage = () => {
     enabled: !!learnerId,
     retry: 1,
     // Re-poll every 5s while images are still being generated in the background
-    // Stop polling after 120s or if image generation failed
     refetchInterval: (query) => {
       const d = query.state.data as any;
-      // Stop if image generation was flagged as failed
-      if (d?.spec?.imageGenerationFailed) return false;
-      // Stop if we've been polling too long
-      if (Date.now() - pollStartedAt > IMAGE_POLL_TIMEOUT_MS) return false;
       if (!d?.spec?.images?.length) return 5000;
       const hasReal = d.spec.images.some((img: any) => img.svgData || img.base64Data || img.path);
       return hasReal ? false : 5000;
@@ -85,12 +88,19 @@ const ActiveLessonPage = () => {
   };
 
   if (error) {
+    const { emoji, message } = friendlyLessonError(error);
     return (
       <SafeAreaView style={styles.container}>
         <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>
-            Error loading lesson. Please try again.
-          </Text>
+          <Text style={styles.errorEmoji}>{emoji}</Text>
+          <Text style={styles.friendlyErrorText}>{message}</Text>
+          <TouchableOpacity
+            style={styles.retryButton}
+            onPress={() => queryClient.invalidateQueries({ queryKey: ['/api/lessons/active', learnerId] })}
+          >
+            <RefreshCw size={16} color={colors.onPrimary} style={{ marginRight: 6 }} />
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => setLocation('/learner')}
@@ -133,51 +143,30 @@ const ActiveLessonPage = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Minimal header — just back arrow + title */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButtonSmall} onPress={() => setLocation('/learner')}>
           <ArrowLeft size={24} color={colors.textPrimary} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{lesson.spec.title}</Text>
+        <Text style={styles.headerTitle} numberOfLines={1}>
+          {lesson.spec.title}
+        </Text>
         <View style={{ width: 24 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.lessonContent}>
-          <Text style={styles.lessonTitle}>{lesson.spec.title}</Text>
-          
-          <EnhancedLessonContent enhancedSpec={lesson.spec} />
-        </View>
-
-        <View style={styles.quizPrompt}>
-          <Text style={styles.quizPromptTitle}>Ready to Test Your Knowledge?</Text>
-          <Text style={styles.quizPromptText}>
-            Now that you've learned about {lesson.spec.title.toLowerCase()}, 
-            let's see what you remember with a quick quiz!
-          </Text>
-        </View>
-      </ScrollView>
-
-      <View style={styles.footer}>
-        <TouchableOpacity style={styles.quizButton} onPress={handleStartQuiz}>
-          <Text style={styles.quizButtonText}>Start Quiz</Text>
-          <ChevronRight size={20} color={colors.onPrimary} />
-        </TouchableOpacity>
-      </View>
+      {/* Card carousel — takes full remaining height */}
+      <LessonCardCarousel
+        enhancedSpec={lesson.spec}
+        onStartQuiz={handleStartQuiz}
+      />
     </SafeAreaView>
   );
 };
-
-
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background,
-  },
-  lessonText: {
-    ...typography.body1,
-    lineHeight: 24,
-    marginBottom: 16,
   },
   header: {
     flexDirection: 'row',
@@ -192,63 +181,11 @@ const styles = StyleSheet.create({
   headerTitle: {
     ...typography.subtitle1,
     textAlign: 'center',
+    flex: 1,
+    marginHorizontal: 8,
   },
   backButtonSmall: {
     padding: 4,
-  },
-  scrollContent: {
-    flexGrow: 1,
-    padding: 16,
-  },
-  lessonContent: {
-    backgroundColor: colors.surfaceColor,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 24,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  lessonTitle: {
-    ...typography.h2,
-    marginBottom: 16,
-  },
-  imageContainer: {
-    marginVertical: 16,
-    alignItems: 'center',
-  },
-  quizPrompt: {
-    backgroundColor: colors.primaryLight,
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 24,
-  },
-  quizPromptTitle: {
-    ...typography.subtitle1,
-    color: colors.onPrimary,
-    marginBottom: 8,
-  },
-  quizPromptText: {
-    ...typography.body2,
-    color: colors.onPrimary,
-  },
-  footer: {
-    padding: 16,
-    backgroundColor: colors.surfaceColor,
-    borderTopWidth: 1,
-    borderTopColor: colors.divider,
-  },
-  quizButton: {
-    ...commonStyles.button,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  quizButtonText: {
-    ...commonStyles.buttonText,
-    marginRight: 8,
   },
   loadingContainer: {
     flex: 1,
@@ -268,17 +205,41 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 24,
   },
+  errorEmoji: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  friendlyErrorText: {
+    ...typography.body1,
+    color: colors.textPrimary,
+    textAlign: 'center',
+    marginBottom: 20,
+    lineHeight: 24,
+    paddingHorizontal: 16,
+  },
   errorText: {
     ...typography.body1,
     color: colors.error,
     marginBottom: 16,
     textAlign: 'center',
   },
-  backButton: {
+  retryButton: {
     ...commonStyles.button,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  retryButtonText: {
+    ...commonStyles.buttonText,
+  },
+  backButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
   },
   backButtonText: {
-    ...commonStyles.buttonText,
+    ...typography.body2,
+    color: colors.textSecondary,
+    textDecorationLine: 'underline',
   },
 });
 

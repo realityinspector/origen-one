@@ -1,7 +1,8 @@
 import { askOpenRouter } from '../openrouter';
 import { generateImage, generateDiagram, MAX_IMAGES_PER_LESSON } from './image-generation-router';
 import { EnhancedLessonSpec, LessonSection, LessonImage, LessonDiagram } from '../../shared/schema';
-import { saveBase64Image } from './image-storage';
+// Images are stored inline as base64/SVG in the lesson spec JSONB.
+// No filesystem storage needed — Railway's ephemeral FS wipes on deploy.
 import { generateEducationalSVG } from './svg-llm-service';
 import { LESSON_PROMPTS, IMAGE_PROMPTS, getReadingLevelInstructions, getMathematicalNotationRules } from '../prompts';
 import { validateLessonSpec } from './lesson-validator';
@@ -342,32 +343,15 @@ export async function generateEnhancedLesson(
             };
           }
 
-          // Base64 result — try to save to filesystem
+          // Base64 result — stored inline in lesson spec
           if (result.base64Data) {
-            try {
-              const imagePath = await saveBase64Image(
-                result.base64Data,
-                `lesson_${topic.replace(/\s+/g, '_')}_${imagePrompt.id}`
-              );
-
-              return {
-                id: imagePrompt.id,
-                description: imagePrompt.description,
-                alt: imagePrompt.description,
-                base64Data: result.base64Data,
-                promptUsed: result.promptUsed,
-                path: imagePath,
-              };
-            } catch (saveError) {
-              console.error('Error saving image to filesystem:', saveError);
-              return {
-                id: imagePrompt.id,
-                description: imagePrompt.description,
-                alt: imagePrompt.description,
-                base64Data: result.base64Data,
-                promptUsed: result.promptUsed,
-              };
-            }
+            return {
+              id: imagePrompt.id,
+              description: imagePrompt.description,
+              alt: imagePrompt.description,
+              base64Data: result.base64Data,
+              promptUsed: result.promptUsed,
+            };
           }
         }
 
@@ -464,7 +448,6 @@ export async function generateLessonWithRetry(
   } = options;
 
   let lastError: Error | undefined;
-  const BASE_DELAY_MS = 2000;
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
@@ -497,7 +480,7 @@ export async function generateLessonWithRetry(
 
       const isLastAttempt = attempt === maxRetries;
       if (!isLastAttempt) {
-        const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1);
+        const delay = 3000 * Math.pow(2, attempt - 1);
         console.warn(`[LessonRetry] Attempt ${attempt}/${maxRetries} failed (retrying in ${delay}ms): ${errMsg}`);
         await new Promise(r => setTimeout(r, delay));
       } else {
@@ -596,43 +579,30 @@ export async function generateLessonImages(
     });
   }
 
-  // Cap and generate images
+  // Cap and generate images — isolate failures per image so one bad generation
+  // doesn't prevent the rest from completing
   const cappedPrompts = allImagePrompts.slice(0, MAX_IMAGES_PER_LESSON);
   const imagePromises = cappedPrompts.map(async (imagePrompt) => {
-    const result = await generateImage(
-      imagePrompt.prompt,
-      imagePrompt.description,
-      gradeLevel,
-      { subject: subject || topic }
-    );
+    try {
+      const result = await generateImage(
+        imagePrompt.prompt,
+        imagePrompt.description,
+        gradeLevel,
+        { subject: subject || topic }
+      );
 
-    if (result) {
-      if (result.svgData) {
-        return {
-          id: imagePrompt.id,
-          description: imagePrompt.description,
-          alt: imagePrompt.description,
-          svgData: result.svgData,
-          promptUsed: result.promptUsed,
-        };
-      }
-
-      if (result.base64Data) {
-        try {
-          const imagePath = await saveBase64Image(
-            result.base64Data,
-            `lesson_${topic.replace(/\s+/g, '_')}_${imagePrompt.id}`
-          );
+      if (result) {
+        if (result.svgData) {
           return {
             id: imagePrompt.id,
             description: imagePrompt.description,
             alt: imagePrompt.description,
-            base64Data: result.base64Data,
+            svgData: result.svgData,
             promptUsed: result.promptUsed,
-            path: imagePath,
           };
-        } catch (saveError) {
-          console.error('Error saving image to filesystem:', saveError);
+        }
+
+        if (result.base64Data) {
           return {
             id: imagePrompt.id,
             description: imagePrompt.description,
@@ -642,8 +612,11 @@ export async function generateLessonImages(
           };
         }
       }
+    } catch (imgErr) {
+      console.error(`[LessonImages] Failed to generate image ${imagePrompt.id}:`, imgErr);
     }
 
+    // Fallback placeholder — lesson will render without this image gracefully
     return {
       id: imagePrompt.id,
       description: imagePrompt.description,

@@ -8,7 +8,7 @@ import { synchronizeToExternalDatabase } from "./sync-utils";
 import { InsertDbSyncConfig } from "../shared/schema";
 import { USE_AI } from "./config/flags";
 import { db, pool, withRetry } from "./db";
-import { sql, count, eq, and } from "drizzle-orm";
+import { sql, count, eq, and, like, ne } from "drizzle-orm";
 import crypto from "crypto";
 import rateLimit from 'express-rate-limit';
 
@@ -1090,28 +1090,42 @@ export function registerRoutes(app: Express): Server {
         }
       }
 
-      // Background image generation
+      // Background image generation — retry once on failure
       const lessonId = newLesson.id;
       const savedSpec = spec;
       backgroundTask(`images-${lessonId}`, async () => {
-        const { images: generatedImages, diagrams } = await generateLessonImages(
-          savedSpec, topic, gradeLevel, finalSubject
-        );
-        if (generatedImages?.length) {
-          const imgPaths = generatedImages
-            .filter((img: any) => img.path)
-            .map((img: any) => ({ path: img.path, alt: img.alt || img.description, description: img.description }));
-          // Merge generated images into the original spec images by ID,
-          // preserving metadata for images that weren't generated (over the cap)
-          const generatedById = new Map(generatedImages.map((img: any) => [img.id, img]));
-          const mergedImages = (savedSpec.images || []).map((origImg: any) => {
-            const generated = generatedById.get(origImg.id);
-            return generated ? { ...origImg, ...generated } : origImg;
-          });
-          const mergedSpec = { ...savedSpec, images: mergedImages, diagrams: diagrams || [] };
-          await storage.updateLessonImages(lessonId, mergedSpec, imgPaths);
-          console.log(`[BG] Images generated for lesson ${lessonId} (${generatedImages.length} generated, ${mergedImages.length} total)`);
+        let lastErr: Error | undefined;
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          try {
+            const { images: generatedImages, diagrams } = await generateLessonImages(
+              savedSpec, topic, gradeLevel, finalSubject
+            );
+            if (generatedImages?.length) {
+              const imgPaths = generatedImages
+                .filter((img: any) => img.path)
+                .map((img: any) => ({ path: img.path, alt: img.alt || img.description, description: img.description }));
+              // Merge generated images into the original spec images by ID,
+              // preserving metadata for images that weren't generated (over the cap)
+              const generatedById = new Map(generatedImages.map((img: any) => [img.id, img]));
+              const mergedImages = (savedSpec.images || []).map((origImg: any) => {
+                const generated = generatedById.get(origImg.id);
+                return generated ? { ...origImg, ...generated } : origImg;
+              });
+              const mergedSpec = { ...savedSpec, images: mergedImages, diagrams: diagrams || [] };
+              await storage.updateLessonImages(lessonId, mergedSpec, imgPaths);
+              console.log(`[BG] Images generated for lesson ${lessonId} (${generatedImages.length} generated, ${mergedImages.length} total)`);
+            }
+            return; // success — exit retry loop
+          } catch (err) {
+            lastErr = err instanceof Error ? err : new Error(String(err));
+            if (attempt < 2) {
+              console.warn(`[BG] Image generation attempt ${attempt} failed for lesson ${lessonId}, retrying in 5s: ${lastErr.message}`);
+              await new Promise(r => setTimeout(r, 5000));
+            }
+          }
         }
+        // Both attempts failed — lesson will display without images (graceful degradation)
+        console.error(`[BG] Image generation failed for lesson ${lessonId} after 2 attempts: ${lastErr?.message}`);
       });
 
       return res.json(newLesson);
@@ -2048,8 +2062,22 @@ export function registerRoutes(app: Express): Server {
     return res.json({ cleaned, message: `Retired ${cleaned} stale lesson(s)` });
   }));
 
+  // Admin: purge E2E test users (email matching %@test.com, non-ADMIN)
+  app.delete("/api/admin/cleanup-test-users", hasRole(["ADMIN"]), asyncHandler(async (_req: Request, res: Response) => {
+    const testUsers = await db.select().from(users).where(
+      and(
+        like(users.email, '%@test.com'),
+        ne(users.role, 'ADMIN')
+      )
+    );
+    for (const u of testUsers) {
+      await db.delete(users).where(eq(users.id, u.id));
+    }
+    return res.json({ deleted: testUsers.length, users: testUsers.map(u => ({ id: u.id, username: u.username, email: u.email })) });
+  }));
+
   // Error handling middleware
-  app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
     console.error(err);
     res.status(500).json({ error: "An internal server error occurred" });
   });
