@@ -69,9 +69,9 @@ Complete list of all user-facing workflows organized by role.
 
 ## E2E Test Coverage
 
-Tests in `tests/e2e/specs/` verify these workflows (71 tests, 15 spec files):
+Tests in `tests/e2e/specs/` verify these workflows (116 tests, 21 spec files):
 
-### Learner Persona (9 specs, 43 tests)
+### Learner Persona (10 specs, 48 tests)
 
 | Test File | Workflows Covered |
 |-----------|------------------|
@@ -84,8 +84,15 @@ Tests in `tests/e2e/specs/` verify these workflows (71 tests, 15 spec files):
 | `specs/learner/svg-rendering.spec.ts` | #8 — SVG in API response, DOM rendering, sanitization |
 | `specs/learner/input-safety.spec.ts` | #8 — Prompt injection prevention, DAN mode, env exfiltration |
 | `specs/learner/chaotic-kid.spec.ts` | #6 #8 — Spam-click, cancel mid-gen, rapid subject switch, refresh during load, nav away/back, random taps, mash forward/back, indecisive confirm, bookmark recovery, error recovery |
+| `specs/learner/template-reuse.spec.ts` | #8 — Lesson template reuse |
 
-### Parent Persona (6 specs, 24 tests)
+### Auth (1 spec, 7 tests)
+
+| Test File | Workflows Covered |
+|-----------|------------------|
+| `specs/auth/registration-login.spec.ts` | #2 — Registration and login flow |
+
+### Parent Persona (8 specs, 55 tests)
 
 | Test File | Workflows Covered |
 |-----------|------------------|
@@ -95,6 +102,15 @@ Tests in `tests/e2e/specs/` verify these workflows (71 tests, 15 spec files):
 | `specs/parent/prompt-audit.spec.ts` | #8 #18 — Lesson API transparency, reports page, progress, dashboard child info |
 | `specs/parent/public-pages.spec.ts` | #1 #3 #4 — Welcome page, auth tabs, privacy, terms |
 | `specs/parent/rewards.spec.ts` | #19 — Rewards page load, create reward goal, tabs/sections |
+| `specs/parent/signup-login.spec.ts` | #2 — Signup and login flows |
+| `specs/parent/parent-workflows.spec.ts` | #14 #15 — Parent workflow scenarios |
+| `specs/parent/workflow-validation.spec.ts` | #14 #15 #19 — End-to-end workflow validations |
+
+### Public (1 spec, 6 tests)
+
+| Test File | Workflows Covered |
+|-----------|------------------|
+| `specs/public/public-pages.spec.ts` | #1 #3 #4 — Public-facing pages (welcome, privacy, terms) |
 
 ### Workflow Coverage Map
 

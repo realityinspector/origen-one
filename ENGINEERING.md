@@ -197,7 +197,7 @@ BITTENSOR_WALLET_HOTKEY=...
 - Neon serverless PostgreSQL with WebSocket connections
 - Connection pooling (max 10), keep-alive pings every 2 min
 - Migrations auto-run on startup; failures don't block server start
-- Migration folder: `drizzle/migrations/` (0000-0010)
+- Migration folder: `drizzle/migrations/` (0000-0011)
 - First registered user auto-promoted to ADMIN
 
 ## Security Notes
@@ -219,7 +219,7 @@ SVG content is sanitized server-side via a regex-based sanitizer in `server/serv
 - `npx playwright test` — E2E tests (auto-starts local server)
 - `PLAYWRIGHT_BASE_URL=https://sunschool.xyz npx playwright test` — E2E against production
 
-### E2E Test Suite (82 tests across 15 spec files)
+### E2E Test Suite (116 tests across 21 spec files)
 
 Tests live in `tests/e2e/specs/` organized by persona:
 
@@ -231,15 +231,21 @@ Tests live in `tests/e2e/specs/` organized by persona:
 | | `achievements.spec.ts` | 5 | Progress page, zero state, lesson history, mastery |
 | | `points-rewards.spec.ts` | 5 | Point balance, goals page, reward progress |
 | | `card-carousel.spec.ts` | 5 | Cover card render, progress bar, navigation |
-| | `svg-rendering.spec.ts` | 6 | SVG in API response, DOM rendering, sanitization |
+| | `svg-rendering.spec.ts` | 3 | SVG in API response, DOM rendering, sanitization |
 | | `input-safety.spec.ts` | 8 | Prompt injection, DAN mode, env var exfiltration |
 | | `chaotic-kid.spec.ts` | 10 | Spam-click, cancel mid-gen, rapid subject switch, refresh during load, random taps, bookmark recovery, error recovery |
+| | `template-reuse.spec.ts` | 1 | Lesson template reuse |
+| **Auth** | `registration-login.spec.ts` | 7 | Registration and login flow |
 | **Parent** | `auth.spec.ts` | 4 | Login form, invalid creds, registration, token clearing |
 | | `dashboard.spec.ts` | 5 | Dashboard loads, stats, reports nav, rewards nav, mode switch |
-| | `learner-management.spec.ts` | 5 | Learner list, add child, child cards, add-learner page |
-| | `prompt-audit.spec.ts` | 5 | Lesson API transparency, reports, progress, dashboard |
-| | `public-pages.spec.ts` | 7 | Welcome, auth tabs, privacy, terms |
-| | `rewards.spec.ts` | 6 | Rewards page, create goal, tabs/sections |
+| | `learner-management.spec.ts` | 4 | Learner list, add child, child cards, add-learner page |
+| | `prompt-audit.spec.ts` | 4 | Lesson API transparency, reports, progress, dashboard |
+| | `public-pages.spec.ts` | 4 | Welcome, auth tabs, privacy, terms |
+| | `rewards.spec.ts` | 3 | Rewards page, create goal, tabs/sections |
+| | `signup-login.spec.ts` | 4 | Signup and login flows |
+| | `parent-workflows.spec.ts` | 8 | Parent workflow scenarios |
+| | `workflow-validation.spec.ts` | 19 | End-to-end workflow validations |
+| **Public** | `public-pages.spec.ts` | 6 | Public-facing pages (welcome, privacy, terms) |
 
 ### Test Helpers
 
